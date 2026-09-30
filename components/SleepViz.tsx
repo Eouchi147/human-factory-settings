@@ -108,13 +108,13 @@ export function HalfLifeChart({ start = 17, bed = 23 }: { start?: number; bed?: 
         {at(5)}% still there
       </text>
       <text x={X(9.6)} y={Y(100 * Math.pow(0.5, 9.6 / 9.5)) - 8} fontFamily={MONO} fontSize="9.5" fill="rgba(255,122,61,.8)">
-        slow, 9.5 h
+        slow body
       </text>
       <text x={X(2.4) + 4} y={Y(100 * Math.pow(0.5, 2.4 / 1.5)) + 14} fontFamily={MONO} fontSize="9.5" fill="rgba(255,122,61,.8)">
-        fast, 1.5 h
+        fast body
       </text>
       <text x={X(0.3)} y={T - 8} fontFamily={MONO} fontSize="9.5" fill="rgba(236,238,241,.6)">
-        SHARE OF THE DOSE LEFT
+        CAFFEINE STILL IN YOU
       </text>
     </svg>
   );
@@ -140,7 +140,7 @@ export function PressureSketch() {
     [40, 48],
   ];
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Schematic: sleep pressure rises through the waking day and drains away during sleep, two days shown">
+    <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="A simple drawing, not real data: sleepiness builds through the day while you are awake and drains away while you sleep, two days shown">
       {nights.map(([a, b]) => (
         <rect key={a} x={X(a)} y={T - 10} width={X(b) - X(a)} height={H - T - B + 10} fill="rgba(181,156,240,.08)" />
       ))}
@@ -152,13 +152,13 @@ export function PressureSketch() {
         </text>
       ))}
       <text x={X(8)} y={T + 2} textAnchor="middle" fontFamily={MONO} fontSize="9.5" fill="rgba(236,238,241,.6)">
-        AWAKE · PRESSURE BUILDS
+        AWAKE · SLEEPINESS BUILDS
       </text>
       <text x={X(20)} y={T + 2} textAnchor="middle" fontFamily={MONO} fontSize="9.5" fill="#C9B6F5">
         ASLEEP
       </text>
       <text x={L} y={H - 8} fontFamily={MONO} fontSize="9" fill="rgba(236,238,241,.45)">
-        SCHEMATIC, NOT MEASURED DATA
+        A SIMPLE DRAWING, NOT REAL DATA
       </text>
     </svg>
   );

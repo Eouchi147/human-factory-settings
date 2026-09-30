@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import s from "./restore.module.css";
+import s from "./feel-better.module.css";
 import { Icon, type IconName } from "@/components/Icons";
 import { Ev } from "@/components/Evidence";
 import { Reveal } from "@/components/Reveal";
@@ -19,7 +19,7 @@ const SETTINGS: Setting[] = [
     line: "Caffeine, light and timing: the settings that decide how rested you wake up.",
     status: "ready",
     links: [
-      { href: "/restore/sleep-and-caffeine", label: "Plan · Protect your sleep from caffeine" },
+      { href: "/feel-better/sleep-and-caffeine", label: "Plan · Protect your sleep from caffeine" },
       { href: "/stories/why-you-wake-up-tired", label: "Story · Why you wake up tired" },
     ],
   },

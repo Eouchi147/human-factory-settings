@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import s from "../restore.module.css";
+import s from "../feel-better.module.css";
 import { CaffeinePlan } from "@/components/CaffeinePlan";
 import { Ev } from "@/components/Evidence";
 import { Icon } from "@/components/Icons";
@@ -16,7 +16,7 @@ export default function CaffeinePlanPage() {
       <div className="wrap">
         <header className="stack gap-12" style={{ maxWidth: 820, marginBottom: 32 }}>
           <nav className="cap" aria-label="Breadcrumb" style={{ display: "flex", gap: 8 }}>
-            <Link href="/restore" style={{ color: "var(--ink3)", textDecoration: "none" }}>
+            <Link href="/feel-better" style={{ color: "var(--ink3)", textDecoration: "none" }}>
               Restore
             </Link>
             <span aria-hidden="true">/</span>

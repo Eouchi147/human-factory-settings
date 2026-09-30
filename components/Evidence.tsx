@@ -7,8 +7,8 @@ export const LEVEL_NAMES: Record<number, string> = {
   3: "Good evidence",
   2: "Some evidence",
   1: "Early evidence",
-  0: "Tradition, not tested",
-  [-1]: "No evidence of benefit",
+  0: "Old idea, not tested",
+  [-1]: "No proof it works",
 };
 
 /** Maps the words our guides use in their Evidence columns to a level on the meter. */
@@ -38,7 +38,7 @@ export function Ev({ level, text }: { level: Level; text?: string }) {
   );
 }
 
-export function Measured({ text = "Measured on the reference body" }: { text?: string }) {
+export function Measured({ text = "Measured on our 3D body" }: { text?: string }) {
   return (
     <span className="ms">
       <Icon name="ruler" size={14} stroke={1.7} />

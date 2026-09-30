@@ -5,18 +5,17 @@ import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { Glass, GlassShadow } from "./Glass";
 import { Icon, Logo } from "./Icons";
-import { DepthSwitch } from "./Depth";
 
 const NAV = [
-  { href: "/explore", label: "Explore", icon: "explore" as const },
-  { href: "/restore", label: "Restore", icon: "restore" as const },
-  { href: "/you", label: "You", icon: "you" as const },
-  { href: "/library", label: "Library", icon: "book" as const },
+  { href: "/body", label: "Your body", short: "Body", icon: "explore" as const },
+  { href: "/feel-better", label: "Feel better", short: "Feel better", icon: "restore" as const },
+  { href: "/watch", label: "Watch", short: "Watch", icon: "play" as const },
+  { href: "/quiz", label: "Quiz", short: "Quiz", icon: "dial" as const },
 ];
 
 function isOn(path: string, href: string) {
-  if (href === "/explore") return path.startsWith("/explore") || path.startsWith("/stories");
-  if (href === "/restore") return path.startsWith("/restore") || path.startsWith("/guides");
+  if (href === "/body") return path.startsWith("/body") || path.startsWith("/stories");
+  if (href === "/feel-better") return path.startsWith("/feel-better") || path.startsWith("/guides");
   return path.startsWith(href);
 }
 
@@ -46,16 +45,11 @@ export function SiteHeader() {
                 {n.label}
               </Link>
             ))}
-            <Link href="/films" className={`nav-link ${path.startsWith("/films") ? "on" : ""}`} aria-current={path.startsWith("/films") ? "page" : undefined}>
-              Films
-            </Link>
           </nav>
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <DepthSwitch />
-            <Link className="btn btn-sm" href="/you">
-              Find your setting
-            </Link>
-          </div>
+          <Link href="/how-we-check" className={`nav-link ${path.startsWith("/how-we-check") ? "on" : ""}`} style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+            <Icon name="check" size={15} />
+            How we check facts
+          </Link>
         </Glass>
       </div>
 
@@ -85,9 +79,6 @@ export function SiteHeader() {
             Human Factory Settings
           </span>
         </Link>
-        <Link href="/films/fig-01" className="icon-btn" aria-label="Watch Fig. 01" style={{ width: 40, height: 40 }}>
-          <Icon name="play" size={17} />
-        </Link>
       </div>
     </header>
   );
@@ -104,7 +95,7 @@ export function TabBar() {
           return (
             <Link key={n.href} href={n.href} className={on ? "on" : ""} aria-current={on ? "page" : undefined}>
               <Icon name={n.icon} size={21} />
-              <span>{n.label}</span>
+              <span>{n.short}</span>
             </Link>
           );
         })}

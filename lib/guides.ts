@@ -19,7 +19,7 @@ const slugify = (s: string) =>
     .replace(/\s+/g, "-");
 
 const LEVELS: [RegExp, number, string?][] = [
-  [/^No evidence of benefit/, -1, "No evidence of benefit"],
+  [/^No evidence of benefit/, -1, "No proof it works"],
   [/^Harm signal/, -1, "Harm signal"],
   [/^Not a scientific term/, -1, "Not a scientific term"],
   [/^Strong/, 4],

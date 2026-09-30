@@ -41,7 +41,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
           <article>
             <header className={s.head}>
               <nav className="cap" aria-label="Breadcrumb" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <Link href="/restore" style={{ color: "var(--ink3)", textDecoration: "none" }}>
+                <Link href="/feel-better" style={{ color: "var(--ink3)", textDecoration: "none" }}>
                   Restore
                 </Link>
                 <span aria-hidden="true">/</span>

@@ -160,8 +160,8 @@ function Result({ r, restart }: { r: { e: number; n: number; t: keyof typeof TEM
   const share = async () => {
     const text = `My factory setting: ${T.name} ${S.name}. Outgoing ${r.e}/100, sensitivity ${r.n}/100.`;
     try {
-      if (navigator.share) await navigator.share({ title: "Human Factory Settings", text, url: window.location.origin + "/you" });
-      else await navigator.clipboard.writeText(`${text} ${window.location.origin}/you`);
+      if (navigator.share) await navigator.share({ title: "Human Factory Settings", text, url: window.location.origin + "/quiz" });
+      else await navigator.clipboard.writeText(`${text} ${window.location.origin}/quiz`);
     } catch {
       /* the viewer cancelled */
     }

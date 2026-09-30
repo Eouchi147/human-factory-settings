@@ -4,15 +4,15 @@ import { createContext, useCallback, useContext, useEffect, useId, useState, typ
 import { motion } from "motion/react";
 
 export type Depth = 0 | 1 | 2;
-const NAMES = ["Simple", "Clear", "Expert"] as const;
-const KEY = "hfs-depth";
+const NAMES = ["Simple", "Detailed", "Expert"] as const;
+const KEY = "hfs-depth-v2";
 
 type Ctx = { depth: Depth; setDepth: (d: Depth) => void };
-const DepthCtx = createContext<Ctx>({ depth: 1, setDepth: () => {} });
+const DepthCtx = createContext<Ctx>({ depth: 0, setDepth: () => {} });
 
-/** One switch for the whole site: Simple for a 12-year-old, Clear for adults, Expert for clinicians. */
+/** One setting for the whole site: Simple (a 12-year-old follows it), Detailed (more of the how), Expert (the technical terms and numbers). Simple is the default. */
 export function DepthProvider({ children }: { children: ReactNode }) {
-  const [depth, setD] = useState<Depth>(1);
+  const [depth, setD] = useState<Depth>(0);
   useEffect(() => {
     try {
       const v = window.localStorage.getItem(KEY);
@@ -36,10 +36,10 @@ export function useDepth() {
   return useContext(DepthCtx);
 }
 
-export function DepthSwitch({ label = "Depth", size = "md" }: { label?: string; size?: "sm" | "md" }) {
+export function DepthSwitch({ label = "Read it", size = "md", showLabel = true }: { label?: string; size?: "sm" | "md"; showLabel?: boolean }) {
   const { depth, setDepth } = useDepth();
   const group = useId();
-  return (
+  const seg = (
     <div className="seg" role="radiogroup" aria-label={label} style={size === "sm" ? { transform: "scale(.94)", transformOrigin: "right center" } : undefined}>
       {NAMES.map((n, i) => (
         <button key={n} type="button" role="radio" aria-checked={depth === i} className={depth === i ? "on" : ""} onClick={() => setDepth(i as Depth)}>
@@ -47,6 +47,15 @@ export function DepthSwitch({ label = "Depth", size = "md" }: { label?: string; 
           <span style={{ position: "relative" }}>{n}</span>
         </button>
       ))}
+    </div>
+  );
+  if (!showLabel) return seg;
+  return (
+    <div className="depth-switch">
+      <span className="cap" aria-hidden="true">
+        {label}
+      </span>
+      {seg}
     </div>
   );
 }

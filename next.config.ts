@@ -6,6 +6,19 @@ const nextConfig: NextConfig = {
   images: {
     formats: ["image/avif", "image/webp"],
   },
+  async redirects() {
+    // Old preview paths, renamed to plain words on 30 Sep 2026.
+    return [
+      { source: "/explore", destination: "/body", permanent: true },
+      { source: "/explore/:slug", destination: "/body/:slug", permanent: true },
+      { source: "/films", destination: "/watch", permanent: true },
+      { source: "/films/fig-01", destination: "/watch/your-body-builds-itself", permanent: true },
+      { source: "/you", destination: "/quiz", permanent: true },
+      { source: "/restore", destination: "/feel-better", permanent: true },
+      { source: "/restore/:path*", destination: "/feel-better/:path*", permanent: true },
+      { source: "/library", destination: "/how-we-check", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

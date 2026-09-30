@@ -36,7 +36,7 @@ function Visual({ kind }: { kind: Station["visual"] }) {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 12, width: "100%" }}>
         {[
           { svg: ADENOSINE_SVG, name: "Adenosine", sub: "The sleep signal", color: "var(--violet-ink)" },
-          { svg: CAFFEINE_SVG, name: "Caffeine", sub: "Same double ring", color: "var(--signal-ink)" },
+          { svg: CAFFEINE_SVG, name: "Caffeine", sub: "Almost the same shape", color: "var(--signal-ink)" },
         ].map((m) => (
           <figure key={m.name} className="glass" style={{ margin: 0, borderRadius: 20, padding: 16, display: "flex", flexDirection: "column", gap: 10 }}>
             <div dangerouslySetInnerHTML={{ __html: m.svg }} />
@@ -55,14 +55,14 @@ function Visual({ kind }: { kind: Station["visual"] }) {
       <div className="glass" style={{ borderRadius: 22, padding: "16px 12px 10px", width: "100%" }}>
         <HalfLifeChart />
         <p className="cap" style={{ margin: "6px 8px 4px", textTransform: "none", letterSpacing: ".02em", lineHeight: 1.5 }}>
-          Arithmetic on the published half-life: the solid line is the average of 5 hours, the band the normal range of 1.5 to 9.5 hours.
+          How much of a 17:00 coffee is still in you, hour by hour. The line is the average person; the shaded band shows how much people differ.
         </p>
       </div>
     );
   if (kind === "stat")
     return (
       <div className="glass" style={{ borderRadius: 24, padding: 28, width: "100%", display: "flex", flexDirection: "column", gap: 18 }}>
-        <div className="kick">Drake et al. 2013 · 400 mg</div>
+        <div className="kick">A sleep study · Drake and colleagues, 2013</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 10 }}>
           {["0 h", "3 h", "6 h"].map((t) => (
             <div key={t} style={{ border: "1px solid var(--edge)", borderRadius: 16, padding: "14px 12px", background: "rgba(18,21,26,.5)" }}>
@@ -74,14 +74,14 @@ function Visual({ kind }: { kind: Station["visual"] }) {
           ))}
         </div>
         <div style={{ fontSize: 26, fontWeight: 650, lineHeight: 1.2, letterSpacing: "-.01em" }} className="x108">
-          All three disturbed sleep. At 6 hours, still <span className="sig">more than an hour</span> less of it.
+          Caffeine at all three times disturbed sleep. Even 6 hours before bed, people slept <span className="sig">more than an hour</span> less.
         </div>
       </div>
     );
   return (
     <div className="stack gap-16" style={{ alignItems: "center", width: "100%" }}>
       <ClockRing from={17} to={23} size={300} />
-      <Link href="/restore/sleep-and-caffeine" className="btn btn-signal">
+      <Link href="/feel-better/sleep-and-caffeine" className="btn btn-signal">
         Make it your plan
         <Icon name="arrow" size={16} />
       </Link>
@@ -133,7 +133,6 @@ export function StoryScroller({ stations }: { stations: Station[] }) {
 
       <div className="story-text">
         <div className="story-depth">
-          <span className="cap">Read it at your depth</span>
           <DepthSwitch />
         </div>
         {stations.map((st, i) => (
@@ -147,7 +146,7 @@ export function StoryScroller({ stations }: { stations: Station[] }) {
             aria-labelledby={`st-${st.id}`}
           >
             <span className="cap">
-              Station {i + 1} of {stations.length}
+              Step {i + 1} of {stations.length}
             </span>
             <h2 id={`st-${st.id}`} className="h2">
               {st.title} <span className="serif">{st.serif}</span>

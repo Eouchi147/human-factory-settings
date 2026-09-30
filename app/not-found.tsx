@@ -13,7 +13,7 @@ export default function NotFound() {
           <Link className="btn" href="/">
             Back to the start
           </Link>
-          <Link className="btn btn-ghost" href="/explore">
+          <Link className="btn btn-ghost" href="/body">
             Explore the body
           </Link>
         </div>

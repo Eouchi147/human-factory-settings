@@ -1,4 +1,4 @@
-/* Fig. 01, How you were built. Timings are the renderer's own (r3d/assembly.js), plus the title. */
+/* "Your body builds itself": the first short film. Timings match the renderer (r3d/assembly.js). */
 
 export const FILM = {
   src: "/film/fig01.mp4",
@@ -8,50 +8,23 @@ export const FILM = {
   height: 1280,
 };
 
-export const CUES: { n: string; t0: number; t1: number; tag: string }[] = [
-  { n: "Feet and legs", t0: 0.5, t1: 2.0, tag: "drop in" },
-  { n: "Spine", t0: 1.7, t1: 3.2, tag: "drop in" },
-  { n: "Ribs", t0: 2.9, t1: 4.2, tag: "swing shut" },
-  { n: "Arms", t0: 3.6, t1: 5.0, tag: "reach out" },
-  { n: "Heart", t0: 5.0, t1: 5.9, tag: "slide in" },
-  { n: "Airways", t0: 5.4, t1: 6.6, tag: "grow out" },
-  { n: "Liver", t0: 5.9, t1: 7.2, tag: "segments" },
-  { n: "Stomach", t0: 6.6, t1: 7.5, tag: "slide in" },
-  { n: "Gut", t0: 7.0, t1: 8.8, tag: "in order" },
-  { n: "Kidneys", t0: 8.2, t1: 9.0, tag: "slide in" },
-  { n: "Brain", t0: 8.8, t1: 10.3, tag: "close in" },
-  { n: "Skull", t0: 9.9, t1: 11.3, tag: "close in" },
-  { n: "Teeth", t0: 10.9, t1: 11.6, tag: "close in" },
-  { n: "Arteries", t0: 11.4, t1: 13.2, tag: "grow out" },
-  { n: "Veins", t0: 12.2, t1: 14.0, tag: "flow back" },
-  { n: "Nerves", t0: 13.4, t1: 14.6, tag: "grow out" },
-  { n: "Title", t0: 15.8, t1: 18.0, tag: "settle" },
-];
-
-/** Storyboard: frame, timecode, on screen, sound, long-form voice line (booth numbering). ‖ marks a pause. */
-export const BOARD: { img: string; tc: string; on: string; sound: string; line: string; vo: string }[] = [
-  { img: "/img/sb_1.jpg", tc: "00:01.2", on: "Feet and legs drop into place, bottom first.", sound: "Soft clicks, small bones to large.", line: "1", vo: "Before anything else, ‖ you need a frame." },
-  { img: "/img/sb_2.jpg", tc: "00:03.4", on: "The spine stacks; the ribs swing shut around it.", sound: "A rising run of taps.", line: "4", vo: "Each vertebra stacks ‖ on the one below, ‖ **twenty-four** of them." },
-  { img: "/img/sb_3.jpg", tc: "00:05.5", on: "The heart slides in behind the breastbone.", sound: "The first heartbeat, 64 a minute.", line: "6", vo: "Then the pump: ‖ four chambers, ‖ four valves." },
-  { img: "/img/sb_4.jpg", tc: "00:06.8", on: "The liver lands piece by piece.", sound: "Puzzle-piece clicks.", line: "7", vo: "The liver arrives in **segments**, ‖ each with its own blood supply." },
-  { img: "/img/sb_5.jpg", tc: "00:08.4", on: "The gut is laid in the order food travels.", sound: "One long slide.", line: "8", vo: "The gut is laid ‖ in the order food travels." },
-  { img: "/img/sb_6.jpg", tc: "00:10.2", on: "The brain assembles, then the skull closes over it.", sound: "A low hush.", line: "9", vo: "About **eighty-six billion** neurons ‖ settle in." },
-  { img: "/img/sb_7.jpg", tc: "00:12.6", on: "Arteries grow out from the heart; veins follow back.", sound: "The pulse wave, once a beat.", line: "10", vo: "Arteries carry blood out. ‖ Veins bring it back." },
-  { img: "/img/sb_8.jpg", tc: "00:16.8", on: "The whole body, measured at 1.73 m. The title.", sound: "A swell, then quiet.", line: "11", vo: "You came with ‖ **factory settings.**" },
-];
-
-export const RULES: { t: string; d: string }[] = [
-  { t: "One camera, one path", d: "The camera glides on a single smooth curve. It never cuts and never stops dead." },
-  { t: "Dominoes, not slides", d: "Each part starts moving before the last one lands, so the eye is always carried to the next." },
-  { t: "Real parts, true places", d: "Every piece is a measured part of one reference body, landing where it really sits." },
-  { t: "One claim on screen", d: "A label appears only while its part is in view, with its number, and leaves before the next." },
-  { t: "The body keeps living", d: "Once in place the heart beats 64 times a minute and the lungs breathe 14 times a minute." },
-  { t: "The word lands with the part", d: "In long-form, each line is timed so its key word arrives as its part settles, never before." },
-];
-
-export const STATS: [string, string][] = [
-  ["18 s", "one shot"],
-  ["60", "frames a second"],
-  ["0", "cuts"],
-  ["16", "systems, in order"],
+/** The parts in the order they land, with a plain line for each. t0 and t1 are seconds into the film. */
+export const CUES: { n: string; t0: number; t1: number; d: string }[] = [
+  { n: "Feet and legs", t0: 0.5, t1: 2.0, d: "The frame starts from the ground up." },
+  { n: "Spine", t0: 1.7, t1: 3.2, d: "Bones stacked one on top of another." },
+  { n: "Ribs", t0: 2.9, t1: 4.2, d: "12 pairs close around your chest." },
+  { n: "Arms", t0: 3.6, t1: 5.0, d: "They hang from the shoulders." },
+  { n: "Heart", t0: 5.0, t1: 5.9, d: "The pump, behind your breastbone." },
+  { n: "Airways", t0: 5.4, t1: 6.6, d: "Tubes for air, branching into the lungs." },
+  { n: "Liver", t0: 5.9, t1: 7.2, d: "It arrives piece by piece, like a puzzle." },
+  { n: "Stomach", t0: 6.6, t1: 7.5, d: "Where food is churned with acid." },
+  { n: "Gut", t0: 7.0, t1: 8.8, d: "Laid out in the order food travels." },
+  { n: "Kidneys", t0: 8.2, t1: 9.0, d: "Two filters that clean your blood." },
+  { n: "Brain", t0: 8.8, t1: 10.3, d: "The control room." },
+  { n: "Skull", t0: 9.9, t1: 11.3, d: "It closes over the brain to protect it." },
+  { n: "Teeth", t0: 10.9, t1: 11.6, d: "Where digestion starts." },
+  { n: "Arteries", t0: 11.4, t1: 13.2, d: "They carry blood out from the heart." },
+  { n: "Veins", t0: 12.2, t1: 14.0, d: "They bring blood back to it." },
+  { n: "Nerves", t0: 13.4, t1: 14.6, d: "They carry messages to and from the brain." },
+  { n: "All together", t0: 15.8, t1: 18.0, d: "Every part in its place. The heart beats and the lungs breathe." },
 ];

@@ -3,37 +3,36 @@ import { Logo } from "./Icons";
 
 const COLS = [
   {
-    title: "Explore",
+    title: "Your body",
     links: [
-      ["Six systems", "/explore"],
-      ["Heart", "/explore/heart"],
-      ["Liver", "/explore/liver"],
+      ["How your body works", "/body"],
+      ["Your heart", "/body/heart"],
+      ["Your liver", "/body/liver"],
       ["Why you wake up tired", "/stories/why-you-wake-up-tired"],
     ],
   },
   {
-    title: "Restore",
+    title: "Feel better",
     links: [
-      ["All settings", "/restore"],
-      ["Sleep and caffeine", "/restore/sleep-and-caffeine"],
-      ["Weight management guide", "/guides/weight"],
-      ["Supplements and nutrition guide", "/guides/supplements"],
+      ["All topics", "/feel-better"],
+      ["Sleep and caffeine: 7-day plan", "/feel-better/sleep-and-caffeine"],
+      ["Weight: the full guide", "/guides/weight"],
+      ["Supplements: the full guide", "/guides/supplements"],
     ],
   },
   {
-    title: "You and films",
+    title: "More",
     links: [
-      ["Find your setting", "/you"],
-      ["Fig. 01, How you were built", "/films/fig-01"],
-      ["Film grammar", "/films#grammar"],
+      ["Watch", "/watch"],
+      ["Personality quiz", "/quiz"],
+      ["How we check facts", "/how-we-check"],
+      ["Words explained", "/how-we-check#words"],
     ],
   },
   {
-    title: "Library",
+    title: "About",
     links: [
-      ["How we grade evidence", "/library#evidence"],
-      ["A to Z", "/library#a-to-z"],
-      ["Credits and licences", "/library#credits"],
+      ["Credits", "/how-we-check#credits"],
       ["Privacy", "/privacy"],
       ["Terms", "/terms"],
     ],
@@ -51,7 +50,7 @@ export function Footer() {
               <span className="word">Human Factory Settings</span>
             </Link>
             <p style={{ margin: 0, maxWidth: 300, lineHeight: 1.55 }}>
-              A free, measured reference to how the human body and mind were built. General education, not personal medical advice.
+              How your body works, in plain words, with every fact checked. Free. For learning: it does not replace your doctor.
             </p>
           </div>
           {COLS.map((c) => (
@@ -68,11 +67,10 @@ export function Footer() {
         <hr className="hair" style={{ margin: "36px 0 18px" }} />
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 24px", justifyContent: "space-between", fontSize: 12.5, lineHeight: 1.6 }}>
           <span>
-            Reference body: BodyParts3D, © The Database Center for Life Science, licensed under CC Attribution 4.0 International. Rendered and measured by Human Factory Settings.
+            3D body model: BodyParts3D, © The Database Center for Life Science, licensed under CC Attribution 4.0 International. Pictures and films made from it by Human
+            Factory Settings.
           </span>
-          <span className="mono" style={{ fontSize: 11 }}>
-            Preview build · not indexed · v0.1
-          </span>
+          <span style={{ fontSize: 12.5 }}>Preview: not public yet</span>
         </div>
       </div>
     </footer>

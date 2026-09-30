@@ -37,16 +37,16 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   metadataBase: new URL("https://humanfactorysettings.com"),
   title: {
-    default: "Human Factory Settings · How you were built, measured",
+    default: "Human Factory Settings · How your body works, made simple",
     template: "%s · Human Factory Settings",
   },
   description:
-    "A free, measured reference to how the human body and mind were built. Real anatomy measured on one reference body, every claim graded by the strength of its evidence.",
+    "How your body works and how to keep it running well, in plain words and real 3D pictures. Free, with every fact checked and linked to its source.",
   robots: { index: false, follow: false, nocache: true },
   openGraph: {
     title: "Human Factory Settings",
-    description: "You came with factory settings. See how you are built, measured on a real reference body, and restore what drifted.",
-    images: [{ url: "/img/home_desktop.jpg", width: 2880, height: 1800, alt: "The full adult reference body: skeleton, organs, arteries and veins" }],
+    description: "You came with factory settings. See how you work, in plain words and real 3D pictures, and learn how to reset what drifted.",
+    images: [{ url: "/img/home_desktop.jpg", width: 2880, height: 1800, alt: "A 3D human body: skeleton, organs, arteries and veins" }],
     type: "website",
   },
 };

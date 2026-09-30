@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import s from "../explore.module.css";
+import s from "../body.module.css";
 import { SYSTEMS, bySlug } from "@/lib/systems";
 import { Ev, Measured } from "@/components/Evidence";
 import { DepthSwitch, DepthText } from "@/components/Depth";
@@ -46,14 +46,14 @@ export default async function SystemPage({ params }: { params: Promise<{ slug: s
 
           <section className={s.side} aria-labelledby="sys-name">
             <nav className={`cap ${s.crumb}`} aria-label="Breadcrumb">
-              <Link href="/explore">Explore</Link>
+              <Link href="/body">Your body</Link>
               <span aria-hidden="true">/</span>
               <span>{x.group}</span>
               <span aria-hidden="true">/</span>
               <span style={{ color: "var(--ink2)" }}>{x.name}</span>
             </nav>
             <div className={s.titleRow}>
-              <div className="kick">Factory specifications</div>
+              <div className="kick">{x.group}</div>
               <DepthSwitch />
             </div>
             <h1 id="sys-name" className={s.name}>
@@ -107,7 +107,7 @@ export default async function SystemPage({ params }: { params: Promise<{ slug: s
                   )}
                 </span>
               ))}
-              . Reference body: BodyParts3D, CC BY 4.0.
+              . 3D body: BodyParts3D, CC BY 4.0.
             </p>
           </section>
         </div>
