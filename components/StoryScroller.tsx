@@ -10,13 +10,14 @@ import { DepthSwitch, DepthText } from "./Depth";
 import { ClockRing, HalfLifeChart, PressureSketch } from "./SleepViz";
 import { ADENOSINE_SVG, CAFFEINE_SVG } from "@/lib/molecules";
 import { Icon } from "./Icons";
+import { BLUR } from "@/lib/blur";
 
 function Visual({ kind }: { kind: Station["visual"] }) {
   if (kind === "pressure")
     return (
       <div className="stack gap-12" style={{ width: "100%" }}>
         <div style={{ position: "relative", aspectRatio: "78 / 60", borderRadius: 20, overflow: "hidden" }}>
-          <Image src="/img/sys_brain.jpg" alt="The brain of the reference body, side view" fill sizes="(min-width: 980px) 40vw, 90vw" style={{ objectFit: "cover", objectPosition: "50% 45%" }} />
+          <Image src="/img/sys_brain.jpg" alt="The brain of the reference body, side view" fill sizes="(min-width: 980px) 40vw, 90vw" placeholder="blur" blurDataURL={BLUR["/img/sys_brain.jpg"]} style={{ objectFit: "cover", objectPosition: "50% 45%" }} />
         </div>
         <PressureSketch />
       </div>

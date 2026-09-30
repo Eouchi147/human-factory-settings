@@ -9,6 +9,7 @@ import { FilmLoop } from "@/components/FilmLoop";
 import { FILM, STATS } from "@/lib/film";
 import { SYSTEMS } from "@/lib/systems";
 import { ADENOSINE_SVG, CAFFEINE_SVG } from "@/lib/molecules";
+import { BLUR } from "@/lib/blur";
 
 const DOORS = [
   { icon: "explore" as const, t: "Explore the factory", d: "Every system, measured on one real body", href: "/explore" },
@@ -37,7 +38,7 @@ export default function Home() {
             w={2880}
             h={1800}
             fit="cover"
-            focus={[0.62, 0.5]}
+            focus={[0.62, 0.22]}
             priority
             sizes="100vw"
             ruler={{ head: [1848.1, 241.3], foot: [1846.8, 1638], x: 2188.1, meters: 1.73, label: "1.73 m", sub: "Height · measured" }}
@@ -209,7 +210,7 @@ export default function Home() {
               <Reveal key={x.slug} delay={(i % 3) * 0.06}>
                 <Link href={`/explore/${x.slug}`} className={`card ${s.sysCard}`}>
                   <div className={s.sysImg}>
-                    <Image src={x.img} alt={x.alt} fill sizes="(min-width: 900px) 33vw, 50vw" style={{ objectFit: "cover" }} />
+                    <Image src={x.img} alt={x.alt} fill sizes="(min-width: 900px) 33vw, 50vw" placeholder="blur" blurDataURL={BLUR[x.img]} style={{ objectFit: "cover" }} />
                     <div className={s.sysBody}>
                       <div className="kick" style={{ fontSize: 10 }}>
                         {x.group}

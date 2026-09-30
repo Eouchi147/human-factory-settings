@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import {
   SCALE,
@@ -37,6 +37,10 @@ export function Quiz() {
     const s = styleOf(styles);
     return { e, n, t, s, index: TEMPERAMENTS[t].quadrant * 3 + STYLES[s].index };
   }, [done, answers, styles]);
+
+  useEffect(() => {
+    if (done) window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [done]);
 
   const back = () => {
     if (styles.length) setStyles(styles.slice(0, -1));
@@ -182,7 +186,9 @@ function Result({ r, restart }: { r: { e: number; n: number; t: keyof typeof TEM
           <p className="lede" style={{ margin: 0 }}>
             {T.line} As a communicator: {S.line.charAt(0).toLowerCase() + S.line.slice(1)} A position on a spectrum, not a box.
           </p>
-          <TraitMap e={r.e} n={r.n} />
+          <div style={{ maxWidth: 520 }}>
+            <TraitMap e={r.e} n={r.n} />
+          </div>
           <div className="row-wrap gap-16 mono" style={{ fontSize: 13 }}>
             <span>
               Outgoing <b style={{ color: "var(--ink)" }}>{r.e}</b>/100

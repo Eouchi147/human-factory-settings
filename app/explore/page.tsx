@@ -6,6 +6,7 @@ import { SYSTEMS } from "@/lib/systems";
 import { Measured } from "@/components/Evidence";
 import { Reveal } from "@/components/Reveal";
 import { Icon } from "@/components/Icons";
+import { BLUR } from "@/lib/blur";
 
 export const metadata: Metadata = {
   title: "Explore",
@@ -34,7 +35,7 @@ export default function ExplorePage() {
             <Reveal key={x.slug} delay={(i % 3) * 0.06}>
               <Link href={`/explore/${x.slug}`} className={`card ${s.card}`}>
                 <div className={s.cardImg}>
-                  <Image src={x.img} alt={x.alt} fill sizes="(min-width: 1040px) 33vw, (min-width: 640px) 50vw, 100vw" style={{ objectFit: "cover", objectPosition: "50% 35%" }} />
+                  <Image src={x.img} alt={x.alt} fill sizes="(min-width: 1040px) 33vw, (min-width: 640px) 50vw, 100vw" placeholder="blur" blurDataURL={BLUR[x.img]} style={{ objectFit: "cover", objectPosition: "50% 35%" }} />
                 </div>
                 <div className={s.cardBody}>
                   <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
@@ -65,7 +66,7 @@ export default function ExplorePage() {
             {organs.map((x) => (
               <Link key={x.slug} href={`/explore/${x.slug}`} className={`card ${s.organ}`}>
                 <div className={s.organImg}>
-                  <Image src={x.img} alt={x.alt} fill sizes="120px" style={{ objectFit: "cover" }} />
+                  <Image src={x.img} alt={x.alt} fill sizes="120px" placeholder="blur" blurDataURL={BLUR[x.img]} style={{ objectFit: "cover" }} />
                 </div>
                 <div className="stack gap-6">
                   <span className="h3">

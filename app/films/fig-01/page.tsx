@@ -5,6 +5,7 @@ import s from "../films.module.css";
 import { FilmPlayer } from "@/components/FilmPlayer";
 import { VoiceLine } from "@/components/VoiceLine";
 import { BOARD, STATS } from "@/lib/film";
+import { BLUR } from "@/lib/blur";
 
 export const metadata: Metadata = {
   title: "Fig. 01, How you were built",
@@ -65,7 +66,7 @@ export default function Fig01Page() {
             {BOARD.map((f) => (
               <figure key={f.tc} className={s.frame}>
                 <div className={s.frameImg}>
-                  <Image src={f.img} alt={`Film frame at ${f.tc}: ${f.on}`} fill sizes="(min-width: 1200px) 12vw, (min-width: 760px) 25vw, 50vw" style={{ objectFit: "cover" }} />
+                  <Image src={f.img} alt={`Film frame at ${f.tc}: ${f.on}`} fill sizes="(min-width: 1200px) 12vw, (min-width: 760px) 25vw, 50vw" placeholder="blur" blurDataURL={BLUR[f.img]} style={{ objectFit: "cover" }} />
                 </div>
                 <span className="mono" style={{ fontSize: 12, fontWeight: 600, color: "var(--ink)" }}>
                   {f.tc}

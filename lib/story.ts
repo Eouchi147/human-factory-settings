@@ -27,6 +27,7 @@ export const STATIONS: Station[] = [
     ev: 3,
     source: [
       { label: "Borbély 1982, a two-process model of sleep regulation", href: "https://pubmed.ncbi.nlm.nih.gov/7185792/" },
+      { label: "Borbély 2022, beginnings and outlook", href: "https://pmc.ncbi.nlm.nih.gov/articles/PMC9540767/" },
       { label: "Porkka-Heiskanen et al. 1997, Science", href: "https://doi.org/10.1126/science.276.5316.1265" },
     ],
   },
@@ -41,7 +42,7 @@ export const STATIONS: Station[] = [
     expert:
       "The suprachiasmatic nucleus drives circadian alertness (Process C) and is entrained chiefly by light through the retina. The evening rise of melatonin in dim light marks the biological night.",
     ev: 4,
-    source: [{ label: "NIH NIGMS, circadian rhythms", href: "https://www.nigms.nih.gov/education/fact-sheets/Pages/circadian-rhythms.aspx" }],
+    source: [{ label: "NIH NIGMS, circadian rhythms", href: "https://www.nigms.nih.gov/education/fact-sheets/Pages/circadian-rhythms" }],
   },
   {
     id: "caffeine",
@@ -66,7 +67,7 @@ export const STATIONS: Station[] = [
     clear:
       "On average it takes about 5 hours to clear half of the caffeine you drink, but that ranges from 1.5 to 9.5 hours between people. A coffee at 17:00 can still be more than a third there at 23:00.",
     expert:
-      "Mean plasma half-life about 5 h (range 1.5 to 9.5 h), cleared mainly by the liver enzyme CYP1A2; clearance is faster in smokers and slower in pregnancy and with oral contraceptives.",
+      "Mean plasma half-life about 5 h, with an elimination half-life ranging from 1.5 to 9.5 h. Smoking speeds its metabolism; oral contraceptives can double the half-life.",
     ev: 4,
     source: [{ label: "Institute of Medicine 2001, pharmacology of caffeine", href: "https://www.ncbi.nlm.nih.gov/books/NBK223808/" }],
   },

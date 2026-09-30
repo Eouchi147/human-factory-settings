@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from "react";
 import type { Callout, Dim, Pt } from "@/lib/systems";
+import { BLUR } from "@/lib/blur";
 
 export type HeightRuler = { head: Pt; foot: Pt; x: number; meters: number; label: string; sub: string };
 
@@ -184,6 +185,8 @@ export function MeasuredFigure({
         fill
         priority={priority}
         sizes={sizes}
+        placeholder={BLUR[src] ? "blur" : "empty"}
+        blurDataURL={BLUR[src]}
         className={imgClassName}
         style={{ objectFit: fit, objectPosition: `${focus[0] * 100}% ${focus[1] * 100}%` }}
       />
