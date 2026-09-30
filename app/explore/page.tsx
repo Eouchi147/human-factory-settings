@@ -1,0 +1,99 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import Image from "next/image";
+import s from "./explore.module.css";
+import { SYSTEMS } from "@/lib/systems";
+import { Measured } from "@/components/Evidence";
+import { Reveal } from "@/components/Reveal";
+import { Icon } from "@/components/Icons";
+
+export const metadata: Metadata = {
+  title: "Explore",
+  description: "Every system of the human body, measured on the same reference body.",
+};
+
+export default function ExplorePage() {
+  const systems = SYSTEMS.filter((x) => x.inExplore);
+  const organs = SYSTEMS.filter((x) => !x.inExplore);
+  return (
+    <div className="page-top">
+      <div className="wrap stack gap-32">
+        <header className={s.head}>
+          <div className="kick a-in">Explore</div>
+          <h1 className="h1 a-in a-d1">
+            Six systems, <span className="serif">measured on one body.</span>
+          </h1>
+          <p className="lede a-in a-d2">
+            Every render on this site comes from the same adult reference body, so the numbers fit together: the heart that is 12.5 cm long sits in the chest of a body
+            1.73 m tall. Pick a system, then switch between Simple, Clear and Expert.
+          </p>
+        </header>
+
+        <div className={s.grid}>
+          {systems.map((x, i) => (
+            <Reveal key={x.slug} delay={(i % 3) * 0.06}>
+              <Link href={`/explore/${x.slug}`} className={`card ${s.card}`}>
+                <div className={s.cardImg}>
+                  <Image src={x.img} alt={x.alt} fill sizes="(min-width: 1040px) 33vw, (min-width: 640px) 50vw, 100vw" style={{ objectFit: "cover", objectPosition: "50% 35%" }} />
+                </div>
+                <div className={s.cardBody}>
+                  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                    <div className="kick">{x.group}</div>
+                    <Measured text="Measured" />
+                  </div>
+                  <div className="h3">{x.name}</div>
+                  <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.5, color: "var(--ink2)" }}>{x.card}</p>
+                  <div>
+                    {x.cardRows.map(([k, v]) => (
+                      <div key={k} className={s.cardRow}>
+                        <span style={{ color: "var(--ink3)" }}>{k}</span>
+                        <span className="mono" style={{ fontWeight: 600, color: "var(--ink)" }}>
+                          {v}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </Link>
+            </Reveal>
+          ))}
+        </div>
+
+        <section className="stack gap-16" style={{ marginTop: 24 }}>
+          <div className="kick">Organ spec sheets</div>
+          <div className={s.organs}>
+            {organs.map((x) => (
+              <Link key={x.slug} href={`/explore/${x.slug}`} className={`card ${s.organ}`}>
+                <div className={s.organImg}>
+                  <Image src={x.img} alt={x.alt} fill sizes="120px" style={{ objectFit: "cover" }} />
+                </div>
+                <div className="stack gap-6">
+                  <span className="h3">
+                    {x.name} <span className="serif" style={{ color: "var(--signal-ink)", fontSize: 20 }}>{x.tagline}</span>
+                  </span>
+                  <span style={{ fontSize: 14, color: "var(--ink3)" }}>{x.card}</span>
+                  <span className="mono" style={{ fontSize: 12, color: "var(--ink2)" }}>
+                    {x.cardRows[0][0]} · <span style={{ color: "var(--ink)" }}>{x.cardRows[0][1]}</span>
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </section>
+
+        <section className="stack gap-16" style={{ marginTop: 8 }}>
+          <div className="kick">Stories</div>
+          <Link href="/stories/why-you-wake-up-tired" className="card card-pad" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+            <span className="stack gap-6">
+              <span className="h3">Why you wake up tired</span>
+              <span style={{ fontSize: 14, color: "var(--ink3)" }}>Six stations, from the sleep signal to the cup that blocks it. The web twin of a film.</span>
+            </span>
+            <span style={{ color: "var(--signal-ink)" }}>
+              <Icon name="arrow" size={20} />
+            </span>
+          </Link>
+        </section>
+      </div>
+    </div>
+  );
+}
