@@ -90,6 +90,8 @@ MISFILED_MUSCLES = ("fibularis", "tibialis", "levator scapulae", "subscapularis"
 def muscle(n):
     if has(n, *SKIP_MUSCLES):
         return None
+    if has(n, "extensor digitorum longus", "extensor hallucis longus"):
+        return ("muscles", "shins", "muscle", "muscle")  # the toe lifters sit beside tibialis anterior, not in the forearm
     for c, keys in MUSCLE_CLUSTERS:
         if has(n, *keys):
             return ("muscles", c, "muscle", "muscle")
@@ -141,7 +143,13 @@ def nervous(n):
     if has(n, *FACE_NERVES):
         return ("nervous", "facenerves", "vessel", "nerve")
     if has(n, *EYE) and "lacrimal" not in n:
-        tone = "lens" if ("lens" in n or "cornea" in n or "vitreous" in n or "anterior chamber" in n) else ("iris" if "iris" in n else "eye")
+        if "cornea" in n or ("lens" in n and "suspensory" not in n):
+            return ("nervous", "eyes", "glass", "lens")  # clear: you see the iris through them
+        if "vitreous" in n or "anterior chamber" in n:
+            return None  # the clear jelly and fluid inside the eye: drawn, they would only fog it
+        if "choroid" in n or "corona ciliaris" in n or "suspensory" in n:
+            return None  # thin layers hidden inside the eyeball that show through it as specks once simplified
+        tone = "iris" if "iris" in n else ("choroid" if "retina" in n else "eye")  # the retina: the dark you see through the pupil
         return ("nervous", "eyes", "organ", tone)
     return None
 

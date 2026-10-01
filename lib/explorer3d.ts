@@ -127,13 +127,16 @@ function beat(ph: number) {
 }
 
 // how each kind of surface looks; colour comes from each piece
-const SURF: Record<string, { roughness: number; clearcoat?: number; clearcoatRoughness?: number; sheen?: number; sheenColor?: number; sheenRoughness?: number }> = {
+type Surf = { roughness: number; clearcoat?: number; clearcoatRoughness?: number; sheen?: number; sheenColor?: number; sheenRoughness?: number; opacity?: number };
+const SURF: Record<string, Surf> = {
   bone: { roughness: 0.56, clearcoat: 0.16, clearcoatRoughness: 0.5, sheen: 0.25, sheenColor: 0xfff1dc },
   cart: { roughness: 0.34, clearcoat: 0.55, clearcoatRoughness: 0.25, sheen: 0.3, sheenColor: 0xeaf6ff },
   muscle: { roughness: 0.48, clearcoat: 0.18, clearcoatRoughness: 0.4, sheen: 0.7, sheenColor: 0xff9f8f, sheenRoughness: 0.45 },
   organ: { roughness: 0.36, clearcoat: 0.45, clearcoatRoughness: 0.22, sheen: 0.4, sheenColor: 0xffd2c4 },
   vessel: { roughness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.18 },
   brain: { roughness: 0.5, clearcoat: 0.18, clearcoatRoughness: 0.4, sheen: 0.75, sheenColor: 0xffe6de, sheenRoughness: 0.5 },
+  // the clear front of the eye and its lens: you see the iris and the pupil through them
+  glass: { roughness: 0.04, clearcoat: 1, clearcoatRoughness: 0.03, opacity: 0.26 },
 };
 
 // colours in the whole-body view, where the brain is shown as it looks, not colour-coded by lobe
@@ -334,6 +337,13 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
             color: 0xffffff, roughness: surf.roughness, metalness: 0, clearcoat: surf.clearcoat ?? 0, clearcoatRoughness: surf.clearcoatRoughness ?? 0.3,
             sheen: surf.sheen ?? 0, sheenColor: new THREE.Color(surf.sheenColor ?? 0xffffff), sheenRoughness: surf.sheenRoughness ?? 0.5,
           });
+      // see-through surfaces stay see-through at every step of a fade, and never hide what is behind them
+      solid.userData.base = surf.opacity ?? 1;
+      if (solid.userData.base < 1) {
+        solid.transparent = true;
+        solid.depthWrite = false;
+        solid.opacity = 0;
+      }
       let vc = 0, ic = 0;
       for (const r of list) {
         vc += r.geo.getAttribute("position").count;
@@ -442,42 +452,55 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     const top = 1.75 * S;
     for (const rec of parts.values()) {
       const ps = rec.spec;
-      // pieces of a part start one after another, top first, so spines and gut loops open in a cascade
-      const order = [...rec.pieces].sort((a, b) => b.center.y - a.center.y);
-      order.forEach((p, k) => {
-        const rank = order.length > 1 ? k / (order.length - 1) : 0;
-        p.color.set(ps.tones?.[p.tone] ?? ps.color);
-        p.natural.set(NATURAL[`${spec.id}/${ps.id}`] ?? (ps.tones?.[p.tone] ?? ps.color));
+      // every organ moves as one piece; only a pair (two kidneys) may part
+      const groups = new Map<string, Piece[]>();
+      for (const p of rec.pieces) {
+        const k = spec.float && ps.label !== false ? `side${p.side}` : spec.float ? `piece${groups.size}` : "all";
+        if (!groups.has(k)) groups.set(k, []);
+        groups.get(k)!.push(p);
+      }
+      for (const group of groups.values()) {
+        const gb = new THREE.Box3();
+        group.forEach((p) => gb.union(p.box));
+        const gc = gb.getCenter(new THREE.Vector3());
+        let floatDir: THREE.Vector3 | null = null;
         if (spec.float) {
+          // muscles lift straight off the bone they sit on, a whole group together
           const q = new THREE.Vector3();
           let best = Infinity, bestQ = new THREE.Vector3();
           for (const line of axes) {
-            const d = nearestOnLine(p.center, line, q);
+            const d = nearestOnLine(gc, line, q);
             if (d < best) {
               best = d;
               bestQ = q.clone();
             }
           }
-          const dir = p.center.clone().sub(bestQ);
-          if (dir.lengthSq() < 1e-8) dir.set(0, 0, 1);
-          dir.normalize();
-          p.full.copy(dir).multiplyScalar(spec.float * (ps.float ?? 1) * S);
-          p.delay = clamp01(1 - p.center.y / top) * 0.4;
-          return;
+          floatDir = gc.clone().sub(bestQ);
+          if (floatDir.lengthSq() < 1e-8) floatDir.set(0, 0, 1);
+          floatDir.normalize();
         }
-        const move = ps.move ?? [0, 0, 0];
-        const sign = p.side !== 0 ? p.side : Math.sign(p.center.x - rec.center.x) || 1;
-        p.full.set(move[0] * (ps.mirror ? sign : 1), move[1], move[2]).multiplyScalar(S);
-        if (ps.spread) {
-          const sp = typeof ps.spread === "number" ? [ps.spread, ps.spread, ps.spread] : ps.spread;
-          const from = (ps.perSide && sideCenter.get(`${rec.id}|${p.side}`)) || rec.center;
-          const d = p.center.clone().sub(from);
-          p.full.x += d.x * sp[0];
-          p.full.y += d.y * sp[1];
-          p.full.z += d.z * sp[2];
+        for (const p of group) {
+          p.color.set(ps.tones?.[p.tone] ?? ps.color);
+          p.natural.set(NATURAL[`${spec.id}/${ps.id}`] ?? (ps.tones?.[p.tone] ?? ps.color));
+          if (floatDir) {
+            p.full.copy(floatDir).multiplyScalar(spec.float! * (ps.float ?? 1) * S);
+            p.delay = clamp01(1 - gc.y / top) * 0.4;
+            continue;
+          }
+          const move = ps.move ?? [0, 0, 0];
+          const sign = p.side !== 0 ? p.side : Math.sign(p.center.x - rec.center.x) || 1;
+          p.full.set(move[0] * (ps.mirror ? sign : 1), move[1], move[2]).multiplyScalar(S);
+          if (ps.spread) {
+            const sp = typeof ps.spread === "number" ? [ps.spread, ps.spread, ps.spread] : ps.spread;
+            const from = (ps.perSide && sideCenter.get(`${rec.id}|${p.side}`)) || rec.center;
+            const d = p.center.clone().sub(from);
+            p.full.x += d.x * sp[0];
+            p.full.y += d.y * sp[1];
+            p.full.z += d.z * sp[2];
+          }
+          p.delay = ps.at ?? 0;
         }
-        p.delay = (ps.at ?? 0) + rank * 0.06;
-      });
+      }
     }
     // anything without a legend part keeps its own colour
     for (const p of pieces) if (!parts.has(p.part)) p.color.copy(c.set("#9a9a9a"));
@@ -526,11 +549,23 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
   const goal = { yaw: view.yaw, pitch: view.pitch, dist: view.dist, target: view.target.clone() };
   let userYaw = 0, userPitch = 0, userZoom = 1;
   const userPan = new THREE.Vector2(); // metres, across and up the screen
+  // a flick keeps gliding and slows down, as on a map; a double tap or a button eases to a new view
+  const vel = { yaw: 0, pitch: 0, zoom: 0, panX: 0, panY: 0 };
+  const glide = { on: false, yaw: 0, pitch: 0, zoom: 1, panX: 0, panY: 0 };
+  const pitchMin = () => -40 * DEG - view.pitch, pitchMax = () => 62 * DEG - view.pitch;
+  const easeView = (to: { yaw?: number; pitch?: number; zoom?: number; panX?: number; panY?: number }) => {
+    glide.on = true;
+    glide.yaw = to.yaw ?? userYaw;
+    glide.pitch = to.pitch ?? userPitch;
+    glide.zoom = to.zoom ?? userZoom;
+    glide.panX = to.panX ?? userPan.x;
+    glide.panY = to.panY ?? userPan.y;
+  };
   const aim = new THREE.Vector3(); // where the camera looks, after panning
   let tau = 0.55; // how quickly the camera settles (seconds)
   let spin = 0; // the whole body turns slowly until someone touches it
   let touched = false;
-  const clampZoom = (z: number) => Math.max(0.22, Math.min(2.4, z));
+  const clampZoom = (z: number) => Math.max(0.12, Math.min(3, z));
   const wholeBox = new THREE.Box3(new THREE.Vector3(-0.34 * S, 0, -0.15 * S), new THREE.Vector3(0.34 * S, 1.73 * S, 0.15 * S));
   const sizeNow = () => ({ w: canvas.clientWidth || 1, h: canvas.clientHeight || 1 });
   const fitBox = (box: THREE.Box3, yaw: number, pitch: number) => {
@@ -560,10 +595,15 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
         box = new THREE.Box3();
         const tmp = new THREE.Box3();
         part.pieces.forEach((p) => box.union(tmp.copy(p.box).translate(p.off)));
-        // a part never fills the whole screen: keep some of the system around it
+        // a picked part keeps some of the system around it; a part shown on its own fills the free space
         const s = box.getSize(new THREE.Vector3());
         const m = Math.max(s.x, s.y, s.z);
-        box.expandByVector(new THREE.Vector3(1, 1, 1).multiplyScalar(Math.max(0, 0.16 * S - m) / 2 + m * 0.18));
+        const pad = isolated ? Math.max(0, 0.05 * S - m) / 2 + m * 0.03 : Math.max(0, 0.16 * S - m) / 2 + m * 0.18;
+        box.expandByVector(new THREE.Vector3(1, 1, 1).multiplyScalar(pad));
+        if (isolated && part.spec.view) {
+          yaw = part.spec.view.turn * DEG;
+          pitch = part.spec.view.tilt * DEG;
+        }
       } else {
         box = sys.box0.clone().union(lerpBox(sys.box0, sys.box1, explode));
         if (sys.spec.frame?.y) {
@@ -658,6 +698,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
   type Label = {
     key: string; sys: SystemId; part: string; at: THREE.Vector3 | null;
     tag: HTMLElement; pin: HTMLElement | null; line: SVGLineElement | null; w: number; h: number;
+    side?: "l" | "r"; y?: number; // where it was drawn last: names glide to their new place instead of jumping
   };
   let labelsEl: HTMLElement | null = null;
   let labels: Label[] = [];
@@ -689,18 +730,30 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
   const corner = new THREE.Vector3();
   type Placed = { L: Label; ax: number; ay: number; y: number; op: number };
   const hideLabel = (L: Label) => {
+    L.y = undefined;
     L.tag.style.opacity = "0";
     L.tag.style.pointerEvents = "none";
     if (L.pin) L.pin.style.opacity = "0";
     if (L.line) L.line.style.opacity = "0";
   };
+  let labelT = 0;
   const updateLabels = () => {
     if (!labelsEl || !labels.length) return;
+    const now = performance.now();
+    const follow = labelT ? 1 - Math.exp(-(now - labelT) / 1000 / 0.07) : 1;
+    labelT = now;
     const { w: W, h: H } = sizeNow();
     camera.getWorldDirection(camDir);
     // how wide the visible body is on screen: the names go just outside it
     const sys = current ? systems.get(current) : null;
-    const box = sys ? lerpBox(sys.box0, sys.box1, explode).union(sys.box0) : wholeBox;
+    let box = sys ? lerpBox(sys.box0, sys.box1, explode).union(sys.box0) : wholeBox;
+    const alone = isolated && selected ? sys?.parts.get(selected) : null;
+    if (alone) {
+      // shown on its own, the name sits just beside the part
+      box = new THREE.Box3();
+      const tmp = new THREE.Box3();
+      alone.pieces.forEach((p) => box.union(tmp.copy(p.box).translate(p.off)));
+    }
     let minX = Infinity, maxX = -Infinity;
     for (let i = 0; i < 8; i++) {
       corner.set(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z).project(camera);
@@ -733,7 +786,9 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
       const c = L.at ?? v3.copy(rec!.center).add(rec!.anchorPiece.off);
       const behind = corner.copy(c).sub(aim).dot(camDir) > 0.03 * S;
       const op = alpha * (behind ? 0.45 : 1) * (selected && current && L.part !== selected ? 0.38 : 1);
-      (ax < cx ? left : right).push({ L, ax, ay, y: ay - L.h / 2, op });
+      // a name changes sides only once its part is clearly across the middle, so turning the body does not flick it
+      const goLeft = L.side === "l" ? ax < cx + 28 : L.side === "r" ? ax < cx - 28 : ax < cx;
+      (goLeft ? left : right).push({ L, ax, ay, y: ay - L.h / 2, op });
     }
     // each column holds what fits; extra names move to the other side, nearest the middle first
     const room = Math.max(0, bottom - top);
@@ -773,10 +828,16 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     const margin = 8;
     const maxWL = left.reduce((m, p) => Math.max(m, p.L.w), 0);
     const maxWR = right.reduce((m, p) => Math.max(m, p.L.w), 0);
-    const leftEdge = Math.min(Math.max(margin + maxWL, minX - 16), cx - 20); // the right edge of the names on the left
-    const rightEdge = Math.max(Math.min(W - margin - maxWR, maxX + 16), cx + 20); // the left edge of the names on the right
+    // names stay in the free part of the screen (on a wide screen the panel covers the right side)
+    const leftEdge = Math.min(Math.max(insets.left + margin + maxWL, minX - 16), cx - 20); // the right edge of the names on the left
+    const rightEdge = Math.max(Math.min(W - insets.right - margin - maxWR, maxX + 16), cx + 20); // the left edge of the names on the right
     for (const [list, isLeft] of [[left, true], [right, false]] as const) {
       for (const p of list) {
+        const side = isLeft ? "l" : "r";
+        // glide to the new height; a name that just appeared or changed sides goes straight there
+        if (p.L.y !== undefined && p.L.side === side) p.y = p.L.y + (p.y - p.L.y) * follow;
+        p.L.y = p.y;
+        p.L.side = side;
         const x = isLeft ? leftEdge - p.L.w : rightEdge;
         p.L.tag.style.transform = `translate3d(${x.toFixed(1)}px, ${p.y.toFixed(1)}px, 0)`;
         p.L.tag.style.opacity = p.op.toFixed(2);
@@ -837,36 +898,84 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
   };
 
   // ------------------------------------------------------------------ selection
-  const selectPart = (id: string | null) => {
+  // shown on its own, a part comes back together (both halves of a pair, in their real shape); "show everything"
+  // puts the system back the way it was
+  let explodeBefore = 0;
+  const setIsolated = (on: boolean) => {
+    if (on === isolated) return;
+    isolated = on;
+    if (seq) {
+      // a tour or the first slow-motion move would pull the part apart again
+      seq = null;
+      tau = 0.55;
+      opts.onPlaying?.(false);
+    }
+    explodeTau = reduced ? 0.15 : 0.55;
+    if (on) {
+      explodeBefore = explodeTo;
+      explodeTo = 0;
+    } else explodeTo = explodeBefore;
+    applyLooks();
+  };
+  // a part with a best angle turns to it when it is shown on its own
+  const easeToPart = () => {
+    const pv = isolated && selected && current ? systems.get(current)?.parts.get(selected)?.spec.view : null;
+    easeView(pv ? { yaw: 0, pitch: 0, zoom: 1, panX: 0, panY: 0 } : { zoom: 1, panX: 0, panY: 0 });
+    frameNow();
+  };
+  /** keepView: letting go of a part (a tap beside the body) leaves the view where it is, as on a map */
+  const selectPart = (id: string | null, keepView = false) => {
     const sys = current ? systems.get(current) : null;
     selected = sys && id && sys.parts.has(id) ? id : null;
     if (sys) for (const rec of sys.parts.values()) rec.dimTo = selected && rec.id !== selected ? 1 : 0;
-    if (!selected && isolated) {
-      isolated = false;
-      applyLooks();
-    } else if (isolated) applyLooks();
-    userZoom = 1;
-    userPan.set(0, 0);
-    frameNow();
+    const wasAlone = isolated;
+    if (!selected && isolated) setIsolated(false);
+    else if (isolated) applyLooks();
+    if (selected || !keepView || wasAlone) easeToPart();
   };
 
-  // ------------------------------------------------------------------ input: one finger turns it, two fingers zoom and move it, a tap picks
-  const pointers = new Map<number, { x: number; y: number }>();
-  let downX = 0, downY = 0, moved = false, lastTap = 0, lastTapX = 0, lastTapY = 0;
-  let pinch0 = 0, zoom0 = 1, midX = 0, midY = 0;
+  // ------------------------------------------------------------------ input, map style
+  // one finger turns the body and a flick keeps it turning; two fingers pinch to zoom where they are, twist to turn
+  // and drag to move it; a double tap zooms in on that spot, a two-finger tap zooms back out; a tap picks a part
+  const pointers = new Map<number, { x: number; y: number; x0: number; y0: number; t0: number }>();
+  let moved = false, lastTap = 0, lastTapX = 0, lastTapY = 0, lastMoveT = 0, second = false;
+  let pinch0 = 0, zoom0 = 1, midX = 0, midY = 0, angle0 = 0, twist = 0, twisting = false, twoDownT = 0, twoMoved = false;
   let lastInput = -1e9;
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   const immersive = !!opts.immersive;
   const two = () => {
     const [a, b] = [...pointers.values()];
-    return { d: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+    return { d: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2, ang: Math.atan2(b.y - a.y, b.x - a.x) };
   };
   const metresPerPixel = () => (2 * Math.tan((camera.fov / 2) * DEG) * view.dist * userZoom) / sizeNow().h;
-  const panBy = (dx: number, dy: number) => {
-    const mpp = metresPerPixel();
-    userPan.x = Math.max(-0.9 * S, Math.min(0.9 * S, userPan.x - dx * mpp));
-    userPan.y = Math.max(-0.9 * S, Math.min(0.9 * S, userPan.y + dy * mpp));
+  const clampPan = () => {
+    userPan.x = Math.max(-0.9 * S, Math.min(0.9 * S, userPan.x));
+    userPan.y = Math.max(-0.9 * S, Math.min(0.9 * S, userPan.y));
+  };
+  // where the body's centre lands on screen (the middle of the free area), in page pixels
+  const screenCentre = () => {
+    const r = canvas.getBoundingClientRect();
+    const { w, h } = sizeNow();
+    return { x: r.left + insets.left + (w - insets.left - insets.right) / 2, y: r.top + insets.top + (h - insets.top - insets.bottom) / 2 };
+  };
+  /** zoom by f (below 1 = closer) keeping the point under (px, py) where it is */
+  const zoomAbout = (f: number, px: number, py: number, into?: typeof glide) => {
+    const z0 = into ? into.zoom : userZoom;
+    const z1 = clampZoom(z0 * f);
+    const k = 1 - z1 / z0;
+    const c = screenCentre();
+    const mpp = metresPerPixel() * (into ? z0 / userZoom : 1);
+    if (into) {
+      into.panX += (px - c.x) * mpp * k;
+      into.panY -= (py - c.y) * mpp * k;
+      into.zoom = z1;
+    } else {
+      userPan.x += (px - c.x) * mpp * k;
+      userPan.y -= (py - c.y) * mpp * k;
+      userZoom = z1;
+      clampPan();
+    }
   };
   const pick = (clientX: number, clientY: number) => {
     const r = canvas.getBoundingClientRect();
@@ -881,20 +990,35 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     const rec = systems.get(b.system)?.parts.get(p.part);
     return { system: b.system, part: rec && rec.spec.label !== false ? rec.id : null };
   };
+  const track = (key: "yaw" | "pitch" | "zoom" | "panX" | "panY", delta: number, dt: number) => {
+    const inst = delta / Math.max(1 / 240, dt);
+    const a = 1 - Math.exp(-dt / 0.045);
+    vel[key] += (inst - vel[key]) * a;
+  };
   const onDown = (e: PointerEvent) => {
-    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    if (e.pointerType === "mouse" && e.button !== 0 && e.button !== 1 && e.button !== 2) return;
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY, x0: e.clientX, y0: e.clientY, t0: e.timeStamp });
+    glide.on = false;
+    vel.yaw = vel.pitch = vel.zoom = vel.panX = vel.panY = 0;
     if (pointers.size === 1) {
-      downX = e.clientX;
-      downY = e.clientY;
       moved = false;
-    } else if (pointers.size === 2) {
+      // a second tap that lands soon after the first one, near it, makes a double tap
+      second = performance.now() - lastTap < 300 && Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < 40;
+    }
+    if (pointers.size === 2) {
       const t = two();
       pinch0 = t.d;
       zoom0 = userZoom;
       midX = t.mx;
       midY = t.my;
+      angle0 = t.ang;
+      twist = 0;
+      twisting = false;
+      twoDownT = e.timeStamp;
+      twoMoved = false;
       moved = true;
     }
+    lastMoveT = e.timeStamp;
     lastInput = performance.now();
     touched = true;
     stop();
@@ -905,45 +1029,103 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     const dx = e.clientX - p.x, dy = e.clientY - p.y;
     p.x = e.clientX;
     p.y = e.clientY;
-    if (Math.abs(e.clientX - downX) > 6 || Math.abs(e.clientY - downY) > 6) moved = true;
+    const dt = Math.max(1 / 240, (e.timeStamp - lastMoveT) / 1000);
+    lastMoveT = e.timeStamp;
+    if (Math.hypot(e.clientX - p.x0, e.clientY - p.y0) > 7) moved = true;
     if (pointers.size >= 2) {
       const t = two();
-      if (pinch0 > 0) userZoom = clampZoom((zoom0 * pinch0) / Math.max(1, t.d));
-      panBy(t.mx - midX, t.my - midY);
+      if (Math.abs(t.d - pinch0) > 6 || Math.hypot(t.mx - midX, t.my - midY) > 6) twoMoved = true;
+      // pinch: zoom about the point between the fingers
+      if (pinch0 > 0) {
+        const before = userZoom;
+        const want = clampZoom((zoom0 * pinch0) / Math.max(1, t.d));
+        zoomAbout(want / before, t.mx, t.my);
+        track("zoom", Math.log(userZoom / before), dt);
+      }
+      // drag: move it with the fingers
+      const mpp = metresPerPixel();
+      const px = -(t.mx - midX) * mpp, py = (t.my - midY) * mpp;
+      userPan.x += px;
+      userPan.y += py;
+      clampPan();
+      track("panX", px, dt);
+      track("panY", py, dt);
       midX = t.mx;
       midY = t.my;
-    } else {
-      if (e.pointerType === "mouse" && (e.shiftKey || e.buttons === 2 || e.buttons === 4)) panBy(dx, dy);
-      else {
-        const { w } = sizeNow();
-        const k = Math.PI / Math.max(320, Math.min(w, 900));
-        userYaw -= dx * k * 1.5;
-        userPitch = Math.max(-40 * DEG - view.pitch, Math.min(62 * DEG - view.pitch, userPitch + dy * k));
+      // twist: turn it, once the fingers have clearly rotated
+      let da = t.ang - angle0;
+      if (da > Math.PI) da -= 2 * Math.PI;
+      if (da < -Math.PI) da += 2 * Math.PI;
+      angle0 = t.ang;
+      twist += da;
+      if (!twisting && Math.abs(twist) > 8 * DEG) twisting = true;
+      if (twisting) {
+        userYaw -= da;
+        track("yaw", -da, dt);
+        twoMoved = true;
       }
+    } else if (e.pointerType === "mouse" && (e.shiftKey || (e.buttons & 6) !== 0)) {
+      const mpp = metresPerPixel();
+      userPan.x -= dx * mpp;
+      userPan.y += dy * mpp;
+      clampPan();
+      track("panX", -dx * mpp, dt);
+      track("panY", dy * mpp, dt);
+    } else {
+      const { w } = sizeNow();
+      const k = (Math.PI / Math.max(320, Math.min(w, 900))) * 1.2; // a full screen's drag is a bit more than half a turn
+      const dYaw = -dx * k;
+      const p0 = userPitch;
+      userYaw += dYaw;
+      userPitch = Math.max(pitchMin(), Math.min(pitchMax(), userPitch + dy * k * 0.75));
+      track("yaw", dYaw, dt);
+      track("pitch", userPitch - p0, dt);
     }
     lastInput = performance.now();
   };
   const onUp = (e: PointerEvent) => {
-    if (!pointers.has(e.pointerId)) return;
+    const p = pointers.get(e.pointerId);
+    if (!p) return;
+    const wasTwo = pointers.size === 2;
     pointers.delete(e.pointerId);
     lastInput = performance.now();
-    if (pointers.size === 1) pinch0 = 0;
+    // a flick that was still moving keeps gliding; one that had stopped does not
+    if (e.timeStamp - lastMoveT > 70) vel.yaw = vel.pitch = vel.zoom = vel.panX = vel.panY = 0;
+    if (wasTwo) {
+      pinch0 = 0;
+      // a quick two-finger tap zooms back out
+      if (!twoMoved && e.timeStamp - twoDownT < 300) {
+        const c = screenCentre();
+        easeView({});
+        zoomAbout(1.9, c.x, c.y, glide);
+      }
+      const rest = [...pointers.values()][0];
+      if (rest) {
+        rest.x0 = rest.x;
+        rest.y0 = rest.y;
+      }
+      return;
+    }
     if (moved || pointers.size) return;
-    const now = performance.now();
-    const hit = pick(e.clientX, e.clientY);
-    const dbl = now - lastTap < 330 && Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < 30;
-    lastTap = dbl ? 0 : now;
+    // a tap
+    const dbl = second;
+    second = false;
+    lastTap = dbl ? 0 : performance.now();
     lastTapX = e.clientX;
     lastTapY = e.clientY;
-    if (dbl && !hit) return resetView();
-    opts.onPick?.(hit);
-    if (dbl && hit) userZoom = clampZoom(userZoom * 0.62); // a double tap on a part goes in closer
+    if (dbl) {
+      easeView({});
+      zoomAbout(0.5, e.clientX, e.clientY, glide);
+      return;
+    }
+    opts.onPick?.(pick(e.clientX, e.clientY));
   };
   const onWheel = (e: WheelEvent) => {
     // full screen, the wheel zooms; on the page it scrolls the page, except a trackpad pinch (ctrl + wheel)
     if (!immersive && !e.ctrlKey) return;
     e.preventDefault();
-    userZoom = clampZoom(userZoom * Math.exp(e.deltaY * (e.ctrlKey ? 0.01 : 0.0012)));
+    glide.on = false;
+    zoomAbout(Math.exp(e.deltaY * (e.ctrlKey ? 0.01 : 0.0015)), e.clientX, e.clientY);
     lastInput = performance.now();
     touched = true;
   };
@@ -961,10 +1143,11 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
   canvas.addEventListener("webglcontextlost", onLost);
 
   const resetView = () => {
-    userYaw = 0;
-    userPitch = 0;
-    userZoom = 1;
-    userPan.set(0, 0);
+    vel.yaw = vel.pitch = vel.zoom = vel.panX = vel.panY = 0;
+    // turn back by the shortest way
+    const turns = Math.round(userYaw / (2 * Math.PI));
+    userYaw -= turns * 2 * Math.PI;
+    easeView({ yaw: 0, pitch: 0, zoom: 1, panX: 0, panY: 0 });
     frameNow();
   };
 
@@ -1000,7 +1183,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
       if (samples.length >= 90) {
         tuned = true;
         const med = samples.sort((x, y) => x - y)[45];
-        if (med > 40 && renderer.getPixelRatio() > 1) {
+        if (med > 26 && renderer.getPixelRatio() > 1) {
           renderer.setPixelRatio(1);
           size();
         }
@@ -1040,14 +1223,15 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
       if (b.look === "xray") {
         xray.u.uAlpha.value = b.alpha * 0.9;
       } else {
-        const a = b.alpha;
+        const base: number = b.solid.userData.base ?? 1;
+        const a = b.alpha * base;
         b.solid.opacity = a;
         const tr = a < 0.999;
         if (b.solid.transparent !== tr) {
           b.solid.transparent = tr;
           b.solid.needsUpdate = true;
         }
-        b.solid.depthWrite = a > 0.5;
+        b.solid.depthWrite = base >= 1 && b.alpha > 0.5;
       }
     }
     const sysB = current ? systems.get(current)?.batches ?? [] : [];
@@ -1060,7 +1244,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     if (Math.abs(explodeTo - explode) < 1e-4) explode = explodeTo;
     if (explode !== before) {
       offsetsDirty = true;
-      if (!selected) frameNow();
+      if (!selected || isolated) frameNow();
     }
     if (opts.onExplode && Math.abs(explode - lastExplodeSent) > 0.002) {
       lastExplodeSent = explode;
@@ -1091,6 +1275,37 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
       colorsDirty = false;
     }
 
+    // the hand-made view: momentum after a flick, eased moves after a double tap or a button
+    if (!pointers.size) {
+      const fr = (k: number) => Math.exp(-dt * k);
+      if (Math.abs(vel.yaw) > 1e-4 || Math.abs(vel.pitch) > 1e-4) {
+        userYaw += vel.yaw * dt;
+        userPitch = Math.max(pitchMin(), Math.min(pitchMax(), userPitch + vel.pitch * dt));
+        vel.yaw *= fr(3.2);
+        vel.pitch *= fr(4.5);
+      }
+      if (Math.abs(vel.panX) > 1e-5 || Math.abs(vel.panY) > 1e-5) {
+        userPan.x += vel.panX * dt;
+        userPan.y += vel.panY * dt;
+        clampPan();
+        vel.panX *= fr(5);
+        vel.panY *= fr(5);
+      }
+      if (Math.abs(vel.zoom) > 1e-4) {
+        userZoom = clampZoom(userZoom * Math.exp(vel.zoom * dt));
+        vel.zoom *= fr(7);
+      }
+    }
+    if (glide.on) {
+      const g = damp(dt, 0.16);
+      userYaw += (glide.yaw - userYaw) * g;
+      userPitch += (glide.pitch - userPitch) * g;
+      userZoom += (glide.zoom - userZoom) * g;
+      userPan.x += (glide.panX - userPan.x) * g;
+      userPan.y += (glide.panY - userPan.y) * g;
+      if (Math.abs(glide.yaw - userYaw) + Math.abs(glide.pitch - userPitch) + Math.abs(glide.zoom - userZoom) + Math.abs(glide.panX - userPan.x) + Math.abs(glide.panY - userPan.y) < 1e-4)
+        glide.on = false;
+    }
     // camera: glide to its goal; the whole body turns slowly until someone touches it
     const k = damp(dt, tau);
     view.yaw += (goal.yaw - view.yaw) * k;
@@ -1125,6 +1340,8 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     userPitch = 0;
     userYaw = 0;
     userPan.set(0, 0);
+    vel.yaw = vel.pitch = vel.zoom = vel.panX = vel.panY = 0;
+    glide.on = false;
     spin = 0;
     isolated = false;
     applyLooks();
@@ -1165,15 +1382,16 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     setSystem,
     select: (id) => {
       stop();
-      selectPart(id);
+      selectPart(id, id === null);
     },
     isolate: (on) => {
-      isolated = on && !!selected;
-      applyLooks();
-      frameNow();
+      setIsolated(on && !!selected);
+      easeToPart();
     },
     zoomBy: (f) => {
-      userZoom = clampZoom(userZoom * f);
+      const c = screenCentre();
+      if (!glide.on) easeView({});
+      zoomAbout(f, c.x, c.y, glide);
       touched = true;
     },
     setExplode: (v) => {

@@ -34,6 +34,8 @@ export type PartSpec = {
   label?: boolean;
   /** muscles only: how far this group lifts off, as a share of the system's float */
   float?: number;
+  /** the angle that explains it best when it is shown on its own (same units as the system's view) */
+  view?: { turn: number; tilt: number };
 };
 
 export type SystemSpec = {
@@ -75,13 +77,13 @@ export const SYSTEMS3D: SystemSpec[] = [
     view: { turn: -22, tilt: 4 },
     href: "/body/skeleton",
     parts: [
-      { id: "skull", name: "Skull", line: "Protects your brain. The lower jaw is the only part of it that moves.", color: "#ecdfc6", tones: { tooth: S.tooth }, move: [0, 0.17, 0.02], spread: 0.12, at: 0 },
-      { id: "shoulders", name: "Shoulders", line: "Your collarbones and shoulder blades join your arms to your trunk.", color: "#e3d3b4", move: [0.11, 0.1, 0], mirror: true, spread: 0.12, perSide: true, at: 0.06 },
-      { id: "ribcage", name: "Ribcage", line: "12 pairs of ribs and your breastbone guard your heart and lungs.", color: "#eadcc3", tones: { cart: S.cart }, move: [0, 0.05, 0.14], spread: [0.18, 0.06, 0.18], at: 0.1 },
-      { id: "spine", name: "Spine", line: "24 bones above the pelvis, stacked on soft discs, with the spinal cord running inside.", color: "#e0cfae", tones: { disc: "#bcd6d6" }, move: [0, 0, -0.16], spread: [0, 0.1, 0], at: 0.16 },
-      { id: "arms", name: "Arms and hands", short: "Arms, hands", line: "Each hand has 8 wrist bones, 5 in the palm and 14 in the fingers.", color: "#e8dbc0", move: [0.24, 0, 0], mirror: true, spread: [0.06, 0.1, 0.06], perSide: true, at: 0.2 },
-      { id: "pelvis", name: "Pelvis", line: "A ring of bone that carries the weight of your upper body to your legs.", color: "#dccaa6", move: [0, -0.11, -0.02], spread: [0.2, 0.05, 0.1], at: 0.26 },
-      { id: "legs", name: "Legs and feet", short: "Legs, feet", line: "Your thigh bone is the longest bone you have. Each foot has 26 bones.", color: "#e5d7bb", move: [0.06, -0.22, 0], mirror: true, spread: [0.04, 0.08, 0.04], perSide: true, at: 0.3 },
+      { id: "skull", name: "Skull", line: "Protects your brain. The lower jaw is the only part of it that moves.", color: "#ecdfc6", tones: { tooth: S.tooth }, move: [0, 0.17, 0.02], at: 0 },
+      { id: "shoulders", name: "Shoulders", line: "Your collarbones and shoulder blades join your arms to your trunk.", color: "#e3d3b4", move: [0.11, 0.1, 0], mirror: true, at: 0.06 },
+      { id: "ribcage", name: "Ribcage", line: "12 pairs of ribs and your breastbone guard your heart and lungs.", color: "#eadcc3", tones: { cart: S.cart }, move: [0, 0.05, 0.14], at: 0.1 },
+      { id: "spine", name: "Spine", line: "24 bones above the pelvis, stacked on soft discs, with the spinal cord running inside.", color: "#e0cfae", tones: { disc: "#bcd6d6" }, move: [0, 0, -0.16], at: 0.16 },
+      { id: "arms", name: "Arms and hands", short: "Arms, hands", line: "Each hand has 8 wrist bones, 5 in the palm and 14 in the fingers.", color: "#e8dbc0", move: [0.24, 0, 0], mirror: true, at: 0.2 },
+      { id: "pelvis", name: "Pelvis", line: "A ring of bone that carries the weight of your upper body to your legs.", color: "#dccaa6", move: [0, -0.11, -0.02], at: 0.26 },
+      { id: "legs", name: "Legs and feet", short: "Legs, feet", line: "Your thigh bone is the longest bone you have. Each foot has 26 bones.", color: "#e5d7bb", move: [0.06, -0.22, 0], mirror: true, at: 0.3 },
     ],
   },
   {
@@ -124,17 +126,17 @@ export const SYSTEMS3D: SystemSpec[] = [
     href: "/body/brain",
     note: "Our 3D data has the brain, the eyes and the nerves around them, not the spinal cord or the body's nerves.",
     parts: [
-      { id: "frontal", name: "Frontal lobe", line: "Plans, decides, and starts your movements.", color: "#6f9fdb", move: [0.03, 0.03, 0.08], mirror: true, spread: 0.1, perSide: true, at: 0 },
-      { id: "parietal", name: "Parietal lobe", line: "Feels touch and keeps track of where your body is.", color: "#e3be4f", move: [0.035, 0.07, -0.03], mirror: true, spread: 0.1, perSide: true, at: 0.05 },
-      { id: "temporal", name: "Temporal lobe", line: "Hearing, understanding words, and memory.", color: "#69b98f", move: [0.08, -0.02, 0.01], mirror: true, spread: 0.1, perSide: true, at: 0.1 },
+      { id: "frontal", name: "Frontal lobe", line: "Plans, decides, and starts your movements.", color: "#6f9fdb", move: [0.03, 0.03, 0.08], mirror: true, at: 0 },
+      { id: "parietal", name: "Parietal lobe", line: "Feels touch and keeps track of where your body is.", color: "#e3be4f", move: [0.035, 0.07, -0.03], mirror: true, at: 0.05 },
+      { id: "temporal", name: "Temporal lobe", line: "Hearing, understanding words, and memory.", color: "#69b98f", move: [0.08, -0.02, 0.01], mirror: true, at: 0.1 },
       { id: "occipital", name: "Occipital lobe", line: "Vision: it makes sense of what your eyes send.", color: "#de7e73", move: [0.03, 0.01, -0.08], mirror: true, at: 0.15 },
-      { id: "cerebellum", name: "Cerebellum", line: "Fine-tunes movement and balance. It holds about 69 billion nerve cells.", color: "#b98ad8", move: [0, -0.05, -0.08], spread: [0.5, 0, 0], at: 0.2 },
+      { id: "cerebellum", name: "Cerebellum", line: "Fine-tunes movement and balance. It holds about 69 billion nerve cells.", color: "#b98ad8", move: [0, -0.05, -0.08], at: 0.2 },
       { id: "brainstem", name: "Brainstem", line: "Keeps you breathing and your heart beating, and links your brain to your spinal cord.", color: "#e59e5c", move: [0, -0.08, -0.01], at: 0.25 },
       { id: "white", name: "White matter", line: "Bundles of wiring that connect one part of your brain to another.", color: "#efe6da", move: [0.02, 0.015, 0], mirror: true, at: 0.3 },
-      { id: "deep", name: "Deep brain", line: "Relays signals, stores memories and handles emotions.", color: "#ebc3b7", spread: 0.15, at: 0.3 },
+      { id: "deep", name: "Deep brain", line: "Relays signals, stores memories and handles emotions.", color: "#ebc3b7", at: 0.3 },
       { id: "ventricles", name: "Ventricles", line: "Spaces filled with the fluid that cushions your brain.", color: "#7fd0e6", move: [0, 0.03, 0], at: 0.34 },
-      { id: "eyes", name: "Eyes and optic nerves", short: "Eyes", line: "The optic nerves carry what your eyes see to the back of your brain.", color: "#f1ece4", tones: { lens: "#cfe6f5", iris: "#6e5a44", nerve: "#f2cf58" }, move: [0, -0.01, 0.1], spread: 0.25, perSide: true, at: 0.08 },
-      { id: "facenerves", name: "Nerves around the eyes", short: "Eye nerves", line: "Move your eyes and carry feeling from your eyes and forehead.", color: "#f2cf58", move: [0, 0.01, 0.06], at: 0.12 },
+      { id: "eyes", name: "Eyes and optic nerves", short: "Eyes", line: "The optic nerves carry what your eyes see to the back of your brain.", color: "#f1ece4", tones: { eye: "#ebe4d8", lens: "#dcecf7", iris: "#6e5a44", choroid: "#4a2422", nerve: "#f2cf58" }, move: [0, -0.01, 0.1], at: 0.08, view: { turn: -32, tilt: 30 } },
+      { id: "facenerves", name: "Nerves around the eyes", short: "Eye nerves", line: "Move your eyes and carry feeling from your eyes and forehead.", color: "#f2cf58", move: [0, 0.01, 0.06], at: 0.12, view: { turn: -50, tilt: 24 } },
     ],
   },
   {
@@ -149,9 +151,9 @@ export const SYSTEMS3D: SystemSpec[] = [
     view: { turn: -14, tilt: 4 },
     href: "/body/heart-and-vessels",
     parts: [
-      { id: "atria", name: "Upper chambers", line: "The atria collect the blood coming back to your heart.", color: "#b8382f", move: [0, 0.09, 0], spread: [0.6, 0, 0], at: 0, href: "/body/heart" },
+      { id: "atria", name: "Upper chambers", line: "The atria collect the blood coming back to your heart.", color: "#b8382f", move: [0, 0.09, 0], at: 0, href: "/body/heart" },
       { id: "ventricles", name: "Lower chambers", line: "The ventricles pump blood out: the right side to your lungs, the left side to your body.", color: "#a52f29", tones: { papillary: "#cf6a5c" }, move: [0, -0.08, 0], at: 0.04, href: "/body/heart" },
-      { id: "valves", name: "Valves", line: "Four one-way doors that keep your blood moving forward.", color: "#ead8c2", move: [0, 0.01, 0.03], spread: 0.9, at: 0.08, href: "/body/heart" },
+      { id: "valves", name: "Valves", line: "Four one-way doors that keep your blood moving forward.", color: "#ead8c2", move: [0, 0.01, 0.03], at: 0.08, href: "/body/heart" },
       { id: "coronary", name: "Heart's own vessels", short: "Heart vessels", line: "The coronary arteries feed the heart muscle itself.", color: "#e0473a", tones: { vein: "#4a66c4" }, move: [0.12, -0.02, 0.02], at: 0.12, href: "/body/heart" },
       { id: "aorta", name: "Aorta", line: "Your main artery. It carries blood from the left side of your heart to your body.", color: "#e6493d", move: [-0.36, 0, 0], at: 0.22 },
       { id: "arteries", name: "Arteries", line: "Carry blood away from your heart.", color: "#d0342a", move: [-0.36, 0, 0], at: 0.22 },
@@ -173,10 +175,10 @@ export const SYSTEMS3D: SystemSpec[] = [
     parts: [
       { id: "nose", name: "Nose", line: "Warms, moistens and filters the air you breathe in.", color: "#e8b6a8", tones: { cart: "#d9e5e0" }, move: [0, 0.08, 0.04], at: 0 },
       { id: "throat", name: "Throat", line: "Carries air to your windpipe and food to your food pipe.", color: "#d98c82", move: [-0.08, 0.05, -0.02], at: 0.05 },
-      { id: "voicebox", name: "Voice box", line: "Holds your vocal cords. A flap, the epiglottis, covers it when you swallow.", color: "#e3b3a8", tones: { cart: "#d4e2dc" }, move: [0.08, 0.02, 0.04], spread: 0.9, at: 0.1 },
+      { id: "voicebox", name: "Voice box", line: "Holds your vocal cords. A flap, the epiglottis, covers it when you swallow.", color: "#e3b3a8", tones: { cart: "#d4e2dc" }, move: [0.08, 0.02, 0.04], at: 0.1 },
       { id: "windpipe", name: "Windpipe", line: "A tube held open by rings of cartilage.", color: "#ecc6bb", move: [0, 0, 0.02], at: 0.15 },
-      { id: "rightlung", name: "Right lung", line: "Three lobes, each with its own branch of the airway tree.", color: "#f0a99f", move: [-0.1, 0, 0], spread: 0.45, at: 0.2 },
-      { id: "leftlung", name: "Left lung", line: "Two lobes, leaving room for your heart.", color: "#e89cb0", move: [0.1, 0, 0], spread: 0.45, at: 0.24 },
+      { id: "rightlung", name: "Right lung", line: "Shown as its airway tree, which branches into its three lobes.", color: "#f0a99f", move: [-0.1, 0, 0], at: 0.2 },
+      { id: "leftlung", name: "Left lung", line: "Shown as its airway tree. It has two lobes, leaving room for your heart.", color: "#e89cb0", move: [0.1, 0, 0], at: 0.24 },
       { id: "diaphragm", name: "Diaphragm", line: "Your main breathing muscle. It pulls down to draw air in.", color: "#b84d42", move: [0, -0.14, 0], at: 0.3 },
     ],
   },
@@ -191,14 +193,14 @@ export const SYSTEMS3D: SystemSpec[] = [
     view: { turn: -18, tilt: 4 },
     href: "/body/digestion",
     parts: [
-      { id: "mouth", name: "Tongue and saliva glands", short: "Tongue, glands", line: "Saliva starts breaking down starch while your tongue moves food to swallow.", color: "#cf6e6e", tones: { gland: "#e7b988" }, move: [0, 0.07, 0.02], spread: 0.7, at: 0 },
+      { id: "mouth", name: "Tongue and saliva glands", short: "Tongue, glands", line: "Saliva starts breaking down starch while your tongue moves food to swallow.", color: "#cf6e6e", tones: { gland: "#e7b988" }, move: [0, 0.07, 0.02], at: 0 },
       { id: "esophagus", name: "Food pipe", line: "Squeezes food down to your stomach in waves.", color: "#d9897b", move: [0, 0.04, 0], at: 0.04 },
       { id: "stomach", name: "Stomach", line: "Mixes food with acid, then lets it out a little at a time.", color: "#e79c86", move: [0.16, 0.07, 0.02], at: 0.08 },
-      { id: "liver", name: "Liver", line: "About 1.4 kg, in 8 segments. It processes what you absorb from food.", color: "#8e352a", move: [-0.17, 0.08, 0.02], spread: 0.5, at: 0.12, href: "/body/liver" },
+      { id: "liver", name: "Liver", line: "About 1.4 kg, in 8 segments. It processes what you absorb from food.", color: "#8e352a", move: [-0.17, 0.08, 0.02], at: 0.12, href: "/body/liver" },
       { id: "gallbladder", name: "Gallbladder and bile ducts", short: "Gallbladder", line: "Store bile from the liver and squeeze it into your gut to help digest fat.", color: "#5f9147", move: [-0.15, -0.09, 0.06], at: 0.16 },
       { id: "pancreas", name: "Pancreas", line: "Makes digestive juices, and insulin to control your blood sugar.", color: "#e8c277", tones: { duct: "#d9b26a" }, move: [0.15, -0.06, 0.05], at: 0.2 },
-      { id: "smallgut", name: "Small intestine", line: "Where most of your food is digested and taken in.", color: "#eba58c", move: [0, -0.17, 0.04], spread: 0.35, at: 0.24 },
-      { id: "largegut", name: "Large intestine", line: "Takes back water and holds what's left until you go.", color: "#c99062", move: [0, -0.07, -0.03], spread: [0.65, 0.35, 0.2], at: 0.28 },
+      { id: "smallgut", name: "Small intestine", line: "Where most of your food is digested and taken in.", color: "#eba58c", move: [0, -0.17, 0.04], at: 0.24 },
+      { id: "largegut", name: "Large intestine", line: "Takes back water and holds what's left until you go.", color: "#c99062", move: [0, -0.07, -0.03], at: 0.28 },
     ],
   },
   {
@@ -246,7 +248,7 @@ export const SYSTEMS3D: SystemSpec[] = [
     view: { turn: -20, tilt: 4 },
     note: "Not in our 3D data yet: lymph nodes, lymph vessels and tonsils.",
     parts: [
-      { id: "thymus", name: "Thymus", line: "Trains white blood cells called T cells. It shrinks after puberty.", color: "#e3a9c0", move: [0, 0.06, 0.03], spread: [0.7, 0, 0], at: 0 },
+      { id: "thymus", name: "Thymus", line: "Trains white blood cells called T cells. It shrinks after puberty.", color: "#e3a9c0", move: [0, 0.06, 0.03], at: 0 },
       { id: "spleen", name: "Spleen", line: "Filters your blood and recycles old red blood cells.", color: "#7d3352", move: [0.11, 0, 0], at: 0.12 },
     ],
   },

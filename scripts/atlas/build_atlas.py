@@ -12,6 +12,7 @@ import json, os, sys
 from collections import defaultdict
 import numpy as np
 import fast_simplification as fsimp
+import trimesh
 from classify import classify, side as side_of
 
 # the BodyParts3D meshes as prepared by the human-atlas project (atlas.json + body-*.bin)
@@ -74,8 +75,11 @@ def load(p):
     return V, F
 
 
+RAW = os.environ.get("ATLAS_RAW") == "1"  # leave simplification to encode.mjs (error-based, keeps small parts detailed)
+
+
 def simplify(V, F, keep):
-    if len(F) <= 160 or keep >= 0.98:
+    if RAW or len(F) <= 160 or keep >= 0.98:
         return V, F
     try:
         V2, F2 = fsimp.simplify(V.astype(np.float32), F.astype(np.int32), target_reduction=1 - keep, agg=6)
@@ -84,6 +88,31 @@ def simplify(V, F, keep):
     except Exception as e:
         print("simplify failed", e)
     return V, F
+
+
+# coarse source meshes (long edges: the bladder, the long bones, the big muscles) are rounded with Loop subdivision
+# before the error-based simplification in encode.mjs, so they stay smooth up close. Vessels, nerves and the unnamed
+# muscles keep their own shape (thin tubes, or context only).
+NO_SUBDIV = {("cardio", "arteries"), ("cardio", "veins"), ("muscles", "other"), ("nervous", "facenerves")}
+
+
+def smooth(V, F, s, c):
+    if (s, c) in NO_SUBDIV or os.environ.get("ATLAS_SUBDIV", "1") != "1" or len(F) < 8:
+        return V, F
+    med = float(np.median(np.linalg.norm(V[F[:, 1]] - V[F[:, 0]], axis=1)))
+    it = 2 if med > 0.008 else 1 if med > 0.0035 else 0
+    if not it:
+        return V, F
+    m = trimesh.Trimesh(V, F, process=True)  # joins the copies of a vertex along the source's seams
+    try:
+        v2, f2 = trimesh.remesh.subdivide_loop(m.vertices, m.faces, iterations=it)
+    except ValueError:
+        SMOOTH_SKIPPED.append(f"{s}/{c}")  # an edge shared by three faces: Loop's rules do not apply
+        return V, F
+    return np.asarray(v2, dtype=np.float64), np.asarray(f2, dtype=np.int64)
+
+
+SMOOTH_SKIPPED = []
 
 
 def weld(V, F, eps=1e-6):
@@ -104,16 +133,41 @@ def normals(V, F):
     return n / l
 
 
+# the source has a few meshes twice (two versions of the same structure, or an exact copy); drawn together they
+# flicker where their surfaces cross, so the copy with fewer vertices is left out
+def _dups():
+    by = defaultdict(list)
+    for p in A["parts"]:
+        r = classify(p, None)
+        if r and r[0][1] != "smallgut":  # the gut's short segments overlap without being copies
+            by[(p["name"], tuple(r[0][:2]))].append(p)
+    skip = set()
+    for v in by.values():
+        for i in range(len(v)):
+            for j in range(i + 1, len(v)):
+                a, b = np.array(v[i]["bounds"]), np.array(v[j]["bounds"])
+                inter = np.clip(np.minimum(a[1], b[1]) - np.maximum(a[0], b[0]), 0, None)
+                if (inter / np.maximum(np.maximum(a[1] - a[0], b[1] - b[0]), 1e-6)).min() > 0.8:
+                    skip.add(v[j]["id"] if v[i]["vertexCount"] >= v[j]["vertexCount"] else v[i]["id"])
+    return skip
+
+
+SKIP = _dups()
+print("copies left out", len(SKIP))
+
 pieces = defaultdict(list)  # file -> list of piece dicts (with arrays)
 merged = defaultdict(list)  # (file, system, cluster, material, tone, side) -> list of (V, F)
 stats = defaultdict(lambda: [0, 0, 0])
 for p in A["parts"]:
+    if p["id"] in SKIP:
+        continue
     for (s, c, mat, tone) in classify(p, None):
         sp = spec(s, c)
         b = np.array(p["bounds"])
         if float(np.linalg.norm(b[1] - b[0])) < sp["min"]:
             continue
         V, F = load(p)
+        V, F = smooth(V, F, s, c) if RAW else (V, F)
         V, F = simplify(V, F, sp["keep"])
         V, F = weld(V, F)
         sd = side_of(p["name"])
@@ -143,7 +197,7 @@ for f, plist in pieces.items():
     for q in plist:
         V, F = q["V"], q["F"]
         N = normals(V, F)
-        if len(V) > 65535:
+        if len(V) > 65535 and not RAW:
             raise SystemExit(f"piece too big for 16-bit indices: {q['name']} {len(V)}")
         raw.write(V.astype(np.float32).tobytes())
         raw.write(N.astype(np.float32).tobytes())
@@ -154,6 +208,10 @@ for f, plist in pieces.items():
     raw.close()
     json.dump(rows, open(os.path.join(OUT, f + ".pieces.json"), "w"))
     print(f, "pieces", len(rows), "triangles", tris)
+
+if SMOOTH_SKIPPED:
+    from collections import Counter
+    print("not smoothed (non-manifold):", dict(Counter(SMOOTH_SKIPPED)))
 
 summary = defaultdict(lambda: [0, 0])
 for (s, c), (n, t, _) in stats.items():

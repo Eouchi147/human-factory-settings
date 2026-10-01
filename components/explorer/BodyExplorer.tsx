@@ -61,8 +61,8 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
 
   const choosePart = useCallback(
     (id: string | null) => {
+      // "show only this" stays on while you step from part to part, so you can flip through them one by one
       setPart(id);
-      setAlone(false);
       api.current?.select(id);
     },
     [setPart],
@@ -301,8 +301,8 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
                 className={s.cardIn}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -3 }}
-                transition={{ duration: 0.22, ease: EASE }}
+                exit={{ opacity: 0, y: -3, transition: { duration: 0.1 } }}
+                transition={{ duration: 0.2, ease: EASE }}
               >
                 <div className={s.cardHead}>
                   <span className={s.cardDot} style={{ "--c": partSpec.color } as CSSProperties} />
@@ -334,8 +334,8 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
                 className={s.cardIn}
                 initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -3 }}
-                transition={{ duration: 0.22, ease: EASE }}
+                exit={{ opacity: 0, y: -3, transition: { duration: 0.1 } }}
+                transition={{ duration: 0.2, ease: EASE }}
               >
                 <p className={s.cardLine}>{spec ? spec.line : "Drag to turn it, pinch to zoom. Tap a name, or pick a system below, to take it apart."}</p>
                 {spec?.note ? <p className={s.note}>{spec.note}</p> : null}
