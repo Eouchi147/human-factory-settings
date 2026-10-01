@@ -1,12 +1,13 @@
-"""Sort every BodyParts3D mesh into one of nine body systems and a legend part.
+"""Sort every mesh into a body system and a legend part.
 
+BodyParts3D (the male reference body): classify(). The Human Reference Atlas female organ set: classify_female().
 Returns a list of assignments per mesh: (system, cluster, material, tone).
-  system   : skeleton | muscles | nervous | cardio | breathing | digestion | urinary | endocrine | immune
+  system   : skeleton | muscles | nervous | cardio | breathing | digestion | urinary | endocrine | immune | reproM | reproF
+             | pelvisF (the female pelvis, shown only as the x-ray behind the female organs)
   cluster  : the legend part it belongs to (what gets a number and a name on screen)
-  material : how its surface looks (bone, cart, muscle, organ, vessel, brain)
+  material : how its surface looks (bone, cart, muscle, organ, vessel, brain, glass, fat)
   tone     : a colour key inside the cluster (most pieces just use the cluster colour)
-Left out on purpose: skin and hair, reproductive organs, the urethra, membranes (mesentery,
-tentorium), and bits too small to see.
+Left out on purpose: skin and hair, membranes (mesentery, tentorium), and bits too small to see.
 """
 import re
 
@@ -237,6 +238,71 @@ def digestion(n, sysname):
     return None
 
 
+# ------------------------------------------------------------------ reproduction
+def male(n):
+    if "testis" in n:
+        return ("reproM", "testes", "organ", "testis")
+    if "epididymis" in n:
+        return ("reproM", "epididymis", "organ", "epididymis")
+    if "seminal vesicle" in n:
+        return ("reproM", "seminal", "organ", "seminal")
+    if "prostate" in n:
+        return ("reproM", "prostate", "organ", "prostate")
+    if "glans penis" in n:
+        return ("reproM", "penis", "organ", "glans")
+    if "corpus cavernosum" in n:
+        return ("reproM", "penis", "organ", "cavernosum")
+    if "corpus spongiosum" in n:
+        return ("reproM", "penis", "organ", "spongiosum")
+    return None
+
+
+UTERUS = ("body of uterus", "fundus of uterus", "cornua", "lower uterine segment", "wall of uterus")
+CERVIX = ("cervix", "cervical os", "cervicovaginal junction")
+CORDS = ("round ligament of uterus", "uterosacral ligament", "cardinal ligament", "suspensory ligament of ovary", "ovarian ligament")
+SHEETS = ("broad ligament", "mesosalpinx", "mesovarium")
+
+
+def classify_female(p):
+    """Human Reference Atlas, 3D Reference Organ Set for Female v1.5: the reproductive organs and breasts, and the
+    pelvis and spine they sit in (shown as an x-ray)."""
+    n = base(p["name"])
+    sysname = p["system"]
+    if sysname == "reproductive":
+        if "ovary" in n and "ligament" not in n and "meso" not in n:
+            return [("reproF", "ovaries", "organ", "ovary")]
+        if "uterine tube" in n:
+            return [("reproF", "tubes", "organ", "tube")]
+        if has(n, *UTERUS):
+            return [("reproF", "uterus", "organ", "uterus")]
+        if has(n, *CERVIX):
+            return [("reproF", "cervix", "organ", "cervix")]
+        if n == "vagina":
+            return [("reproF", "vagina", "organ", "vagina")]
+        if has(n, *CORDS):
+            return [("reproF", "ligaments", "organ", "ligament")]
+        if has(n, *SHEETS):
+            return [("reproF", "ligaments", "glass", "sheet")]  # thin sheets: see-through, so the organs show
+        return []  # the pouch between uterus and bladder (a fold of lining, not an organ)
+    if sysname == "integumentary":
+        if "mammary lobe" in n:
+            return [("reproF", "breasts", "organ", "lobe")]
+        if "lactiferous" in n:
+            return [("reproF", "breasts", "organ", "duct")]
+        if "adipose tissue of mammary gland" in n:
+            return [("reproF", "breasts", "fat", "fat")]
+        if has(n, "areola", "nipple"):
+            return [("reproF", "breasts", "organ", "areola")]
+        if "suspensory ligament of breast" in n:
+            return [("reproF", "breasts", "glass", "sheet")]
+        return []  # the skin of the whole body
+    if sysname == "skeletal":
+        if n in ("compact bone tissue", "fused sacrum", "coccyx", "femur") or re.match(r"(lumbar|thoracic) vertebra", n):
+            return [("pelvisF", "bones", "bone", "bone")]
+        return []
+    return []
+
+
 def classify(p, old):
     """p: atlas part; old: (group, tissue) from the old part map or None. Returns a list of assignments."""
     name = p["name"]
@@ -245,9 +311,15 @@ def classify(p, old):
     group = old[0] if old else None
     out = []
 
-    if sysname in ("integumentary", "reproductive"):
+    if sysname == "integumentary":
         return out
-    if n in ("urethra",):
+    if sysname == "reproductive":
+        r = male(n)
+        if r:
+            out.append(r)
+        return out
+    if n == "urethra":  # in a man it carries urine and semen through the prostate and the penis
+        out.append(("reproM", "urethra", "vessel", "urethra"))
         return out
 
     if sysname == "skeletal":

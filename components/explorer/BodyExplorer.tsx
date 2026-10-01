@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import s from "./explorer.module.css";
-import { SYSTEMS3D, SYSTEM_ORDER, WHOLE_LABELS, systemById, type SystemId } from "@/lib/anatomy";
+import { REPRO, SYSTEMS3D, SYSTEM_ORDER, WHOLE_LABELS, systemById, type SystemId } from "@/lib/anatomy";
 import type { ExplorerApi } from "@/lib/explorer3d";
 import { Icon } from "../Icons";
 
@@ -28,6 +28,7 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
   const sliding = useRef(false);
   const api = useRef<ExplorerApi | null>(null);
   const sysRef = useRef<SystemId | null>(initial);
+  const lastRepro = useRef<SystemId>(initial && REPRO.includes(initial) ? initial : "reproF"); // the reproductive button reopens the last one seen
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
   const [busy, setBusy] = useState(false);
   const [system, setSystemState] = useState<SystemId | null>(initial);
@@ -47,6 +48,7 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
   const chooseSystem = useCallback(
     (id: SystemId | null) => {
       sysRef.current = id;
+      if (id && REPRO.includes(id)) lastRepro.current = id;
       setSystemState(id);
       setPart(null);
       setPlaying(false);
@@ -257,7 +259,7 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
             <span className={s.kick}>The body in 3D</span>
             <AnimatePresence mode="wait" initial={false}>
               <motion.h2
-                key={system ?? "body"}
+                key={spec ? spec.name : "body"}
                 className={s.title}
                 initial={{ opacity: 0, y: 8, filter: "blur(6px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
@@ -268,6 +270,15 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
               </motion.h2>
             </AnimatePresence>
             <span className={s.formal}>{spec ? `${spec.formal} · ${legend.length} parts` : "Tap a name to open its system"}</span>
+            {system && REPRO.includes(system) ? (
+              <div className={s.sex} role="group" aria-label="Female or male">
+                {REPRO.map((id) => (
+                  <button key={id} type="button" className={`${s.sexBtn} ${system === id ? s.sexOn : ""}`} aria-pressed={system === id} onClick={() => system !== id && chooseSystem(id)}>
+                    {id === "reproF" ? "Female" : "Male"}
+                  </button>
+                ))}
+              </div>
+            ) : null}
           </div>
           {variant === "overlay" ? (
             <button type="button" className={s.close} onClick={onClose} aria-label="Close the 3D body">
@@ -282,7 +293,7 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
             <span>Building your body</span>
           </div>
         ) : null}
-        {busy ? <div className={s.busy}>Loading the muscles</div> : null}
+        {busy ? <div className={s.busy}>{system === "muscles" ? "Loading the muscles" : system === "reproF" ? "Loading the female organs" : "Loading"}</div> : null}
         {state === "failed" ? (
           <div className={s.failed}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -412,6 +423,18 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
           </button>
           {SYSTEM_ORDER.map((id) => {
             const x = SYSTEMS3D.find((q) => q.id === id)!;
+            if (REPRO.includes(id)) {
+              // female and male share one button; the switch under the title changes between them
+              if (id !== REPRO[0]) return null;
+              const on = !!system && REPRO.includes(system);
+              const [f, m] = REPRO.map((r) => systemById(r)!.color);
+              return (
+                <button key="repro" type="button" className={`${s.sys} ${on ? s.sysOn : ""}`} aria-pressed={on} onClick={() => chooseSystem(on ? system : lastRepro.current)}>
+                  <span className={s.sysDot} style={{ background: `linear-gradient(90deg, ${f} 50%, ${m} 50%)` }} />
+                  Reproductive
+                </button>
+              );
+            }
             return (
               <button key={id} type="button" className={`${s.sys} ${system === id ? s.sysOn : ""}`} aria-pressed={system === id} onClick={() => chooseSystem(id)}>
                 <span className={s.sysDot} style={{ background: x.color2 ? `linear-gradient(90deg, ${x.color} 50%, ${x.color2} 50%)` : x.color }} />
@@ -420,9 +443,15 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
             );
           })}
         </div>
-        <a className={s.credit} href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html" target="_blank" rel="noopener noreferrer">
-          3D anatomy: BodyParts3D, CC BY 4.0, simplified and scaled to 1.83 m
-        </a>
+        {spec?.credit ? (
+          <a className={s.credit} href={spec.credit.href} target="_blank" rel="noopener noreferrer">
+            {spec.credit.text}
+          </a>
+        ) : (
+          <a className={s.credit} href="https://dbarchive.biosciencedbc.jp/en/bodyparts3d/lic.html" target="_blank" rel="noopener noreferrer">
+            3D anatomy: BodyParts3D, CC BY 4.0, simplified and scaled to 1.83 m
+          </a>
+        )}
       </div>
     </div>
   );

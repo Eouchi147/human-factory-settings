@@ -1,9 +1,11 @@
 """Build the systems model for the 3D explorer.
 
-Source: BodyParts3D 4.0, (c) The Database Center for Life Science, CC BY 4.0, as prepared by the human-atlas
-project (2,234 meshes). Every mesh is sorted into a system and a legend part (classify.py), simplified, and
-either kept as its own piece (so it can move on its own in the exploded view) or merged with the rest of its
-part. Output, per file (core = everything but muscles; muscles = the muscles):
+Sources: BodyParts3D 4.0, (c) The Database Center for Life Science, CC BY 4.0, as prepared by the human-atlas
+project (2,234 meshes); and for the female organs, the Human Reference Atlas 3D Reference Organ Set for Female v1.5
+(Kristen Browne and Heidi Schlehlein, HuBMAP, CC BY 4.0), as prepared by the same project (ATLAS_SRC_F). Every mesh
+is sorted into a system and a legend part (classify.py), simplified, and either kept as its own piece (so it can
+move on its own in the exploded view) or merged with the rest of its part. Output, per file (core = everything but
+muscles and the female set; muscles = the muscles; female = the female organs and the pelvis behind them):
   <out>/<file>.raw.bin   positions as float32, normals as float32, indices as uint32, piece after piece
   <out>/<file>.pieces.json   one row per piece: system, part, material, tone, side, counts
 The Node step (encode.mjs) quantises and compresses these with meshoptimizer.
@@ -13,7 +15,8 @@ from collections import defaultdict
 import numpy as np
 import fast_simplification as fsimp
 import trimesh
-from classify import classify, side as side_of
+import re
+from classify import classify, classify_female, side as side_of
 
 # the BodyParts3D meshes as prepared by the human-atlas project (atlas.json + body-*.bin)
 MODELS = os.environ.get("ATLAS_SRC", "/home/claude/eouchi147/human-atlas/public/models")
@@ -58,8 +61,19 @@ SPEC = {
     ("endocrine", "hypothalamus"): {"keep": 0.8, "merge": True}, ("endocrine", "pituitary"): {"keep": 1.0}, ("endocrine", "pineal"): {"keep": 1.0},
     ("endocrine", "adrenals"): {"keep": 0.8}, ("endocrine", "pancreas"): {"keep": 0.7},
     ("immune", "thymus"): {"keep": 1.0}, ("immune", "spleen"): {"keep": 1.0},
+    # pairs keep left and right apart when merged ("pair"), so the two sides can part
+    ("reproF", "tubes"): {"merge": True, "pair": True}, ("reproF", "ligaments"): {"merge": True, "pair": True},
+    ("reproF", "breasts"): {"merge": True, "pair": True}, ("reproF", "uterus"): {"merge": True},
+    ("reproF", "cervix"): {"merge": True}, ("pelvisF", "bones"): {"merge": True},
 }
-FILE_OF = lambda system: "muscles" if system == "muscles" else "core"
+FILE_OF = lambda system: "muscles" if system == "muscles" else "female" if system in ("reproF", "pelvisF") else "core"
+
+# the female set as prepared by the human-atlas project (atlas-female.json + female-*.bin, from its git history:
+# commit d72b4f6 of github.com/Eouchi147/human-atlas); not set: the female organs are left out of the build
+FEMALE = os.environ.get("ATLAS_SRC_F")
+# the explorer scales every model by this to show the male body 1.83 m tall; the female set is divided by it first,
+# so she keeps her own true size (her reference body is 1.67 m)
+SCALE = 1.83 / 1.73
 
 
 def spec(s, c):
@@ -68,8 +82,8 @@ def spec(s, c):
     return d
 
 
-def load(p):
-    buf = chunk(p["chunk"])
+def load(p, get=None):
+    buf = (get or chunk)(p["chunk"])
     V = np.frombuffer(buf, dtype=np.float32, count=p["vertexCount"] * 3, offset=p["positions"]).reshape(-1, 3).astype(np.float64)
     F = np.frombuffer(buf, dtype=np.uint32, count=p["indexCount"], offset=p["indices"]).reshape(-1, 3).astype(np.int64)
     return V, F
@@ -93,7 +107,7 @@ def simplify(V, F, keep):
 # coarse source meshes (long edges: the bladder, the long bones, the big muscles) are rounded with Loop subdivision
 # before the error-based simplification in encode.mjs, so they stay smooth up close. Vessels, nerves and the unnamed
 # muscles keep their own shape (thin tubes, or context only).
-NO_SUBDIV = {("cardio", "arteries"), ("cardio", "veins"), ("muscles", "other"), ("nervous", "facenerves")}
+NO_SUBDIV = {("cardio", "arteries"), ("cardio", "veins"), ("muscles", "other"), ("nervous", "facenerves"), ("pelvisF", "bones")}
 
 
 def smooth(V, F, s, c):
@@ -158,27 +172,57 @@ print("copies left out", len(SKIP))
 pieces = defaultdict(list)  # file -> list of piece dicts (with arrays)
 merged = defaultdict(list)  # (file, system, cluster, material, tone, side) -> list of (V, F)
 stats = defaultdict(lambda: [0, 0, 0])
-for p in A["parts"]:
-    if p["id"] in SKIP:
-        continue
-    for (s, c, mat, tone) in classify(p, None):
+def add(p, assignments, get=None, sd=None, scale=1.0):
+    for (s, c, mat, tone) in assignments:
         sp = spec(s, c)
         b = np.array(p["bounds"])
         if float(np.linalg.norm(b[1] - b[0])) < sp["min"]:
             continue
-        V, F = load(p)
+        V, F = load(p, get)
+        V = V / scale
         V, F = smooth(V, F, s, c) if RAW else (V, F)
         V, F = simplify(V, F, sp["keep"])
         V, F = weld(V, F)
-        sd = side_of(p["name"])
+        side = side_of(p["name"]) if sd is None else sd
         stats[(s, c)][0] += 1
         stats[(s, c)][1] += len(F)
         if sp["merge"]:
             # merged parts keep left and right apart only when the part is a pair (eyes); vessels become one piece per tone
-            key_side = sd if c in ("eyes",) else 0
+            key_side = side if c in ("eyes",) or sp.get("pair") else 0
             merged[(FILE_OF(s), s, c, mat, tone, key_side)].append((V, F))
         else:
-            pieces[FILE_OF(s)].append({"system": s, "cluster": c, "material": mat, "tone": tone, "side": sd, "name": p["name"], "V": V, "F": F})
+            pieces[FILE_OF(s)].append({"system": s, "cluster": c, "material": mat, "tone": tone, "side": side, "name": p["name"], "V": V, "F": F})
+
+
+for p in A["parts"]:
+    if p["id"] not in SKIP:
+        add(p, classify(p, None))
+
+
+def side_f(p):
+    """The female set names some pairs without a side ("mammary lobe"); its ids carry it (..._L, ..._right_...)."""
+    sd = side_of(p["name"])
+    if sd:
+        return sd
+    i = p["id"].lower()
+    if re.search(r"(_l$|_l_|left_)", i):
+        return 1
+    if re.search(r"(_r$|_r_|right_)", i):
+        return -1
+    return 0
+
+
+if FEMALE:
+    FA = json.load(open(os.path.join(FEMALE, "atlas-female.json")))
+    fchunks = {}
+
+    def fchunk(ci):
+        if ci not in fchunks:
+            fchunks[ci] = open(os.path.join(FEMALE, FA["chunks"][ci]["url"].split("/")[-1]), "rb").read()
+        return fchunks[ci]
+
+    for p in FA["parts"]:
+        add(p, classify_female(p), get=fchunk, sd=side_f(p), scale=SCALE)
 
 for (f, s, c, mat, tone, sd), parts in merged.items():
     Vs, Fs, base = [], [], 0

@@ -61,6 +61,17 @@
 .kick { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--accent); }
 .title { margin: 2px 0 0; font-family: var(--font-serif); font-style: italic; font-weight: 400; font-size: clamp(32px, 9vw, 60px); line-height: 0.98; letter-spacing: -0.01em; text-wrap: balance; }
 .formal { font-size: 13px; color: var(--ink3); }
+.sex {
+  display: inline-flex; gap: 2px; align-self: flex-start; margin-top: 8px; padding: 3px; border-radius: 99px; border: 1px solid var(--edge);
+  background: rgba(18, 21, 26, 0.72); -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+}
+.sexBtn {
+  min-height: 34px; padding: 0 16px; border-radius: 99px; border: 0; background: transparent; color: var(--ink2); font-size: 13.5px; font-weight: 640;
+  cursor: pointer; transition: background 0.25s var(--ease), color 0.25s var(--ease);
+}
+.sexBtn:hover { color: var(--ink); }
+.sexOn { background: var(--ink); color: var(--bg); }
+.sexOn:hover { color: var(--bg); }
 .close {
   flex: none; width: 42px; height: 42px; border-radius: 99px; border: 1px solid var(--edge); background: rgba(18, 21, 26, 0.7); color: var(--ink);
   display: inline-flex; align-items: center; justify-content: center; cursor: pointer; -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);

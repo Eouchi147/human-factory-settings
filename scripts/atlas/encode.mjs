@@ -41,6 +41,11 @@ const ERR = {
   "urinary": 0.00025,
   "endocrine": 0.00015,
   "immune": 0.0002,
+  "reproM": 0.00015,
+  "reproF": 0.00015,
+  "reproF/breasts": 0.0003,
+  "reproF/ligaments": 0.00025,
+  "pelvisF": 0.0008,
 };
 const errOf = (s, c) => ERR[`${s}/${c}`] ?? ERR[s] ?? ERR.default;
 
@@ -155,8 +160,12 @@ const idxBase = posE.length + pad4(posE.length);
 
 const manifest = {
   v: 2,
-  source: "BodyParts3D 4.0, (c) The Database Center for Life Science, CC BY 4.0. Simplified for the web by Human Factory Settings.",
-  units: "metres, y up, x towards the body's left, z towards the front; reference body 1.73 m",
+  source: file === "female"
+    ? "Human Reference Atlas, 3D Reference Organ Set for Female v1.5, Kristen Browne and Heidi Schlehlein (HuBMAP), CC BY 4.0, https://doi.org/10.48539/HBM352.BTSQ.586. Simplified for the web by Human Factory Settings."
+    : "BodyParts3D 4.0, (c) The Database Center for Life Science, CC BY 4.0. Simplified for the web by Human Factory Settings.",
+  units: file === "female"
+    ? "metres, y up, x towards the body's left, z towards the front; her own size divided by 1.83 / 1.73, which the explorer multiplies back"
+    : "metres, y up, x towards the body's left, z towards the front; reference body 1.73 m",
   q: { bits: BITS, min: min.map((x) => +x.toFixed(6)), span: span.map((x) => +x.toFixed(6)) },
   vertices: total,
   streams: { pos: [0, posE.length], idx: [idxBase, idxE.length] },

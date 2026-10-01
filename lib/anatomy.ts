@@ -1,12 +1,17 @@
 /* The body, system by system: what the 3D explorer shows and says. Kept free of three.js so pages can import it.
-   Geometry: BodyParts3D 4.0, (c) The Database Center for Life Science, CC BY 4.0, simplified for the web
-   (public/model/atlas, built by scripts/atlas). Numbers in the lines below come from lib/systems.ts and lib/parts.ts,
+   Geometry: BodyParts3D 4.0, (c) The Database Center for Life Science, CC BY 4.0 (the male reference body); the
+   female organs and her pelvis: Human Reference Atlas, 3D Reference Organ Set for Female v1.5, Kristen Browne and
+   Heidi Schlehlein (HuBMAP), CC BY 4.0. Both simplified for the web (public/model/atlas, built by scripts/atlas). Numbers in the lines below come from lib/systems.ts and lib/parts.ts,
    where each one carries its source; every other line describes what a part does, in plain words.
 
    Explode moves are in metres on the reference body (1.73 m tall; the engine scales them with the body to 1.83 m).
    x points to the body's left (your right when you face it), y up, z to the front. */
 
-export type SystemId = "skeleton" | "muscles" | "nervous" | "cardio" | "breathing" | "digestion" | "urinary" | "endocrine" | "immune";
+export type SystemId =
+  | "skeleton" | "muscles" | "nervous" | "cardio" | "breathing" | "digestion" | "urinary" | "endocrine" | "immune"
+  | "reproF" | "reproM"
+  /** the female pelvis and spine, shown only as the x-ray behind the female organs */
+  | "pelvisF";
 
 export type Vec3 = [number, number, number];
 
@@ -34,6 +39,8 @@ export type PartSpec = {
   label?: boolean;
   /** muscles only: how far this group lifts off, as a share of the system's float */
   float?: number;
+  /** drawn only while it is picked (the breasts, far above the pelvis the female view frames) */
+  onlyPicked?: boolean;
   /** the angle that explains it best when it is shown on its own (same units as the system's view) */
   view?: { turn: number; tilt: number };
 };
@@ -45,12 +52,20 @@ export type SystemSpec = {
   line: string;
   color: string;
   color2?: string; // second colour of the chip dot (arteries and veins)
-  file: "core" | "muscles";
+  file: "core" | "muscles" | "female";
   parts: PartSpec[];
   /** how the skeleton shows behind this system: an x-ray outline, dimmed bones, or nothing */
   context: "xray" | "bones" | "none";
+  /** whose bones make that x-ray (default: the skeleton; the female organs sit in her own pelvis) */
+  contextSystem?: SystemId;
+  /** never offered on its own (a context for another system) */
+  hidden?: boolean;
+  /** draw both faces of every surface: its meshes are open where one part meets the next (the cervix and the uterus) */
+  doubleSided?: boolean;
+  /** where its 3D data comes from, when it is not BodyParts3D (shown in the credit line) */
+  credit?: { text: string; href: string };
   /** what the camera frames, metres on the reference body (default: the whole system) */
-  frame?: { y?: [number, number] };
+  frame?: { y?: [number, number]; parts?: string[] };
   /** camera angle: turn (degrees, negative = from the body's right) and height above the target (degrees) */
   view: { turn: number; tilt: number };
   /** muscles lift off the bones: how far, in metres */
@@ -252,6 +267,66 @@ export const SYSTEMS3D: SystemSpec[] = [
       { id: "spleen", name: "Spleen", line: "Filters your blood and recycles old red blood cells.", color: "#7d3352", move: [0.11, 0, 0], at: 0.12 },
     ],
   },
+  {
+    id: "reproF",
+    name: "Reproductive organs",
+    formal: "Female reproductive system",
+    line: "Makes eggs and the hormones of the monthly cycle, and can carry a pregnancy.",
+    color: "#d76a7a",
+    file: "female",
+    context: "xray",
+    contextSystem: "pelvisF",
+    doubleSided: true,
+    // the camera keeps to her pelvis; the breasts are framed when picked
+    frame: { parts: ["ovaries", "tubes", "uterus", "cervix", "vagina", "ligaments"] },
+    view: { turn: -26, tilt: 10 },
+    note: "From a second 3D dataset, the Human Reference Atlas female set, in her own pelvis. Not in it yet: the vulva (the outer genitals).",
+    credit: {
+      text: "3D anatomy: Human Reference Atlas female organ set v1.5, Kristen Browne and Heidi Schlehlein (HuBMAP), CC BY 4.0, simplified",
+      href: "https://doi.org/10.48539/HBM352.BTSQ.586",
+    },
+    parts: [
+      { id: "ovaries", name: "Ovaries", line: "Hold your eggs and make the hormones estrogen and progesterone.", color: "#ecb8a6", move: [0.05, 0.02, 0.02], mirror: true, at: 0 },
+      { id: "tubes", name: "Fallopian tubes", short: "Tubes", line: "Catch each egg an ovary releases. This is usually where sperm meets the egg.", color: "#f0a0ae", move: [0.03, 0.035, 0.03], mirror: true, at: 0.06 },
+      { id: "uterus", name: "Uterus", line: "A muscular organ where a pregnancy grows. Its lining sheds each month as a period.", color: "#d76a7a", move: [0, 0.03, 0.05], at: 0.12 },
+      { id: "cervix", name: "Cervix", line: "The neck of the uterus, opening into the vagina.", color: "#c25a6a", move: [0, -0.015, -0.02], at: 0.18 },
+      { id: "vagina", name: "Vagina", line: "The muscular canal from the cervix to the outside of the body.", color: "#e3909b", move: [0, -0.06, -0.02], at: 0.24 },
+      { id: "ligaments", name: "Ligaments", line: "Bands and thin sheets that hold the uterus, tubes and ovaries in place.", color: "#eadbd0", tones: { sheet: "#f2e4dc" }, move: [0, 0.01, -0.07], at: 0.3 },
+      { id: "breasts", name: "Breasts", line: "Milk glands and the ducts that lead from them to the nipple, set in fat.", color: "#f0c4ae", tones: { lobe: "#efb9a6", duct: "#e29a86", fat: "#f6dfa0", areola: "#b97a6c", sheet: "#f2e4dc" }, move: [0.04, 0.03, 0], mirror: true, at: 0.3, onlyPicked: true, view: { turn: -24, tilt: 4 } },
+    ],
+  },
+  {
+    id: "reproM",
+    name: "Reproductive organs",
+    formal: "Male reproductive system",
+    line: "Makes sperm and the hormone testosterone, and delivers sperm.",
+    color: "#c8786a",
+    file: "core",
+    context: "xray",
+    frame: { y: [0.72, 0.96] },
+    view: { turn: -40, tilt: 6 },
+    note: "Not in our 3D data yet: the sperm ducts (vas deferens) and the scrotum.",
+    parts: [
+      { id: "testes", name: "Testes", line: "Make sperm and the hormone testosterone.", color: "#ebb3a3", move: [0.03, -0.05, 0.03], mirror: true, at: 0 },
+      { id: "epididymis", name: "Epididymis", line: "A coiled tube on each testis where sperm mature and are stored.", color: "#d98e7e", move: [0.05, -0.03, 0.045], mirror: true, at: 0.06 },
+      { id: "seminal", name: "Seminal vesicles", short: "Seminal vesicles", line: "Make fluid that feeds sperm and becomes part of semen.", color: "#e3c07c", move: [0.04, 0.05, -0.045], mirror: true, at: 0.12 },
+      { id: "prostate", name: "Prostate", line: "A walnut-sized gland under the bladder. It adds fluid to semen and wraps around the urethra.", color: "#c8786a", move: [0, -0.02, -0.06], at: 0.18 },
+      { id: "penis", name: "Penis", line: "Spongy tissue that fills with blood for an erection. The urethra runs through it.", color: "#dc8f80", tones: { glans: "#c9707a", spongiosum: "#e6a595" }, move: [0, -0.01, 0.07], at: 0.24 },
+      { id: "urethra", name: "Urethra", line: "Carries urine, and semen, out of the body.", color: "#ead39c", at: 0.3 },
+    ],
+  },
+  {
+    id: "pelvisF",
+    name: "Pelvis",
+    formal: "Female pelvis",
+    line: "",
+    color: "#e6dac1",
+    file: "female",
+    context: "none",
+    hidden: true,
+    view: { turn: -26, tilt: 10 },
+    parts: [{ id: "bones", name: "Bones", line: "", color: "#e6dac1", label: false }],
+  },
 ];
 
 /** Which system each tappable part of the home page's body opens in the explorer. */
@@ -260,7 +335,9 @@ export const SYSTEM_FOR_PART: Record<string, SystemId> = {
   kidneys: "urinary", brain: "nervous", nerves: "nervous",
 };
 
-export const SYSTEM_ORDER: SystemId[] = ["skeleton", "muscles", "nervous", "cardio", "breathing", "digestion", "urinary", "endocrine", "immune"];
+export const SYSTEM_ORDER: SystemId[] = ["skeleton", "muscles", "nervous", "cardio", "breathing", "digestion", "urinary", "endocrine", "immune", "reproF", "reproM"];
+/** female and male share one button, with a switch between them */
+export const REPRO: SystemId[] = ["reproF", "reproM"];
 export const systemById = (id: string) => SYSTEMS3D.find((s) => s.id === id);
 
 /** The whole body at rest: every system but the muscles, which would hide everything else. */

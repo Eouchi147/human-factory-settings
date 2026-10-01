@@ -54,6 +54,7 @@ type Piece = {
   natural: THREE.Color; // colour in the whole-body view
   dup: boolean; // drawn by another system too (hidden in the whole-body view)
   beat: "heart" | "air" | null;
+  onlyPicked: boolean; // drawn only while its part is picked
   anchor: THREE.Vector3; // a point on its front surface
   tris: number;
   pos: Float32Array | null; // kept only until its part's number has a place
@@ -137,6 +138,8 @@ const SURF: Record<string, Surf> = {
   brain: { roughness: 0.5, clearcoat: 0.18, clearcoatRoughness: 0.4, sheen: 0.75, sheenColor: 0xffe6de, sheenRoughness: 0.5 },
   // the clear front of the eye and its lens: you see the iris and the pupil through them
   glass: { roughness: 0.04, clearcoat: 1, clearcoatRoughness: 0.03, opacity: 0.26 },
+  // the fat of the breast: soft and half see-through, so the milk glands show inside
+  fat: { roughness: 0.42, clearcoat: 0.35, clearcoatRoughness: 0.3, sheen: 0.5, sheenColor: 0xfff0d0, opacity: 0.45 },
 };
 
 // colours in the whole-body view, where the brain is shown as it looks, not colour-coded by lobe
@@ -223,7 +226,15 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
   ring.position.y = 0.0005;
   scene.add(ring);
 
-  const xray = makeXray(0x9db6dc);
+  const xrays = new Map<Batch, ReturnType<typeof makeXray>>();
+  const xrayOf = (b: Batch) => {
+    let x = xrays.get(b);
+    if (!x) {
+      x = makeXray(0x9db6dc);
+      xrays.set(b, x);
+    }
+    return x;
+  };
   const systems = new Map<SystemId, SysRec>();
   const batches: Batch[] = [];
   const loaded = new Set<string>();
@@ -231,7 +242,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
   let disposed = false;
 
   // ------------------------------------------------------------------ loading
-  const loadFile = (file: "core" | "muscles") => {
+  const loadFile = (file: "core" | "muscles" | "female") => {
     if (loaded.has(file)) return Promise.resolve();
     const running = loading.get(file);
     if (running) return running;
@@ -337,6 +348,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
             color: 0xffffff, roughness: surf.roughness, metalness: 0, clearcoat: surf.clearcoat ?? 0, clearcoatRoughness: surf.clearcoatRoughness ?? 0.3,
             sheen: surf.sheen ?? 0, sheenColor: new THREE.Color(surf.sheenColor ?? 0xffffff), sheenRoughness: surf.sheenRoughness ?? 0.5,
           });
+      if (SYSTEMS3D.find((x) => x.id === sys)?.doubleSided) solid.side = THREE.DoubleSide;
       // see-through surfaces stay see-through at every step of a fade, and never hide what is behind them
       solid.userData.base = surf.opacity ?? 1;
       if (solid.userData.base < 1) {
@@ -362,6 +374,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
           system: sys, part: r.part, tone: r.tone, side: r.side, center: r.center, box: r.box, batch: b, inst, full: new THREE.Vector3(), delay: 0,
           off: new THREE.Vector3(), color: new THREE.Color(1, 1, 1), natural: new THREE.Color(1, 1, 1), dup: false,
           beat: sys === "cardio" && ["atria", "ventricles", "valves", "coronary"].includes(r.part) ? "heart" : sys === "breathing" && /lung|windpipe/.test(r.part) ? "air" : null,
+          onlyPicked: false,
           anchor: r.anchor,
           tris: r.tris,
           pos: r.pos,
@@ -413,7 +426,9 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
       plan(spec, parts, pieces);
       const box0 = new THREE.Box3(), box1 = new THREE.Box3();
       const tmp = new THREE.Box3();
-      for (const p of pieces) {
+      // what the camera frames: the whole system, or only the parts it names (the breasts sit far above the pelvis)
+      const framed = spec.frame?.parts ? pieces.filter((p) => spec.frame!.parts!.includes(p.part)) : pieces;
+      for (const p of framed) {
         box0.union(p.box);
         tmp.copy(p.box).translate(p.full);
         box1.union(tmp);
@@ -480,6 +495,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
           floatDir.normalize();
         }
         for (const p of group) {
+          p.onlyPicked = !!ps.onlyPicked;
           p.color.set(ps.tones?.[p.tone] ?? ps.color);
           p.natural.set(NATURAL[`${spec.id}/${ps.id}`] ?? (ps.tones?.[p.tone] ?? ps.color));
           if (floatDir) {
@@ -514,8 +530,9 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     if (current === null) return WHOLE_BODY.includes(b.system) ? "solid" : "hidden";
     if (b.system === current) return "solid";
     if (isolated) return "hidden";
-    const ctx = systems.get(current)?.spec.context ?? "none";
-    if (b.system === "skeleton") return ctx === "xray" ? "xray" : ctx === "bones" ? "dim" : "hidden";
+    const spec = systems.get(current)?.spec;
+    const ctx = spec?.context ?? "none";
+    if (b.system === (spec?.contextSystem ?? "skeleton")) return ctx === "xray" ? "xray" : ctx === "bones" ? "dim" : "hidden";
     return "hidden";
   };
   let colorsDirty = true;
@@ -532,14 +549,14 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     // whole body: no duplicates, natural colours; one system: its legend colours; alone: just the picked part
     for (const b of batches)
       for (const p of b.pieces) {
-        let v = !(current === null && p.dup);
+        let v = !(current === null && p.dup) && (!p.onlyPicked || p.part === selected);
         if (isolated && selected && b.system === current) v = p.part === selected;
         b.mesh.setVisibleAt(p.inst, v);
       }
     colorsDirty = true;
   };
   const setMaterial = (b: Batch) => {
-    b.mesh.material = b.look === "xray" ? xray.m : b.solid;
+    b.mesh.material = b.look === "xray" ? xrayOf(b).m : b.solid;
     b.mesh.visible = b.look !== "hidden";
   };
 
@@ -769,7 +786,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     for (const L of labels) {
       const rec = systems.get(L.sys)?.parts.get(L.part);
       const alpha = labelAlpha(L.sys);
-      if ((!rec && !L.at) || alpha < 0.05 || (isolated && L.part !== selected)) {
+      if ((!rec && !L.at) || alpha < 0.05 || ((isolated || rec?.spec.onlyPicked) && L.part !== selected)) {
         hideLabel(L);
         continue;
       }
@@ -932,7 +949,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     if (sys) for (const rec of sys.parts.values()) rec.dimTo = selected && rec.id !== selected ? 1 : 0;
     const wasAlone = isolated;
     if (!selected && isolated) setIsolated(false);
-    else if (isolated) applyLooks();
+    else applyLooks(); // shows the part alone, or one that is drawn only while picked
     if (selected || !keepView || wasAlone) easeToPart();
   };
 
@@ -1223,7 +1240,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
         }
       }
       if (b.look === "xray") {
-        xray.u.uAlpha.value = b.alpha * 0.9;
+        xrayOf(b).u.uAlpha.value = b.alpha * 0.9;
       } else {
         const base: number = b.solid.userData.base ?? 1;
         const a = b.alpha * base;
@@ -1452,7 +1469,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
         b.mesh.dispose();
         b.solid.dispose();
       }
-      xray.m.dispose();
+      for (const x of xrays.values()) x.m.dispose();
       ringMats.forEach((m) => m.dispose());
       ring.children.forEach((l) => (l as THREE.Line).geometry.dispose());
       pmrem.dispose();
