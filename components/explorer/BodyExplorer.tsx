@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import s from "./explorer.module.css";
-import { SYSTEMS3D, SYSTEM_ORDER, systemById, type SystemId } from "@/lib/anatomy";
+import { SYSTEMS3D, SYSTEM_ORDER, WHOLE_LABELS, systemById, type SystemId } from "@/lib/anatomy";
 import type { ExplorerApi } from "@/lib/explorer3d";
 import { Icon } from "../Icons";
 
@@ -16,7 +16,8 @@ type Props = {
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-/** Every system of the body in 3D: pick one, and it comes apart slowly, numbered, with a plain line for each part. */
+/** Every system of the body in 3D. Each part is named beside the body with a line to it; pick a system and it
+    comes apart, and you turn, zoom and take it apart with your fingers. */
 export function BodyExplorer({ variant, initial = null, onClose }: Props) {
   const stage = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLCanvasElement>(null);
@@ -30,29 +31,42 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
   const [state, setState] = useState<"loading" | "ready" | "failed">("loading");
   const [busy, setBusy] = useState(false);
   const [system, setSystemState] = useState<SystemId | null>(initial);
-  const [part, setPart] = useState<string | null>(null);
+  const [part, setPartState] = useState<string | null>(null);
+  const [alone, setAlone] = useState(false);
   const [playing, setPlaying] = useState(false);
   const spec = system ? systemById(system) ?? null : null;
   const legend = spec ? spec.parts.filter((p) => p.label !== false) : [];
   const partIndex = part ? legend.findIndex((p) => p.id === part) : -1;
   const partSpec = partIndex >= 0 ? legend[partIndex] : null;
 
-  const chooseSystem = useCallback((id: SystemId | null) => {
-    sysRef.current = id;
-    setSystemState(id);
-    setPart(null);
-    setPlaying(false);
-    if (slider.current) {
-      slider.current.value = "0";
-      slider.current.style.setProperty("--p", "0");
-    }
-    void api.current?.setSystem(id);
+  const setPart = useCallback((id: string | null) => {
+    setPartState(id);
+    if (!id) setAlone(false);
   }, []);
 
-  const choosePart = useCallback((id: string | null) => {
-    setPart(id);
-    api.current?.select(id);
-  }, []);
+  const chooseSystem = useCallback(
+    (id: SystemId | null) => {
+      sysRef.current = id;
+      setSystemState(id);
+      setPart(null);
+      setPlaying(false);
+      if (slider.current) {
+        slider.current.value = "0";
+        slider.current.style.setProperty("--p", "0");
+      }
+      void api.current?.setSystem(id);
+    },
+    [setPart],
+  );
+
+  const choosePart = useCallback(
+    (id: string | null) => {
+      setPart(id);
+      setAlone(false);
+      api.current?.select(id);
+    },
+    [setPart],
+  );
 
   const chooseSystemRef = useRef(chooseSystem); // stable: chooseSystem never changes
 
@@ -136,13 +150,17 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  // the numbers on the body follow the parts; rebind them when the system changes
+
+  // the names beside the body follow the parts; rebind them when what is shown changes
   useEffect(() => {
     api.current?.bindLabels(labels.current);
   }, [system, state]);
 
   useEffect(() => {
-    const ro = new ResizeObserver(() => measure());
+    const ro = new ResizeObserver(() => {
+      measure();
+      api.current?.bindLabels(labels.current);
+    });
     if (sheet.current) ro.observe(sheet.current);
     if (stage.current) ro.observe(stage.current);
     if (top.current) ro.observe(top.current);
@@ -183,6 +201,17 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
     }
   };
 
+  const toggleAlone = () => {
+    const next = !alone;
+    setAlone(next);
+    api.current?.isolate(next);
+  };
+
+  // what is named on the body: the parts of the open system, or the main organs on the whole body
+  const named = spec
+    ? legend.map((p) => ({ key: p.id, name: p.short ?? p.name, color: p.color, anchor: `${spec.id}/${p.id}`, at: undefined as string | undefined, system: spec.id }))
+    : WHOLE_LABELS.map((l) => ({ key: l.key, name: l.name, color: l.color, anchor: `${l.system}/`, at: l.at.join(","), system: l.system }));
+
   const accent = spec?.color ?? "#e6dac1";
   return (
     <div className={`${s.root} ${variant === "overlay" ? s.overlay : s.page}`} style={{ "--accent": accent } as CSSProperties} data-system={system ?? "body"}>
@@ -191,25 +220,35 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
         <canvas
           ref={canvas}
           className={`${s.canvas} ${state === "ready" ? s.on : ""}`}
-          aria-label={spec ? `${spec.name} in 3D. Drag to turn it, tap a part to read about it.` : "Your whole body in 3D. Drag to turn it, tap a system to open it."}
+          aria-label={
+            spec
+              ? `${spec.name} in 3D. Drag to turn it, pinch to zoom, tap a part to read about it.`
+              : "Your whole body in 3D. Drag to turn it, pinch to zoom, tap a name or an organ to open its system."
+          }
         />
-        <div ref={labels} className={s.labels} data-many={legend.length > 8 ? "1" : "0"}>
-          {spec
-            ? legend.map((p, i) => (
-                <button
-                  key={`${spec.id}-${p.id}`}
-                  type="button"
-                  data-part={p.id}
-                  className={`${s.dot} ${part === p.id ? s.dotOn : ""}`}
-                  style={{ "--c": p.color } as CSSProperties}
-                  onClick={() => choosePart(part === p.id ? null : p.id)}
-                  aria-label={`${i + 1}: ${p.name}`}
-                >
-                  <span className={s.num}>{i + 1}</span>
-                  <span className={s.tag}>{p.name}</span>
-                </button>
-              ))
-            : null}
+        <div ref={labels} className={s.labels} key={system ?? "body"}>
+          <svg className={s.lines} aria-hidden="true">
+            {named.map((l) => (
+              <line key={l.key} data-line={l.key} stroke={l.color} strokeWidth={part === l.key ? 1.6 : 1} style={{ opacity: 0 }} />
+            ))}
+          </svg>
+          {named.map((l) => (
+            <span key={`pin-${l.key}`} data-pin={l.key} className={`${s.pin} ${part === l.key ? s.pinOn : ""}`} style={{ "--c": l.color, opacity: 0 } as CSSProperties} aria-hidden="true" />
+          ))}
+          {named.map((l) => (
+            <button
+              key={`tag-${l.key}`}
+              type="button"
+              data-tag={l.key}
+              data-anchor={l.anchor}
+              data-at={l.at}
+              className={`${s.tag} ${part === l.key ? s.tagOn : ""}`}
+              style={{ "--c": l.color, opacity: 0 } as CSSProperties}
+              onClick={() => (spec ? choosePart(part === l.key ? null : l.key) : chooseSystem(l.system))}
+            >
+              {l.name}
+            </button>
+          ))}
         </div>
         <div className={s.vignette} aria-hidden="true" />
 
@@ -223,12 +262,12 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
                 initial={{ opacity: 0, y: 8, filter: "blur(6px)" }}
                 animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
                 exit={{ opacity: 0, y: -4, filter: "blur(4px)" }}
-                transition={{ duration: 0.5, ease: EASE }}
+                transition={{ duration: 0.35, ease: EASE }}
               >
                 {spec ? spec.name : "Your whole body"}
               </motion.h2>
             </AnimatePresence>
-            <span className={s.formal}>{spec ? `${spec.formal} · ${legend.length} parts` : "Every system, in colour"}</span>
+            <span className={s.formal}>{spec ? `${spec.formal} · ${legend.length} parts` : "Tap a name to open its system"}</span>
           </div>
           {variant === "overlay" ? (
             <button type="button" className={s.close} onClick={onClose} aria-label="Close the 3D body">
@@ -260,15 +299,13 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
               <motion.div
                 key={`${spec.id}-${partSpec.id}`}
                 className={s.cardIn}
-                initial={{ opacity: 0, y: 8, filter: "blur(5px)" }}
-                animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-                exit={{ opacity: 0, y: -4, filter: "blur(4px)" }}
-                transition={{ duration: 0.35, ease: EASE }}
+                initial={{ opacity: 0, y: 6 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -3 }}
+                transition={{ duration: 0.22, ease: EASE }}
               >
                 <div className={s.cardHead}>
-                  <span className={s.cardNum} style={{ "--c": partSpec.color } as CSSProperties}>
-                    {partIndex + 1}
-                  </span>
+                  <span className={s.cardDot} style={{ "--c": partSpec.color } as CSSProperties} />
                   <span className={s.cardName}>{partSpec.name}</span>
                   <span className={s.cardSteps}>
                     <button type="button" onClick={() => step(-1)} aria-label="Previous part">
@@ -280,22 +317,27 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
                   </span>
                 </div>
                 <p className={s.cardLine}>{partSpec.line}</p>
-                {partSpec.href ?? spec.href ? (
-                  <Link href={(partSpec.href ?? spec.href)!} className={s.cardLink}>
-                    How it works <Icon name="arrow" size={14} />
-                  </Link>
-                ) : null}
+                <div className={s.cardActions}>
+                  <button type="button" className={`${s.alone} ${alone ? s.aloneOn : ""}`} onClick={toggleAlone} aria-pressed={alone}>
+                    {alone ? "Show everything" : "Show only this"}
+                  </button>
+                  {partSpec.href ?? spec.href ? (
+                    <Link href={(partSpec.href ?? spec.href)!} className={s.cardLink}>
+                      How it works <Icon name="arrow" size={14} />
+                    </Link>
+                  ) : null}
+                </div>
               </motion.div>
             ) : (
               <motion.div
                 key={spec ? spec.id : "body"}
                 className={s.cardIn}
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -4 }}
-                transition={{ duration: 0.35, ease: EASE }}
+                exit={{ opacity: 0, y: -3 }}
+                transition={{ duration: 0.22, ease: EASE }}
               >
-                <p className={s.cardLine}>{spec ? spec.line : "Pick a system below, or tap the body, to see it come apart."}</p>
+                <p className={s.cardLine}>{spec ? spec.line : "Drag to turn it, pinch to zoom. Tap a name, or pick a system below, to take it apart."}</p>
                 {spec?.note ? <p className={s.note}>{spec.note}</p> : null}
               </motion.div>
             )}
@@ -304,7 +346,7 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
 
         {spec ? (
           <div className={s.controls}>
-            <button type="button" className={`${s.play} ${playing ? s.playOn : ""}`} onClick={togglePlay} aria-label={playing ? "Pause the tour" : "Play the tour"}>
+            <button type="button" className={`${s.play} ${playing ? s.playOn : ""}`} onClick={togglePlay} aria-label={playing ? "Pause the tour" : "Play the tour, part by part"}>
               <Icon name={playing ? "pause" : "play"} size={18} />
             </button>
             <label className={s.scrub}>
@@ -331,6 +373,14 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
                 }}
               />
             </label>
+            <span className={s.zoom}>
+              <button type="button" className={s.reset} onClick={() => api.current?.zoomBy(1 / 1.35)} aria-label="Zoom in">
+                <Icon name="plus" size={16} />
+              </button>
+              <button type="button" className={s.reset} onClick={() => api.current?.zoomBy(1.35)} aria-label="Zoom out">
+                <Icon name="minus" size={16} />
+              </button>
+            </span>
             <button type="button" className={s.reset} onClick={() => api.current?.resetView()} aria-label="Reset the view">
               <Icon name="rotate" size={16} />
             </button>
@@ -339,7 +389,7 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
 
         {spec ? (
           <div className={s.legend} role="group" aria-label={`Parts of the ${spec.name.toLowerCase()}`}>
-            {legend.map((p, i) => (
+            {legend.map((p) => (
               <button
                 key={`${spec.id}-${p.id}`}
                 type="button"
@@ -348,7 +398,7 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
                 aria-pressed={part === p.id}
                 onClick={() => choosePart(part === p.id ? null : p.id)}
               >
-                <span className={s.itemNum}>{i + 1}</span>
+                <span className={s.itemDot} />
                 {p.name}
               </button>
             ))}

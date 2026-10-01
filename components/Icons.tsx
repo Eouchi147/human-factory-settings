@@ -7,6 +7,8 @@ const PATHS: Record<string, string> = {
   search: '<circle cx="10.8" cy="10.8" r="6.3"/><path d="M15.4 15.4 20 20"/>',
   back: '<path d="M14.5 5.5 8 12l6.5 6.5"/>',
   close: '<path d="M6 6l12 12M18 6 6 18"/>',
+  plus: '<path d="M12 5.5v13M5.5 12h13"/>',
+  minus: '<path d="M5.5 12h13"/>',
   arrow: '<path d="M5 12h14"/><path d="M13 6l6 6-6 6"/>',
   play: '<path d="M8 5.5v13l10.5-6.5z"/>',
   pause: '<path d="M8 5.5v13M16 5.5v13"/>',

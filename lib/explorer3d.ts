@@ -99,6 +99,9 @@ export type ExplorerOptions = {
 export type ExplorerApi = {
   setSystem: (id: SystemId | null) => Promise<void>;
   select: (part: string | null) => void;
+  /** show only the picked part (and hide the rest of the body), or everything again */
+  isolate: (on: boolean) => void;
+  zoomBy: (factor: number) => void;
   setExplode: (v: number) => void;
   play: () => void;
   stop: () => void;
@@ -373,7 +376,8 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
         // its number sits on the front of the part, near its middle; for a pair, on the side facing you
         const c = box.getCenter(new THREE.Vector3());
         const paired = mine.some((p) => p.side === -1) && mine.some((p) => p.side === 1);
-        const pool = paired ? mine.filter((p) => p.side === -1) : mine;
+        const prefer = spec.parts.indexOf(ps) % 2 === 0 ? -1 : 1;
+        const pool = paired ? mine.filter((p) => p.side === prefer) : mine;
         const pbox = new THREE.Box3();
         pool.forEach((p) => pbox.union(p.box));
         const pc = pbox.getCenter(new THREE.Vector3());
@@ -482,9 +486,11 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
   // ------------------------------------------------------------------ what is on screen
   let current: SystemId | null = null;
   let selected: string | null = null;
+  let isolated = false;
   const lookFor = (b: Batch): Look => {
     if (current === null) return WHOLE_BODY.includes(b.system) ? "solid" : "hidden";
     if (b.system === current) return "solid";
+    if (isolated) return "hidden";
     const ctx = systems.get(current)?.spec.context ?? "none";
     if (b.system === "skeleton") return ctx === "xray" ? "xray" : ctx === "bones" ? "dim" : "hidden";
     return "hidden";
@@ -500,8 +506,13 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
         setMaterial(b);
       }
     }
-    // whole body: no duplicates, natural colours; one system: its legend colours
-    for (const b of batches) for (const p of b.pieces) b.mesh.setVisibleAt(p.inst, !(current === null && p.dup));
+    // whole body: no duplicates, natural colours; one system: its legend colours; alone: just the picked part
+    for (const b of batches)
+      for (const p of b.pieces) {
+        let v = !(current === null && p.dup);
+        if (isolated && selected && b.system === current) v = p.part === selected;
+        b.mesh.setVisibleAt(p.inst, v);
+      }
     colorsDirty = true;
   };
   const setMaterial = (b: Batch) => {
@@ -514,8 +525,13 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
   const view = { yaw: -18 * DEG, pitch: 4 * DEG, dist: 6, target: new THREE.Vector3(0, 0.95 * S, 0) };
   const goal = { yaw: view.yaw, pitch: view.pitch, dist: view.dist, target: view.target.clone() };
   let userYaw = 0, userPitch = 0, userZoom = 1;
-  let tau = 1.1; // how slowly the camera settles (seconds)
-  let sway = 0;
+  const userPan = new THREE.Vector2(); // metres, across and up the screen
+  const aim = new THREE.Vector3(); // where the camera looks, after panning
+  let tau = 0.55; // how quickly the camera settles (seconds)
+  let spin = 0; // the whole body turns slowly until someone touches it
+  let touched = false;
+  const clampZoom = (z: number) => Math.max(0.22, Math.min(2.4, z));
+  const wholeBox = new THREE.Box3(new THREE.Vector3(-0.34 * S, 0, -0.15 * S), new THREE.Vector3(0.34 * S, 1.73 * S, 0.15 * S));
   const sizeNow = () => ({ w: canvas.clientWidth || 1, h: canvas.clientHeight || 1 });
   const fitBox = (box: THREE.Box3, yaw: number, pitch: number) => {
     const { w, h } = sizeNow();
@@ -558,7 +574,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
         }
       }
     } else {
-      box = new THREE.Box3(new THREE.Vector3(-0.34 * S, 0, -0.15 * S), new THREE.Vector3(0.34 * S, 1.73 * S, 0.15 * S));
+      box = wholeBox.clone();
     }
     const f = fitBox(box, yaw, pitch);
     goal.yaw = yaw;
@@ -570,15 +586,12 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     new THREE.Box3(a.min.clone().lerp(b.min, t), a.max.clone().lerp(b.max, t));
   const applyCamera = () => {
     const { w, h } = sizeNow();
-    const yaw = view.yaw + userYaw + sway;
-    const pitch = Math.max(-25 * DEG, Math.min(50 * DEG, view.pitch + userPitch));
+    const yaw = view.yaw + userYaw + spin;
+    const pitch = Math.max(-35 * DEG, Math.min(65 * DEG, view.pitch + userPitch));
     const d = view.dist * userZoom;
-    camera.position.set(
-      view.target.x + Math.sin(yaw) * Math.cos(pitch) * d,
-      view.target.y + Math.sin(pitch) * d,
-      view.target.z + Math.cos(yaw) * Math.cos(pitch) * d,
-    );
-    camera.lookAt(view.target);
+    aim.set(view.target.x + Math.cos(yaw) * userPan.x, view.target.y + userPan.y, view.target.z - Math.sin(yaw) * userPan.x);
+    camera.position.set(aim.x + Math.sin(yaw) * Math.cos(pitch) * d, aim.y + Math.sin(pitch) * d, aim.z + Math.cos(yaw) * Math.cos(pitch) * d);
+    camera.lookAt(aim);
     // keep the body centred in the part of the screen the controls leave free
     const fx = insets.left + (w - insets.left - insets.right) / 2;
     const fy = insets.top + (h - insets.top - insets.bottom) / 2;
@@ -589,7 +602,8 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
   // ------------------------------------------------------------------ coming apart
   let explode = 0; // now
   let explodeTo = 0; // where it is heading
-  let explodeTau = 0.55; // slow-motion lag behind the target (seconds)
+  const FOLLOW = 0.06; // the slider: follow the finger at once
+  let explodeTau = FOLLOW; // lag behind the target (seconds); long only for the automatic, slow-motion moves
   let offsetsDirty = true;
   const progressOf = (sys: SysRec, p: Piece, e: number) => inOutCubic(clamp01((e - p.delay) / sys.window));
   const tmpM = new THREE.Matrix4();
@@ -640,36 +654,146 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     }
   };
 
-  // ------------------------------------------------------------------ labels
+  // ------------------------------------------------------------------ labels: each part's name beside the body, a line to the part
+  type Label = {
+    key: string; sys: SystemId; part: string; at: THREE.Vector3 | null;
+    tag: HTMLElement; pin: HTMLElement | null; line: SVGLineElement | null; w: number; h: number;
+  };
   let labelsEl: HTMLElement | null = null;
-  let labelNodes: { el: HTMLElement; part: string }[] = [];
+  let labels: Label[] = [];
   const bindLabels = (el: HTMLElement | null) => {
     labelsEl = el;
-    labelNodes = el ? Array.from(el.querySelectorAll<HTMLElement>("[data-part]")).map((n) => ({ el: n, part: n.dataset.part! })) : [];
+    labels = [];
+    if (!el) return;
+    for (const tag of Array.from(el.querySelectorAll<HTMLElement>("[data-tag]"))) {
+      const key = tag.dataset.tag!;
+      const [sys, part] = (tag.dataset.anchor ?? "").split("/");
+      const at = tag.dataset.at ? new THREE.Vector3(...(tag.dataset.at.split(",").map((x) => Number(x) * S) as [number, number, number])) : null;
+      labels.push({
+        key, sys: sys as SystemId, part, at, tag,
+        pin: el.querySelector<HTMLElement>(`[data-pin="${key}"]`), line: el.querySelector<SVGLineElement>(`[data-line="${key}"]`),
+        w: tag.offsetWidth, h: tag.offsetHeight,
+      });
+    }
+  };
+  const labelAlpha = (id: SystemId) => {
+    if (current !== null && id !== current) return 0;
+    const bs = systems.get(id)?.batches ?? [];
+    if (!bs.length) return 0;
+    let a = 1;
+    for (const b of bs) a = Math.min(a, b.look === "hidden" ? 0 : b.alpha);
+    return a;
   };
   const v3 = new THREE.Vector3();
   const camDir = new THREE.Vector3();
+  const corner = new THREE.Vector3();
+  type Placed = { L: Label; ax: number; ay: number; y: number; op: number };
+  const hideLabel = (L: Label) => {
+    L.tag.style.opacity = "0";
+    L.tag.style.pointerEvents = "none";
+    if (L.pin) L.pin.style.opacity = "0";
+    if (L.line) L.line.style.opacity = "0";
+  };
   const updateLabels = () => {
-    if (!labelsEl) return;
-    const sys = current ? systems.get(current) : null;
-    const { w, h } = sizeNow();
+    if (!labelsEl || !labels.length) return;
+    const { w: W, h: H } = sizeNow();
     camera.getWorldDirection(camDir);
-    for (const n of labelNodes) {
-      const rec = sys?.parts.get(n.part);
-      if (!rec || !sys) {
-        n.el.style.opacity = "0";
+    // how wide the visible body is on screen: the names go just outside it
+    const sys = current ? systems.get(current) : null;
+    const box = sys ? lerpBox(sys.box0, sys.box1, explode).union(sys.box0) : wholeBox;
+    let minX = Infinity, maxX = -Infinity;
+    for (let i = 0; i < 8; i++) {
+      corner.set(i & 1 ? box.max.x : box.min.x, i & 2 ? box.max.y : box.min.y, i & 4 ? box.max.z : box.min.z).project(camera);
+      const x = ((corner.x + 1) / 2) * W;
+      minX = Math.min(minX, x);
+      maxX = Math.max(maxX, x);
+    }
+    v3.copy(aim).project(camera);
+    const cx = ((v3.x + 1) / 2) * W;
+    const top = insets.top + 4, bottom = H - insets.bottom - 4;
+    const left: Placed[] = [], right: Placed[] = [];
+    for (const L of labels) {
+      const rec = systems.get(L.sys)?.parts.get(L.part);
+      const alpha = labelAlpha(L.sys);
+      if ((!rec && !L.at) || alpha < 0.05 || (isolated && L.part !== selected)) {
+        hideLabel(L);
         continue;
       }
-      v3.copy(rec.anchor).add(rec.anchorPiece.off).project(camera);
-      const x = ((v3.x + 1) / 2) * w;
-      const y = ((1 - v3.y) / 2) * h;
-      // numbers on the far side of the body fade back
-      const toward = rec.center.clone().add(rec.anchorPiece.off).sub(view.target).dot(camDir);
-      const behind = toward > 0.03 * S;
-      const shown = sysAlpha > 0.6 && v3.z < 1 && x > -40 && x < w + 40 && y > -40 && y < h + 40;
-      n.el.style.transform = `translate3d(${x.toFixed(1)}px, ${y.toFixed(1)}px, 0)`;
-      n.el.style.opacity = shown ? (behind ? "0.32" : "1") : "0";
-      n.el.dataset.behind = behind ? "1" : "0";
+      const point = L.at ?? v3.copy(rec!.anchor).add(rec!.anchorPiece.off);
+      corner.copy(point).project(camera);
+      const ax = ((corner.x + 1) / 2) * W, ay = ((1 - corner.y) / 2) * H;
+      if (corner.z > 1 || ax < -20 || ax > W + 20 || ay < top - 30 || ay > bottom + 30) {
+        hideLabel(L);
+        continue;
+      }
+      if (!L.w) {
+        L.w = L.tag.offsetWidth;
+        L.h = L.tag.offsetHeight;
+      }
+      const c = L.at ?? v3.copy(rec!.center).add(rec!.anchorPiece.off);
+      const behind = corner.copy(c).sub(aim).dot(camDir) > 0.03 * S;
+      const op = alpha * (behind ? 0.45 : 1) * (selected && current && L.part !== selected ? 0.38 : 1);
+      (ax < cx ? left : right).push({ L, ax, ay, y: ay - L.h / 2, op });
+    }
+    // each column holds what fits; extra names move to the other side, nearest the middle first
+    const room = Math.max(0, bottom - top);
+    const fits = (list: Placed[], g: number) => list.reduce((a, p) => a + p.L.h, 0) + g * Math.max(0, list.length - 1) <= room;
+    const balance = (from: Placed[], to: Placed[], fromLeft: boolean) => {
+      while (!fits(from, 4) && fits([...to, from[0]], 4) && from.length > to.length) {
+        from.sort((a, b) => (fromLeft ? b.ax - a.ax : a.ax - b.ax));
+        to.push(from.shift()!);
+      }
+    };
+    balance(left, right, true);
+    balance(right, left, false);
+    const shown: Placed[] = [];
+    const stack = (list: Placed[]) => {
+      // still too many: the faint names (far side, or not picked) give way first
+      while (list.length && !fits(list, 1)) {
+        let worst = 0;
+        for (let i = 1; i < list.length; i++) if (list[i].op < list[worst].op) worst = i;
+        hideLabel(list[worst].L);
+        list.splice(worst, 1);
+      }
+      const total = list.reduce((a, p) => a + p.L.h, 0);
+      const g = list.length > 1 ? Math.max(1, Math.min(5, (room - total) / (list.length - 1))) : 0;
+      list.sort((a, b) => a.ay - b.ay);
+      for (let i = 0; i < list.length; i++) {
+        const prev = list[i - 1];
+        list[i].y = Math.max(list[i].y, top, prev ? prev.y + prev.L.h + g : -Infinity);
+      }
+      for (let i = list.length - 1; i >= 0; i--) {
+        const next = list[i + 1];
+        list[i].y = Math.max(top, Math.min(list[i].y, bottom - list[i].L.h, next ? next.y - list[i].L.h - g : Infinity));
+      }
+      shown.push(...list);
+    };
+    stack(left);
+    stack(right);
+    const margin = 8;
+    const maxWL = left.reduce((m, p) => Math.max(m, p.L.w), 0);
+    const maxWR = right.reduce((m, p) => Math.max(m, p.L.w), 0);
+    const leftEdge = Math.min(Math.max(margin + maxWL, minX - 16), cx - 20); // the right edge of the names on the left
+    const rightEdge = Math.max(Math.min(W - margin - maxWR, maxX + 16), cx + 20); // the left edge of the names on the right
+    for (const [list, isLeft] of [[left, true], [right, false]] as const) {
+      for (const p of list) {
+        const x = isLeft ? leftEdge - p.L.w : rightEdge;
+        p.L.tag.style.transform = `translate3d(${x.toFixed(1)}px, ${p.y.toFixed(1)}px, 0)`;
+        p.L.tag.style.opacity = p.op.toFixed(2);
+        p.L.tag.style.pointerEvents = p.op > 0.3 ? "auto" : "none";
+        p.L.tag.dataset.side = isLeft ? "l" : "r";
+        if (p.L.pin) {
+          p.L.pin.style.transform = `translate3d(${p.ax.toFixed(1)}px, ${p.ay.toFixed(1)}px, 0)`;
+          p.L.pin.style.opacity = p.op.toFixed(2);
+        }
+        if (p.L.line) {
+          p.L.line.setAttribute("x1", p.ax.toFixed(1));
+          p.L.line.setAttribute("y1", p.ay.toFixed(1));
+          p.L.line.setAttribute("x2", (isLeft ? leftEdge : rightEdge).toFixed(1));
+          p.L.line.setAttribute("y2", (p.y + p.L.h / 2).toFixed(1));
+          p.L.line.style.opacity = (p.op * 0.75).toFixed(2);
+        }
+      }
     }
   };
   let sysAlpha = 0;
@@ -684,8 +808,8 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
   const stop = () => {
     if (!seq) return;
     seq = null;
-    explodeTau = 0.55;
-    tau = 1.1;
+    explodeTau = FOLLOW;
+    tau = 0.55;
     opts.onPlaying?.(false);
     opts.onTour?.(null);
   };
@@ -707,7 +831,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
       t += reduced ? 2.6 : 3.8;
     }
     steps.push({ t, run: () => { selectPart(null); opts.onTour?.(null); tau = 1.4; } });
-    steps.push({ t: t + 1.6, run: () => { seq = null; tau = 1.1; explodeTau = 0.55; opts.onPlaying?.(false); } });
+    steps.push({ t: t + 1.6, run: () => { seq = null; tau = 0.55; explodeTau = FOLLOW; opts.onPlaying?.(false); } });
     startSeq(steps);
     opts.onPlaying?.(true);
   };
@@ -717,29 +841,62 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     const sys = current ? systems.get(current) : null;
     selected = sys && id && sys.parts.has(id) ? id : null;
     if (sys) for (const rec of sys.parts.values()) rec.dimTo = selected && rec.id !== selected ? 1 : 0;
+    if (!selected && isolated) {
+      isolated = false;
+      applyLooks();
+    } else if (isolated) applyLooks();
+    userZoom = 1;
+    userPan.set(0, 0);
     frameNow();
   };
 
-  // ------------------------------------------------------------------ input
+  // ------------------------------------------------------------------ input: one finger turns it, two fingers zoom and move it, a tap picks
   const pointers = new Map<number, { x: number; y: number }>();
-  let downX = 0, downY = 0, moved = false, lastTap = 0, pinch0 = 0, zoom0 = 1;
+  let downX = 0, downY = 0, moved = false, lastTap = 0, lastTapX = 0, lastTapY = 0;
+  let pinch0 = 0, zoom0 = 1, midX = 0, midY = 0;
   let lastInput = -1e9;
   const ray = new THREE.Raycaster();
   const ndc = new THREE.Vector2();
   const immersive = !!opts.immersive;
+  const two = () => {
+    const [a, b] = [...pointers.values()];
+    return { d: Math.hypot(a.x - b.x, a.y - b.y), mx: (a.x + b.x) / 2, my: (a.y + b.y) / 2 };
+  };
+  const metresPerPixel = () => (2 * Math.tan((camera.fov / 2) * DEG) * view.dist * userZoom) / sizeNow().h;
+  const panBy = (dx: number, dy: number) => {
+    const mpp = metresPerPixel();
+    userPan.x = Math.max(-0.9 * S, Math.min(0.9 * S, userPan.x - dx * mpp));
+    userPan.y = Math.max(-0.9 * S, Math.min(0.9 * S, userPan.y + dy * mpp));
+  };
+  const pick = (clientX: number, clientY: number) => {
+    const r = canvas.getBoundingClientRect();
+    ndc.set(((clientX - r.left) / r.width) * 2 - 1, -((clientY - r.top) / r.height) * 2 + 1);
+    ray.setFromCamera(ndc, camera);
+    const targets = batches.filter((b) => b.mesh.visible && b.look === "solid" && b.alpha > 0.5).map((b) => b.mesh);
+    const hit = ray.intersectObjects(targets, false)[0] as (THREE.Intersection & { batchId?: number }) | undefined;
+    if (!hit || hit.batchId === undefined) return null;
+    const b = batches.find((x) => x.mesh === hit.object);
+    const p = b?.pieces.find((q) => q.inst === hit.batchId);
+    if (!b || !p) return null;
+    const rec = systems.get(b.system)?.parts.get(p.part);
+    return { system: b.system, part: rec && rec.spec.label !== false ? rec.id : null };
+  };
   const onDown = (e: PointerEvent) => {
     pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
     if (pointers.size === 1) {
       downX = e.clientX;
       downY = e.clientY;
       moved = false;
-    } else if (pointers.size === 2 && immersive) {
-      const [a, b] = [...pointers.values()];
-      pinch0 = Math.hypot(a.x - b.x, a.y - b.y);
+    } else if (pointers.size === 2) {
+      const t = two();
+      pinch0 = t.d;
       zoom0 = userZoom;
+      midX = t.mx;
+      midY = t.my;
       moved = true;
     }
     lastInput = performance.now();
+    touched = true;
     stop();
   };
   const onMove = (e: PointerEvent) => {
@@ -749,14 +906,20 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     p.x = e.clientX;
     p.y = e.clientY;
     if (Math.abs(e.clientX - downX) > 6 || Math.abs(e.clientY - downY) > 6) moved = true;
-    if (pointers.size === 2 && immersive) {
-      const [a, b] = [...pointers.values()];
-      const d = Math.hypot(a.x - b.x, a.y - b.y);
-      if (pinch0 > 0) userZoom = Math.max(0.45, Math.min(1.8, (zoom0 * pinch0) / Math.max(1, d)));
-    } else if (pointers.size === 1) {
-      const { w } = sizeNow();
-      userYaw -= (dx / Math.max(320, w)) * Math.PI * 1.6;
-      if (immersive || e.pointerType === "mouse") userPitch = Math.max(-30 * DEG, Math.min(45 * DEG, userPitch + (dy / 500) * Math.PI * 0.6));
+    if (pointers.size >= 2) {
+      const t = two();
+      if (pinch0 > 0) userZoom = clampZoom((zoom0 * pinch0) / Math.max(1, t.d));
+      panBy(t.mx - midX, t.my - midY);
+      midX = t.mx;
+      midY = t.my;
+    } else {
+      if (e.pointerType === "mouse" && (e.shiftKey || e.buttons === 2 || e.buttons === 4)) panBy(dx, dy);
+      else {
+        const { w } = sizeNow();
+        const k = Math.PI / Math.max(320, Math.min(w, 900));
+        userYaw -= dx * k * 1.5;
+        userPitch = Math.max(-40 * DEG - view.pitch, Math.min(62 * DEG - view.pitch, userPitch + dy * k));
+      }
     }
     lastInput = performance.now();
   };
@@ -764,42 +927,33 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     if (!pointers.has(e.pointerId)) return;
     pointers.delete(e.pointerId);
     lastInput = performance.now();
+    if (pointers.size === 1) pinch0 = 0;
     if (moved || pointers.size) return;
     const now = performance.now();
-    if (now - lastTap < 320) {
-      resetView();
-      lastTap = 0;
-      return;
-    }
-    lastTap = now;
-    const r = canvas.getBoundingClientRect();
-    ndc.set(((e.clientX - r.left) / r.width) * 2 - 1, -((e.clientY - r.top) / r.height) * 2 + 1);
-    ray.setFromCamera(ndc, camera);
-    const targets = batches.filter((b) => b.mesh.visible && b.look === "solid" && b.alpha > 0.5).map((b) => b.mesh);
-    const hits = ray.intersectObjects(targets, false);
-    const hit = hits[0] as (THREE.Intersection & { batchId?: number }) | undefined;
-    if (!hit || hit.batchId === undefined) {
-      opts.onPick?.(null);
-      return;
-    }
-    const b = batches.find((x) => x.mesh === hit.object);
-    const p = b?.pieces.find((q) => q.inst === hit.batchId);
-    if (!b || !p) return opts.onPick?.(null);
-    const sys = systems.get(b.system);
-    const rec = sys?.parts.get(p.part);
-    opts.onPick?.({ system: b.system, part: rec && rec.spec.label !== false ? rec.id : null });
+    const hit = pick(e.clientX, e.clientY);
+    const dbl = now - lastTap < 330 && Math.hypot(e.clientX - lastTapX, e.clientY - lastTapY) < 30;
+    lastTap = dbl ? 0 : now;
+    lastTapX = e.clientX;
+    lastTapY = e.clientY;
+    if (dbl && !hit) return resetView();
+    opts.onPick?.(hit);
+    if (dbl && hit) userZoom = clampZoom(userZoom * 0.62); // a double tap on a part goes in closer
   };
   const onWheel = (e: WheelEvent) => {
-    if (!immersive) return;
+    // full screen, the wheel zooms; on the page it scrolls the page, except a trackpad pinch (ctrl + wheel)
+    if (!immersive && !e.ctrlKey) return;
     e.preventDefault();
-    userZoom = Math.max(0.45, Math.min(1.8, userZoom * Math.exp(e.deltaY * 0.0012)));
+    userZoom = clampZoom(userZoom * Math.exp(e.deltaY * (e.ctrlKey ? 0.01 : 0.0012)));
     lastInput = performance.now();
+    touched = true;
   };
+  const onMenu = (e: Event) => e.preventDefault();
   canvas.addEventListener("pointerdown", onDown);
   window.addEventListener("pointermove", onMove);
   window.addEventListener("pointerup", onUp);
   window.addEventListener("pointercancel", onUp);
   canvas.addEventListener("wheel", onWheel, { passive: false });
+  canvas.addEventListener("contextmenu", onMenu);
   const onLost = (e: Event) => {
     e.preventDefault();
     opts.onError?.();
@@ -810,6 +964,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     userYaw = 0;
     userPitch = 0;
     userZoom = 1;
+    userPan.set(0, 0);
     frameNow();
   };
 
@@ -936,17 +1091,13 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
       colorsDirty = false;
     }
 
-    // camera: glide, plus a slow sway when nobody is touching it
-    const idle = performance.now() - lastInput > 5000;
+    // camera: glide to its goal; the whole body turns slowly until someone touches it
     const k = damp(dt, tau);
     view.yaw += (goal.yaw - view.yaw) * k;
     view.pitch += (goal.pitch - view.pitch) * k;
     view.dist += (goal.dist - view.dist) * k;
     view.target.lerp(goal.target, k);
-    if (!reduced && idle && !pointers.size) {
-      if (current === null) sway += dt * 0.12;
-      else sway += (Math.sin(clock * ((2 * Math.PI) / 22)) * 10 * DEG - sway) * damp(dt, 2.5);
-    }
+    if (!reduced && !touched && current === null) spin += dt * 0.12;
     applyCamera();
     renderer.render(scene, camera);
     updateLabels();
@@ -973,17 +1124,19 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     userZoom = 1;
     userPitch = 0;
     userYaw = 0;
-    sway = 0;
+    userPan.set(0, 0);
+    spin = 0;
+    isolated = false;
     applyLooks();
     const sys = id ? systems.get(id) : null;
     if (sys) for (const rec of sys.parts.values()) rec.dim = rec.dimTo = 0;
-    tau = 1.25;
+    tau = 0.7;
     frameNow();
-    // a system opens on its own, slowly; the slider takes over from there
+    // a system comes apart on its own once, in slow motion; then the slider is yours
     if (sys) {
       startSeq([
-        { t: reduced ? 0 : 1.1, run: () => { explodeTau = reduced ? 0.25 : 1.15; explodeTo = 1; } },
-        { t: reduced ? 1 : 5.4, run: () => { seq = null; explodeTau = 0.55; } },
+        { t: reduced ? 0 : 0.5, run: () => { explodeTau = reduced ? 0.2 : 0.85; explodeTo = 1; } },
+        { t: reduced ? 0.8 : 3.6, run: () => { seq = null; explodeTau = FOLLOW; tau = 0.55; } },
       ]);
     }
   };
@@ -999,10 +1152,10 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
   applyLooks(true);
   for (const b of batches) b.alpha = 0;
   size();
-  view.yaw = goal.yaw + 40 * DEG;
-  view.dist = goal.dist * 1.25;
+  view.yaw = goal.yaw + 30 * DEG;
+  view.dist = goal.dist * 1.15;
   view.target.copy(goal.target);
-  tau = 1.6;
+  tau = 0.8;
   applyCamera();
   renderer.render(scene, camera);
   opts.onReady?.();
@@ -1014,9 +1167,18 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
       stop();
       selectPart(id);
     },
+    isolate: (on) => {
+      isolated = on && !!selected;
+      applyLooks();
+      frameNow();
+    },
+    zoomBy: (f) => {
+      userZoom = clampZoom(userZoom * f);
+      touched = true;
+    },
     setExplode: (v) => {
       if (seq) stop();
-      explodeTau = 0.55;
+      explodeTau = FOLLOW;
       explodeTo = clamp01(v);
     },
     play,
@@ -1052,7 +1214,6 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
       view.pitch = goal.pitch;
       view.dist = goal.dist;
       view.target.copy(goal.target);
-      sway = 0;
     },
     dispose: () => {
       disposed = true;
@@ -1064,6 +1225,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
       window.removeEventListener("pointerup", onUp);
       window.removeEventListener("pointercancel", onUp);
       canvas.removeEventListener("wheel", onWheel);
+      canvas.removeEventListener("contextmenu", onMenu);
       canvas.removeEventListener("webglcontextlost", onLost);
       for (const b of batches) {
         b.mesh.dispose();

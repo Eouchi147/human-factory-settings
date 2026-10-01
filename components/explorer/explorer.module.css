@@ -19,9 +19,8 @@
 }
 .canvas {
   position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; display: block; opacity: 0;
-  transition: opacity 1s var(--ease); touch-action: pan-y; cursor: grab; -webkit-tap-highlight-color: transparent;
+  transition: opacity 0.6s var(--ease); touch-action: none; cursor: grab; -webkit-tap-highlight-color: transparent;
 }
-.overlay .canvas { touch-action: none; }
 .canvas:active { cursor: grabbing; }
 .on { opacity: 1; }
 .vignette {
@@ -29,24 +28,27 @@
   background: linear-gradient(to bottom, rgba(7, 8, 10, 0.78) 0, rgba(7, 8, 10, 0) 150px), radial-gradient(120% 90% at 50% 45%, transparent 55%, rgba(4, 5, 7, 0.6) 100%);
 }
 
-/* numbers on the body */
+/* names beside the body, each with a thin line to its part */
 .labels { position: absolute; inset: 0; z-index: 4; pointer-events: none; }
-.dot {
-  position: absolute; left: 0; top: 0; width: 26px; height: 26px; margin: -13px 0 0 -13px; padding: 0; border-radius: 99px;
-  border: 1.5px solid var(--c); background: rgba(9, 11, 14, 0.8); color: var(--ink); display: grid; place-items: center;
-  font: 600 11px/1 var(--font-mono); pointer-events: auto; cursor: pointer; opacity: 0;
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 18%, transparent), 0 4px 14px rgba(0, 0, 0, 0.45);
-  transition: opacity 0.45s var(--ease), background 0.3s var(--ease), color 0.3s var(--ease); will-change: transform, opacity;
+.lines { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.lines line { stroke-linecap: round; transition: opacity 0.25s var(--ease); }
+.pin {
+  position: absolute; left: 0; top: 0; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px; border-radius: 99px;
+  background: var(--c); box-shadow: 0 0 0 2px rgba(7, 8, 10, 0.85), 0 0 10px color-mix(in srgb, var(--c) 60%, transparent);
+  transition: opacity 0.25s var(--ease); will-change: transform, opacity;
 }
-.dot::after { content: ""; position: absolute; inset: -9px; border-radius: 99px; } /* a bigger target for thumbs */
-.num { position: relative; z-index: 1; }
-.dotOn { background: var(--c); color: #0b0d10; }
+.pinOn { width: 13px; height: 13px; margin: -6.5px 0 0 -6.5px; }
 .tag {
-  position: absolute; left: 32px; top: 50%; transform: translateY(-50%); white-space: nowrap; padding: 5px 10px; border-radius: 99px;
-  background: rgba(9, 11, 14, 0.82); border: 1px solid var(--edge); font: 620 12.5px/1.2 var(--font-sans); letter-spacing: 0; color: var(--ink);
-  opacity: 0; pointer-events: none; transition: opacity 0.3s var(--ease);
+  position: absolute; left: 0; top: 0; display: inline-flex; align-items: center; min-height: 26px; padding: 3px 10px; border-radius: 99px;
+  border: 1px solid color-mix(in srgb, var(--c) 55%, rgba(236, 238, 241, 0.12)); background: rgba(9, 11, 14, 0.84); color: var(--ink);
+  font: 620 12.5px/1.15 var(--font-sans); white-space: nowrap; cursor: pointer; pointer-events: auto;
+  -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); transition: opacity 0.25s var(--ease), background 0.25s var(--ease), color 0.25s var(--ease);
+  will-change: transform, opacity;
 }
-.dotOn .tag { opacity: 1; }
+.tag::after { content: ""; position: absolute; inset: -6px -4px; } /* a bigger target for thumbs */
+.tag:hover { background: color-mix(in srgb, var(--c) 22%, rgba(9, 11, 14, 0.92)); }
+.tagOn { background: var(--c); color: #0b0d10; border-color: var(--c); }
+@media (max-width: 520px) { .tag { min-height: 23px; padding: 2px 8px; font-size: 11.5px; } }
 
 /* title */
 .top {
@@ -87,7 +89,7 @@
 .card { min-height: 58px; min-width: 0; }
 .cardIn { display: flex; flex-direction: column; gap: 5px; min-width: 0; }
 .cardHead { display: flex; align-items: center; gap: 10px; min-width: 0; }
-.cardNum { flex: none; width: 24px; height: 24px; border-radius: 99px; background: var(--c); color: #0b0d10; display: grid; place-items: center; font: 650 11px/1 var(--font-mono); }
+.cardDot { flex: none; width: 12px; height: 12px; border-radius: 99px; background: var(--c); box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 25%, transparent); }
 .cardName { font-size: 17px; font-weight: 650; letter-spacing: -0.01em; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .cardSteps { margin-left: auto; display: inline-flex; gap: 6px; flex: none; }
 .cardSteps button {
@@ -96,7 +98,14 @@
 }
 .cardSteps button:hover { color: var(--ink); border-color: var(--line2); }
 .cardLine { margin: 0; font-size: 14.5px; line-height: 1.45; color: var(--ink2); text-wrap: pretty; }
-.cardLink { align-self: flex-start; display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 650; color: var(--signal-ink); text-decoration: none; padding: 2px 0; }
+.cardActions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.alone {
+  min-height: 32px; padding: 0 12px; border-radius: 99px; border: 1px solid var(--edge); background: rgba(18, 21, 26, 0.72); color: var(--ink);
+  font-size: 13px; font-weight: 640; cursor: pointer;
+}
+.alone:hover { border-color: var(--line2); }
+.aloneOn { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.cardLink { align-self: center; display: inline-flex; align-items: center; gap: 6px; font-size: 13.5px; font-weight: 650; color: var(--signal-ink); text-decoration: none; padding: 2px 0; }
 .cardLink:hover { color: var(--ink); }
 .note { margin: 2px 0 0; font-size: 12.5px; line-height: 1.4; color: var(--ink3); }
 
@@ -113,6 +122,8 @@
   display: inline-flex; align-items: center; justify-content: center; cursor: pointer;
 }
 .reset:hover { color: var(--ink); }
+.zoom { display: none; gap: 6px; }
+@media (pointer: fine) { .zoom { display: inline-flex; } }
 .scrub { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 1px; cursor: pointer; }
 .scrubEnds { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink3); }
 .scrub input { -webkit-appearance: none; appearance: none; width: 100%; height: 30px; margin: 0; background: transparent; cursor: pointer; touch-action: pan-x; }
@@ -138,14 +149,14 @@
 }
 .legend::-webkit-scrollbar, .systems::-webkit-scrollbar { display: none; }
 .item {
-  flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 13px 0 6px; border-radius: 99px; cursor: pointer;
+  flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 38px; padding: 0 13px 0 8px; border-radius: 99px; cursor: pointer;
   border: 1px solid var(--edge); background: rgba(18, 21, 26, 0.72); color: var(--ink2); font-size: 13.5px; font-weight: 600; white-space: nowrap;
   transition: background 0.3s var(--ease), border-color 0.3s var(--ease), color 0.3s var(--ease);
 }
 .item:hover { color: var(--ink); }
-.itemNum { width: 24px; height: 24px; border-radius: 99px; border: 1.5px solid var(--c); display: grid; place-items: center; font: 600 10.5px/1 var(--font-mono); color: var(--ink); }
+.itemDot { width: 10px; height: 10px; border-radius: 99px; background: var(--c); flex: none; margin-left: 6px; }
 .itemOn { color: var(--ink); border-color: var(--c); background: color-mix(in srgb, var(--c) 16%, rgba(18, 21, 26, 0.9)); }
-.itemOn .itemNum { background: var(--c); color: #0b0d10; }
+.itemOn .itemDot { box-shadow: 0 0 0 3px color-mix(in srgb, var(--c) 35%, transparent); }
 .sys {
   flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 42px; padding: 0 15px; border-radius: 99px; cursor: pointer;
   border: 1px solid var(--edge); background: rgba(18, 21, 26, 0.72); color: var(--ink); font-size: 14px; font-weight: 620; white-space: nowrap;
@@ -162,10 +173,7 @@
   .page { margin: 0; height: min(84vh, 900px); min-height: 640px; border-radius: 28px; overflow: hidden; border: 1px solid var(--edge); }
   .top { padding: 26px 30px 0; }
   .title { font-size: clamp(44px, 4.4vw, 72px); }
-  .labels .tag { opacity: 1; }
-  .labels[data-many="1"] .tag { opacity: 0; }
-  .labels[data-many="1"] .dot:hover .tag, .labels[data-many="1"] .dotOn .tag { opacity: 1; }
-  .dot:hover { background: color-mix(in srgb, var(--c) 30%, rgba(9, 11, 14, 0.9)); }
+  .tag { font-size: 13px; min-height: 28px; }
   .sheet {
     left: auto; top: 20px; right: 20px; bottom: 20px; width: 380px; gap: 14px; padding: 18px; border-radius: 24px; overflow-y: auto; overscroll-behavior: contain;
     background: rgba(12, 14, 18, 0.74); border: 1px solid var(--edge); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px);
@@ -179,5 +187,5 @@
   .card { min-height: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .root, .dot, .canvas { transition: none; }
+  .root, .tag, .pin, .canvas { transition: none; }
 }
