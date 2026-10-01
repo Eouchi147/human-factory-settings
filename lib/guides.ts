@@ -2,11 +2,38 @@ import fs from "node:fs";
 import path from "node:path";
 import { Marked, type Tokens } from "marked";
 
-export type Guide = { slug: string; title: string; short: string; lede: string; html: string; toc: { id: string; text: string }[]; checked: string };
+export type Guide = { slug: string; title: string; short: string; lede: string; html: string; toc: { id: string; text: string }[]; checked: string; h1: readonly string[]; plain: string; points: readonly string[] };
 
 export const GUIDES = [
-  { slug: "weight", file: "weight.md", short: "Weight management" },
-  { slug: "supplements", file: "supplements.md", short: "Supplements and nutrition" },
+  {
+    slug: "weight",
+    file: "weight.md",
+    short: "How to lose weight and keep it off",
+    h1: ["How to lose weight", "and keep it off."],
+    lede: "What really moves your weight, what doesn't, and why your body pushes back. Plain words first; every study is underneath.",
+    points: [
+      "Your weight settles where the energy you eat matches the energy you use. After you lose weight, your body pushes back for more than a year, so keeping it off is the hard part. Plan for it from day one.",
+      "Any diet you can stick to works about as well as any other. Sticking to it matters far more than which diet it is.",
+      "Eat enough protein, lift weights to keep your muscle, and cut down on ultra-processed food. Short sleep tends to make people eat more.",
+      "Exercise alone takes off only a little weight, but it matters a lot for keeping weight off and for your health.",
+      "For obesity, newer medicines take off about 15 to 21% of body weight, with a doctor. Most of it comes back after stopping.",
+      "Detox teas, belly-fat exercises and fat-burner pills don't work.",
+    ],
+  },
+  {
+    slug: "supplements",
+    file: "supplements.md",
+    short: "Do you need supplements?",
+    h1: ["Do you need", "supplements?"],
+    lede: "Food does almost all the work. Here's who a few pills really help, which ones most people don't need, and which can do harm.",
+    points: [
+      "Most healthy adults who eat a varied diet need one or two supplements at most.",
+      "Worth it for specific people: folic acid if you could become pregnant; vitamin D if you get little sun, especially in autumn and winter up north; vitamin B12 if you're vegan, over 65 or take metformin; creatine if you do strength training.",
+      "Iron only if a blood test shows it's low. When you don't need it, it can do harm.",
+      "Most people don't need multivitamins, fish oil pills, antioxidant pills, detox products or \"superfoods\". Beta-carotene pills raised lung cancer in smokers.",
+      "Take medicines, pregnant, or have a health condition? Check any supplement with a doctor or pharmacist first.",
+    ],
+  },
 ] as const;
 
 const slugify = (s: string) =>
@@ -110,5 +137,5 @@ export function loadGuide(slug: string): Guide | null {
     },
   });
   const html = marked.parse(body, { async: false }) as string;
-  return { slug, title, short: meta.short, lede, html, toc, checked: checkedMatch ? checkedMatch[1] : "30 September 2026" };
+  return { slug, title, short: meta.short, lede, html, toc, checked: checkedMatch ? checkedMatch[1] : "30 September 2026", h1: meta.h1, plain: meta.lede, points: meta.points };
 }

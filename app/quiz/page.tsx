@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import { Quiz } from "@/components/Quiz";
 
 export const metadata: Metadata = {
-  title: "Find your setting",
-  description: "Eleven questions, scored on your device: your position on two well-measured traits, the old temperament names as tradition, and a communication style.",
+  title: "Personality quiz",
+  description: "Eleven quick questions, scored on your device: where you land on two traits science measures well, plus a fun look at how you like to talk and plan.",
 };
 
 export default function YouPage() {

@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import s from "./watch.module.css";
-import { FilmLoop } from "@/components/FilmLoop";
-import { FILM } from "@/lib/film";
 import { Icon } from "@/components/Icons";
 
 export const metadata: Metadata = {
   title: "Watch",
-  description: "Short films that show how your body is built, made from a detailed 3D model of human anatomy.",
+  description: "Short films that answer what people ask about their health, one question at a time, with real 3D anatomy and plain words.",
 };
 
 export default function WatchPage() {
@@ -16,41 +14,43 @@ export default function WatchPage() {
       <div className="wrap stack gap-32">
         <header className="stack gap-12" style={{ maxWidth: 820 }}>
           <h1 className="h1 a-in">
-            Watch how you <span className="serif">are built.</span>
+            Watch it, <span className="serif">don&apos;t read it.</span>
           </h1>
           <p className="lede a-in a-d1">
-            Short films made from a detailed 3D model of the human body. Every part is in true proportion and in its real place, so you see how you actually fit
-            together.
+            Each film answers one question people ask, as a short story: a moment you know, what happens inside you, and the one change that sets it back. Short
+            films for your feed, longer documentaries for the whole story.
           </p>
         </header>
 
-        <div className="grid-2" style={{ alignItems: "stretch" }}>
-          <Link href="/watch/your-body-builds-itself" className={`card ${s.filmCard}`}>
-            <div className={s.filmThumb}>
-              <FilmLoop src={FILM.src} poster={FILM.poster} label="Preview: a 3D body puts itself together" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+        <section className={`card ${s.next}`} aria-labelledby="film1">
+          <div className={s.nextText}>
+            <span className={s.soon}>Film 1 · coming 20 October</span>
+            <h2 id="film1" className="h2">
+              Why am I always <span className="serif">tired?</span>
+            </h2>
+            <p className="lede" style={{ margin: 0 }}>
+              Three things to check first: short sleep, late coffee and late light. About one minute, in ten calm shots.
+            </p>
+            <div className="row-wrap gap-10">
+              <Link className="btn btn-signal" href="/sleep-energy/why-am-i-always-tired">
+                Read the answer now
+                <Icon name="arrow" size={16} />
+              </Link>
             </div>
-            <div className="stack gap-10">
-              <span className="kick" style={{ fontSize: 10.5 }}>
-                18 seconds
-              </span>
-              <span className="h3">Your body builds itself</span>
-              <span style={{ fontSize: 15, lineHeight: 1.5, color: "var(--ink2)" }}>Bones, organs, then blood vessels, each one landing where it sits in you.</span>
-              <span className="row-wrap gap-8" style={{ color: "var(--signal-ink)", fontWeight: 650, fontSize: 14.5 }}>
-                <Icon name="play" size={16} />
-                Watch
-              </span>
-            </div>
-          </Link>
-          <div className="card card-pad stack gap-10" style={{ justifyContent: "center" }}>
-            <span className="tag" style={{ alignSelf: "flex-start" }}>
-              Coming soon
-            </span>
-            <span className="h3">The same film, with a voice</span>
-            <span style={{ fontSize: 15, lineHeight: 1.5, color: "var(--ink2)" }}>
-              Slowed down, with a narrator explaining each part as it lands: what it is, what it does, and one fact to remember.
-            </span>
           </div>
-        </div>
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img className={s.board} src="/img/film1_storyboard.jpg" alt="Film 1 in eight preview stills: an alarm clock at 7 a.m., the brain filling with the sleepy chemical, the caffeine curve from a coffee cup, a lamp and phone at 11:47 p.m., the sleep signal arriving later, three dials, the clock in warm morning light, the logo dial" width={2000} height={2207} loading="lazy" />
+        </section>
+
+        <section className="card card-pad stack gap-10" aria-labelledby="doc1" style={{ maxWidth: 820 }}>
+          <span className={s.soon}>Documentary 1 · after film 1</span>
+          <h2 id="doc1" className="h3">
+            Sleep, the setting that runs the others
+          </h2>
+          <p style={{ margin: 0, fontSize: 15.5, lineHeight: 1.55, color: "var(--ink2)" }}>
+            About 12 minutes, in three chapters: why you&apos;re always tired, how to fall asleep faster, and why you wake up at 3 a.m.
+          </p>
+        </section>
       </div>
     </div>
   );

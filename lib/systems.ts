@@ -67,7 +67,7 @@ export const SYSTEMS: SystemPage[] = [
       { k: "Bones in each foot", v: "26", ev: 4 },
     ],
     sources: [{ label: "OpenStax Anatomy and Physiology 2e, chapters 6 to 8", href: OPENSTAX }],
-    related: [{ href: "/watch/your-body-builds-itself", kicker: "Watch", title: "See the bones land, from the feet up" }],
+    related: [],
     inExplore: true,
   },
   {
@@ -102,7 +102,6 @@ export const SYSTEMS: SystemPage[] = [
     ],
     related: [
       { href: "/body/heart", kicker: "Close-up", title: "Your heart, part by part" },
-      { href: "/watch/your-body-builds-itself", kicker: "Watch", title: "See the arteries grow out and the veins flow back" },
     ],
     inExplore: true,
   },
@@ -137,7 +136,7 @@ export const SYSTEMS: SystemPage[] = [
       { label: "Weibel, Morphometry of the Human Lung, 1963 (airway generations)" },
       { label: "Ochs et al. 2004, the number of alveoli in the human lung", href: "https://doi.org/10.1164/rccm.200308-1107OC" },
     ],
-    related: [{ href: "/watch/your-body-builds-itself", kicker: "Watch", title: "See the airways grow, branch by branch" }],
+    related: [],
     inExplore: true,
   },
   {
@@ -224,17 +223,17 @@ export const SYSTEMS: SystemPage[] = [
     simple:
       "Two bean-shaped filters behind your belly. All day they clean your blood, keep what you need, and send the rest out as urine.",
     clear:
-      "Each kidney holds about a million tiny filters called nephrons. Together they filter about 180 litres of blood plasma a day, then take almost all of it back, leaving a litre or two of urine.",
+      "Each kidney holds about a million tiny filters called nephrons. Together they filter about 150 to 180 litres of fluid from your blood every day, then return about 99% of it, leaving only 1 to 2 litres of urine.",
     expert:
-      "Glomerular filtration of about 125 mL a minute, or about 180 L a day, of which about 99 percent is reabsorbed along the tubules. Each kidney holds on the order of a million nephrons; the left usually sits a little higher than the right.",
+      "Glomerular filtration of about 180 L a day in men and 150 L a day in women, of which about 99 percent is reabsorbed along the tubules, leaving 1 to 2 L of urine. Each kidney holds on the order of a million nephrons; the left usually sits a little higher than the right.",
     rows: [
       { k: "Left kidney length on our 3D body", v: "10.8 cm", measured: true },
       { k: "Right kidney length on our 3D body", v: "10.6 cm", measured: true },
-      { k: "Blood fluid (plasma) filtered a day", v: "about 180 litres", ev: 4 },
+      { k: "Fluid filtered from the blood a day", v: "about 150 to 180 litres", ev: 4 },
       { k: "How much of it goes back into the blood", v: "about 99%", ev: 4 },
     ],
-    sources: [{ label: "OpenStax Anatomy and Physiology 2e, 25.1 to 25.6", href: OPENSTAX }],
-    related: [{ href: "/watch/your-body-builds-itself", kicker: "Watch", title: "See the kidneys slide in behind the gut" }],
+    sources: [{ label: "OpenStax Anatomy and Physiology 2e, 25.5", href: "https://openstax.org/books/anatomy-and-physiology-2e/pages/25-5-physiology-of-urine-formation" }],
+    related: [],
     inExplore: true,
   },
   {
@@ -262,11 +261,11 @@ export const SYSTEMS: SystemPage[] = [
       { k: "Size, typical adult", v: "about 12 × 8 × 6 cm", ev: 4 },
       { k: "Weight, typical adult", v: "300 to 350 g men · 250 to 300 g women", ev: 4 },
       { k: "Resting heartbeat, adult", v: "60 to 100 beats a minute", ev: 4 },
-      { k: "Beats in a day", v: "about 100,000 at 70 a minute", calc: "70 × 60 min × 24 h" },
+      { k: "Beats in a day", v: "about 108,000 at 75 a minute", ev: 4 },
       { k: "Chambers and valves", v: "4 and 4", ev: 4 },
     ],
     sources: [
-      { label: "OpenStax Anatomy and Physiology 2e, 19.1 (size and weight)", href: OPENSTAX },
+      { label: "OpenStax Anatomy and Physiology 2e, 19.1 (size, weight, beats a day)", href: "https://openstax.org/books/anatomy-and-physiology-2e/pages/19-1-heart-anatomy" },
       { label: "Mayo Clinic (resting rate)", href: "https://www.mayoclinic.org/healthy-lifestyle/fitness/expert-answers/heart-rate/faq-20057979" },
     ],
     dims: [{ a: [974.5, 1364.1], b: [722.6, 559.6], label: "12.5 cm", sub: "Length", off: [150, 150] }],
@@ -279,7 +278,6 @@ export const SYSTEMS: SystemPage[] = [
       { at: [884.6, 758.8], y: 704, side: "right", kicker: "Left coronary artery", value: "Feeds the heart muscle itself", hideBelow: 620 },
     ],
     related: [
-      { href: "/watch/your-body-builds-itself", kicker: "Watch", title: "See the heart slide in and start to beat" },
       { href: "/body/heart-and-vessels", kicker: "The bigger picture", title: "How blood reaches every part of you" },
     ],
     inExplore: false,
@@ -302,7 +300,7 @@ export const SYSTEMS: SystemPage[] = [
     simple:
       "Your liver is built from segments that fit together like a puzzle. Each one has its own blood supply and its own drain for bile, which is why a surgeon can remove some and the rest keeps working.",
     clear:
-      "Surgeons divide the liver into eight functional segments. Each has its own branch of the portal vein, hepatic artery and bile duct, so segments can be removed while the rest carries on, and the liver can regrow much of what was taken.",
+      "Surgeons divide the liver into eight functional segments. Each has its own branch of the portal vein, hepatic artery and bile duct, so segments can be removed while the rest carries on. What is left grows back: after a living donor gives up to 70% of their liver, it regrows to nearly full size in about three to four weeks.",
     expert:
       "The Couinaud classification defines eight segments by the branching of the hepatic and portal veins. Each has independent vascular inflow, outflow and biliary drainage, the basis of segmental resection. About three quarters of hepatic blood flow arrives through the portal vein.",
     rows: [
@@ -314,10 +312,11 @@ export const SYSTEMS: SystemPage[] = [
     sources: [
       { label: "OpenStax Anatomy and Physiology 2e, 23.6", href: OPENSTAX },
       { label: "Couinaud classification of liver segments (standard surgical anatomy)" },
+      { label: "StatPearls, the portal venous system (blood supply)", href: "https://www.ncbi.nlm.nih.gov/books/NBK554589/" },
+      { label: "Mayo Clinic, living liver donation (regrowth)", href: "https://newsnetwork.mayoclinic.org/discussion/mayo-clinic-q-and-a-living-liver-donation/" },
     ],
     dims: [{ a: [229.4, 579.2], b: [839.3, 366], label: "22.8 cm", sub: "Width", off: [-40, -110] }],
     related: [
-      { href: "/watch/your-body-builds-itself", kicker: "Watch", title: "See the liver land piece by piece" },
       { href: "/body/digestion", kicker: "The bigger picture", title: "Where your food goes" },
     ],
     inExplore: false,

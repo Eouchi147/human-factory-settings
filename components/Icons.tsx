@@ -26,6 +26,13 @@ const PATHS: Record<string, string> = {
   ruler: '<path d="M3 16.5 16.5 3l4.5 4.5L7.5 21z"/><path d="M7 12.5l2 2M10 9.5l2.8 2.8M13 6.5l2 2"/>',
   sound: '<path d="M4.5 9.5h3l4-3.5v12l-4-3.5h-3z"/><path d="M15.5 9a4.5 4.5 0 0 1 0 6"/><path d="M18 6.5a8 8 0 0 1 0 11"/>',
   mute: '<path d="M4.5 9.5h3l4-3.5v12l-4-3.5h-3z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/>',
+  dot: '<circle cx="12" cy="12" r="6" fill="currentColor" stroke="none"/>',
+  heart: '<path d="M12 20s-7-4.4-9.2-8.5C1.2 8.4 2.6 4.6 6 3.8c2.1-.5 4 .5 5.2 2.3.4.5 1.1.5 1.5 0C13.9 4.3 15.9 3.3 18 3.8c3.4.8 4.8 4.6 3.2 7.7C19 15.6 12 20 12 20z"/>',
+  drop: '<path d="M12 3.5s-6 6.6-6 11a6 6 0 0 0 12 0c0-4.4-6-11-6-11z"/>',
+  cup: '<path d="M5 8.5h11v6a5 5 0 0 1-5 5h-1a5 5 0 0 1-5-5z"/><path d="M16 10h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8.5 3.5c0 1 1 1.5 1 2.5M12 3.5c0 1 1 1.5 1 2.5"/>',
+  rotate: '<path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20.5 4.5v4h-4"/>',
+  tape: '<rect x="3.5" y="7.5" width="17" height="9" rx="2"/><path d="M7 7.5v3M10.5 7.5v4.5M14 7.5v3M17.5 7.5v4.5"/>',
+  puzzle: '<path d="M9 4.5h3a1.5 1.5 0 0 1 3 0h3.5V8a1.5 1.5 0 0 1 0 3v3.5H15a1.5 1.5 0 0 0-3 0H8.5V11a1.5 1.5 0 0 0 0-3V4.5z"/><path d="M8.5 14.5v5h10v-5"/>',
 };
 
 export type IconName = keyof typeof PATHS;

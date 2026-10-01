@@ -67,7 +67,7 @@ Sources: [CDC](https://www.cdc.gov/bmi/adult-calculator/bmi-categories.html), [N
 
 **Weighing yourself.** Weekly weighing works as well as daily ([Madigan 2015](https://doi.org/10.1186/s12966-015-0267-4)). Day-to-day weight moves with water and food in the gut, so judge the trend across weeks, never one morning.
 
-**Measure on the reference body.** The site shows every organ at its measured size on one real body; this guide will link each measure to its story page as they go live.
+
 
 ## Eating to lose
 

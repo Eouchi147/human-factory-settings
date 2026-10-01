@@ -2,12 +2,11 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import s from "./feel-better.module.css";
 import { Icon, type IconName } from "@/components/Icons";
-import { Ev } from "@/components/Evidence";
 import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = {
-  title: "Restore",
-  description: "Settings that modern life changed, and the step-by-step plans and guides to restore them, every step graded.",
+  title: "Feel better",
+  description: "Small plans and clear guides built on the best evidence we have, with how sure the science is and when to see a doctor instead.",
 };
 
 type Setting = { icon: IconName; name: string; line: string; status: "ready" | "guide" | "soon"; links: { href: string; label: string }[] };
@@ -16,59 +15,52 @@ const SETTINGS: Setting[] = [
   {
     icon: "moon",
     name: "Sleep",
-    line: "Caffeine, light and timing: the settings that decide how rested you wake up.",
+    line: "Coffee, light and timing: the things that decide how rested you wake up.",
     status: "ready",
     links: [
-      { href: "/feel-better/sleep-and-caffeine", label: "Plan · Protect your sleep from caffeine" },
-      { href: "/stories/why-you-wake-up-tired", label: "Story · Why you wake up tired" },
+      { href: "/feel-better/sleep-and-caffeine", label: "Protect your sleep from caffeine: a 7-day plan" },
+      { href: "/stories/why-you-wake-up-tired", label: "Why you wake up tired: the story" },
     ],
   },
   {
     icon: "layers",
     name: "Food",
-    line: "What the body needs from food, and the few supplements with real evidence for specific people.",
+    line: "What your body needs from food, and the few supplements that really help specific people.",
     status: "guide",
-    links: [{ href: "/guides/supplements", label: "Guide · Supplements and nutrition" }],
+    links: [{ href: "/guides/supplements", label: "Do you need supplements?" }],
   },
   {
     icon: "restore",
     name: "Weight",
-    line: "What actually moves body weight and keeps it there, from diets head to head to medicines.",
+    line: "What really moves your weight and keeps it there, from diets to medicines.",
     status: "guide",
-    links: [{ href: "/guides/weight", label: "Guide · Weight management" }],
+    links: [{ href: "/guides/weight", label: "How to lose weight and keep it off" }],
   },
   {
     icon: "explore",
     name: "Movement",
-    line: "Strength to keep muscle, walking every day, less sitting between. The numbers behind each.",
+    line: "Strength to keep your muscle, walking every day, and less sitting in between.",
     status: "guide",
-    links: [{ href: "/guides/weight#moving", label: "Guide section · Moving" }],
+    links: [{ href: "/guides/weight#moving", label: "Moving more: what it does and doesn't do" }],
   },
-  { icon: "clock", name: "Stress", line: "How the stress response is built to switch on and off, and what keeps it stuck on.", status: "soon", links: [] },
-  { icon: "you", name: "Light and people", line: "Daylight that sets the clock, and the company the body was built for.", status: "soon", links: [] },
+  { icon: "clock", name: "Stress", line: "How your stress response is built to switch on and off, and what keeps it stuck on.", status: "soon", links: [] },
+  { icon: "you", name: "Light and people", line: "Daylight that sets your body clock, and the company your body was built for.", status: "soon", links: [] },
 ];
 
-const STATUS = { ready: "Plan ready", guide: "Deep guide", soon: "In the works" } as const;
+const STATUS = { ready: "7-day plan", guide: "Full guide", soon: "Coming soon" } as const;
 
 export default function RestorePage() {
   return (
     <div className="page-top">
       <div className="wrap stack gap-32">
         <header className="stack gap-12" style={{ maxWidth: 780 }}>
-          <div className="kick a-in">Restore</div>
+          <div className="kick a-in">Feel better</div>
           <h1 className="h1 a-in a-d1">
-            Restore what drifted, <span className="serif">step by step.</span>
+            Feel better, <span className="serif">one small step at a time.</span>
           </h1>
           <p className="lede a-in a-d2">
-            Each setting links the science to a plan you can follow for 7 to 30 days. Every step carries its evidence, and every plan says when to see a doctor
-            instead.
+            Plans and guides built on the best evidence we have. Each one shows how sure the science is, and tells you when it&apos;s time to see a doctor instead.
           </p>
-          <div className="row-wrap gap-8 a-in a-d3">
-            <Ev level={4} text="Strong" />
-            <Ev level={3} text="Good" />
-            <Ev level={2} text="Some" />
-            <Ev level={1} text="Early" />
-          </div>
         </header>
         <div className={s.grid}>
           {SETTINGS.map((x, i) => (
@@ -95,7 +87,7 @@ export default function RestorePage() {
                   </div>
                 ) : (
                   <p className="cap" style={{ margin: "auto 0 0", textTransform: "none", letterSpacing: ".02em" }}>
-                    Being written and sourced now.
+                    Being written and checked now.
                   </p>
                 )}
               </div>

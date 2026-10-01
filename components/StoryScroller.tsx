@@ -25,9 +25,9 @@ function Visual({ kind }: { kind: Station["visual"] }) {
   if (kind === "clock")
     return (
       <div className="stack gap-12" style={{ alignItems: "center", width: "100%" }}>
-        <ClockRing from={21} to={7} size={300} center="Night" sub="MELATONIN RISES" labels={["21:00", "07:00"]} />
+        <ClockRing from={21} to={7} size={300} center="Night" sub="MELATONIN RISES" labels={["9 p.m.", "7 a.m."]} />
         <p className="cap" style={{ margin: 0, textAlign: "center", textTransform: "none", letterSpacing: ".02em" }}>
-          Schematic: the evening melatonin rise, for someone who sleeps from 23:00 to 07:00.
+          Schematic: the evening melatonin rise, for someone who sleeps from 11 p.m. to 7 a.m.
         </p>
       </div>
     );
@@ -55,7 +55,7 @@ function Visual({ kind }: { kind: Station["visual"] }) {
       <div className="glass" style={{ borderRadius: 22, padding: "16px 12px 10px", width: "100%" }}>
         <HalfLifeChart />
         <p className="cap" style={{ margin: "6px 8px 4px", textTransform: "none", letterSpacing: ".02em", lineHeight: 1.5 }}>
-          How much of a 17:00 coffee is still in you, hour by hour. The line is the average person; the shaded band shows how much people differ.
+          How much of a 5 p.m. coffee is still in you, hour by hour. The line is the average person; the shaded band shows how much people differ.
         </p>
       </div>
     );
@@ -80,7 +80,7 @@ function Visual({ kind }: { kind: Station["visual"] }) {
     );
   return (
     <div className="stack gap-16" style={{ alignItems: "center", width: "100%" }}>
-      <ClockRing from={17} to={23} size={300} />
+      <ClockRing from={14} to={23} size={300} />
       <Link href="/feel-better/sleep-and-caffeine" className="btn btn-signal">
         Make it your plan
         <Icon name="arrow" size={16} />

@@ -1,10 +1,12 @@
 /* Drawings for the sleep story and the caffeine plan. Pure SVG, measured in their own units. */
 
+import { clock12 } from "@/lib/time";
+
 const MONO = "var(--font-geist-mono), ui-monospace, monospace";
 const SANS = "var(--font-archivo), system-ui, sans-serif";
 
 /** 24-hour dial, 00 at the top. The orange arc is the caffeine-free window before bed. */
-export function ClockRing({ from, to, size = 220, center = "6 h", sub = "CAFFEINE-FREE", labels }: { from: number; to: number; size?: number; center?: string; sub?: string; labels?: [string, string] }) {
+export function ClockRing({ from, to, size = 220, center, sub = "CAFFEINE-FREE", labels }: { from: number; to: number; size?: number; center?: string; sub?: string; labels?: [string, string] }) {
   const cx = 110, cy = 104, r = 66;
   const rr = r * 1.1;
   const pt = (h: number, rad: number) => {
@@ -18,15 +20,15 @@ export function ClockRing({ from, to, size = 220, center = "6 h", sub = "CAFFEIN
     ticks.push(<line key={k} x1={x1} y1={y1} x2={x2} y2={y2} stroke={`rgba(236,238,241,${k % 6 === 0 ? 0.6 : 0.25})`} strokeWidth="1.2" />);
   }
   const sweep = (((to - from) % 24) + 24) % 24;
+  const centre = center ?? `${Math.round(sweep * 10) / 10} h`;
   const [ax, ay] = pt(from, rr);
   const [bx, by] = pt(to, rr);
   const large = sweep * 15 > 180 ? 1 : 0;
   const [l0x, l0y] = pt(from, rr + 20);
   const [l1x, l1y] = pt(to, rr + 20);
-  const fmt = (h: number) => `${String(Math.floor(((h % 24) + 24) % 24)).padStart(2, "0")}:${h % 1 ? "30" : "00"}`;
-  const [lab0, lab1] = labels ?? [fmt(from), fmt(to)];
+  const [lab0, lab1] = labels ?? [clock12(from), clock12(to)];
   return (
-    <svg width={size} height={(size * 212) / 220} viewBox="0 0 220 212" role="img" aria-label={`A 24-hour dial with a ${center} window from ${lab0} to ${lab1}`}>
+    <svg width={size} height={(size * 212) / 220} viewBox="0 0 220 212" role="img" aria-label={`A 24-hour dial with a ${centre} window from ${lab0} to ${lab1}`}>
       <circle cx={cx} cy={cy} r={r} fill="rgba(18,21,26,.6)" stroke="rgba(236,238,241,.18)" strokeWidth="1" />
       {ticks}
       <path d={`M${ax},${ay} A${rr},${rr} 0 ${large} 1 ${bx},${by}`} fill="none" stroke="#FF6A2B" strokeWidth="5" strokeLinecap="round" />
@@ -34,7 +36,7 @@ export function ClockRing({ from, to, size = 220, center = "6 h", sub = "CAFFEIN
         const [x, y] = pt(h, r * 0.64);
         return (
           <text key={h} x={x} y={y + 3.5} textAnchor="middle" fontFamily={MONO} fontSize="9.5" fill="rgba(236,238,241,.5)">
-            {h === 0 ? "00" : "12"}
+            {h === 0 ? "midnight" : "noon"}
           </text>
         );
       })}
@@ -45,7 +47,7 @@ export function ClockRing({ from, to, size = 220, center = "6 h", sub = "CAFFEIN
         {lab1}
       </text>
       <text x={cx} y={cy + 4} textAnchor="middle" fontFamily={SANS} fontSize="28" fontWeight="650" fill="#ECEEF1">
-        {center}
+        {centre}
       </text>
       <text x={cx} y={cy + 20} textAnchor="middle" fontFamily={MONO} fontSize="8" letterSpacing=".9" fill="#FF7A3D">
         {sub}
@@ -79,7 +81,7 @@ export function HalfLifeChart({ start = 17, bed = 23 }: { start?: number; bed?: 
     const t = (i / 140) * hours;
     band.push(`${X(t).toFixed(1)},${Y(100 * Math.pow(0.5, t / 1.5)).toFixed(1)}`);
   }
-  const hh = (t: number) => `${String((start + t) % 24).padStart(2, "0")}:00`;
+  const hh = (t: number) => clock12(start + t);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`Caffeine left in the blood after a ${hh(0)} dose: about ${at(5)} percent at ${hh(tb)} for the average half-life of 5 hours, between ${at(1.5)} and ${at(9.5)} percent across the normal range`}>
       {[0, 25, 50, 75, 100].map((p) => (
@@ -148,7 +150,7 @@ export function PressureSketch() {
       <polyline points={pts.join(" ")} fill="none" stroke="#B59CF0" strokeWidth="2.4" strokeLinejoin="round" />
       {[0, 16, 24, 40, 48].map((h) => (
         <text key={h} x={X(h)} y={H - B + 18} textAnchor="middle" fontFamily={MONO} fontSize="10" fill="rgba(236,238,241,.5)">
-          {String((h + 7) % 24).padStart(2, "0")}:00
+          {clock12((h + 7) % 24)}
         </text>
       ))}
       <text x={X(8)} y={T + 2} textAnchor="middle" fontFamily={MONO} fontSize="9.5" fill="rgba(236,238,241,.6)">

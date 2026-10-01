@@ -7,6 +7,8 @@ import { Ev, Measured } from "@/components/Evidence";
 import { DepthSwitch, DepthText } from "@/components/Depth";
 import { SpecFigure } from "@/components/SpecFigure";
 import { Icon } from "@/components/Icons";
+import { PulseCheck } from "@/components/tools/PulseCheck";
+import { HeartbeatCounter } from "@/components/tools/HeartbeatCounter";
 
 export const dynamicParams = false;
 
@@ -111,6 +113,17 @@ export default async function SystemPage({ params }: { params: Promise<{ slug: s
             </p>
           </section>
         </div>
+        {x.slug === "heart" ? (
+          <section className="stack gap-16" style={{ marginTop: 48, scrollMarginTop: 90 }} aria-labelledby="try">
+            <h2 id="try" className="h2">
+              Try it with <span className="serif">your own heart.</span>
+            </h2>
+            <div className="tools-2">
+              <PulseCheck />
+              <HeartbeatCounter />
+            </div>
+          </section>
+        ) : null}
       </div>
     </div>
   );

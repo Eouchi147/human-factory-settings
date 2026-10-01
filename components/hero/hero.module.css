@@ -1,0 +1,61 @@
+.hero { position: relative; min-height: 100svh; display: grid; grid-template-columns: 1fr; overflow: hidden; }
+.stage { position: relative; height: 58svh; min-height: 380px; --glow: rgba(255, 106, 43, 0); }
+/* a soft light behind the body that changes with the picked setting */
+.stage::before {
+  content: ""; position: absolute; inset: -12% -20% -4%; pointer-events: none; z-index: 0;
+  background: radial-gradient(42% 46% at 50% 44%, var(--glow), transparent 72%);
+  transition: --glow 1.2s var(--ease);
+}
+@property --glow { syntax: "<color>"; inherits: true; initial-value: rgba(255, 106, 43, 0); }
+.stage[data-mood="sleep-energy"] { --glow: rgba(86, 116, 255, 0.26); }
+.stage[data-mood="fitness-strength"] { --glow: rgba(255, 76, 48, 0.2); }
+.stage[data-mood="stress-mood"] { --glow: rgba(255, 170, 60, 0.18); }
+.stage[data-mood="habits-focus"] { --glow: rgba(120, 190, 255, 0.16); }
+.stage[data-mood="connection-purpose"] { --glow: rgba(255, 170, 110, 0.22); }
+.stage[data-mood="weight-food"] { --glow: rgba(255, 140, 90, 0.14); }
+.stage[data-mood="your-body"] { --glow: rgba(236, 226, 206, 0.12); }
+.canvas { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; display: block; opacity: 0; transition: opacity 0.9s var(--ease); touch-action: pan-y; cursor: grab; }
+.canvas:active { cursor: grabbing; }
+.canvas.on { opacity: 1; }
+.fallback { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 22%; }
+.loading { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); display: flex; flex-direction: column; align-items: center; gap: 12px; font-size: 13px; color: var(--ink3); }
+.spinner { width: 28px; height: 28px; border-radius: 99px; border: 2px solid rgba(236, 238, 241, 0.15); border-top-color: var(--signal); animation: spin 0.9s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.hint {
+  position: absolute; left: 50%; bottom: 12px; transform: translateX(-50%); display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
+  font-size: 12.5px; font-weight: 600; color: var(--ink2); padding: 5px 6px 5px 12px; border-radius: 999px; background: rgba(9, 11, 14, 0.6); border: 1px solid var(--edge);
+  opacity: 0; transition: opacity 0.8s var(--ease);
+}
+.hintOn { opacity: 1; }
+.replay { width: 26px; height: 26px; border-radius: 99px; border: 0; background: rgba(236, 238, 241, 0.08); color: var(--ink2); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.replay:hover { background: rgba(236, 238, 241, 0.16); color: var(--ink); }
+
+.copy { position: relative; z-index: 2; display: flex; flex-direction: column; gap: 16px; padding: 0 var(--gutter) 28px; margin-top: -8svh; }
+.sub { margin: 0; font-size: 16.5px; line-height: 1.5; color: var(--ink2); max-width: 34em; text-wrap: pretty; }
+.chips { display: flex; gap: 8px; overflow-x: auto; margin: 0 calc(-1 * var(--gutter)); padding: 2px var(--gutter) 4px; scrollbar-width: none; }
+.chips::-webkit-scrollbar { display: none; }
+.chip {
+  flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--edge); background: rgba(18, 21, 26, 0.72); color: var(--ink); font-size: 14.5px; font-weight: 620; white-space: nowrap;
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px); transition: background 0.3s var(--ease), border-color 0.3s var(--ease), color 0.3s var(--ease);
+}
+.chip svg { color: var(--signal-ink); }
+.chip:hover { border-color: rgba(255, 122, 61, 0.5); }
+.chipOn { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.chipOn svg { color: var(--signal); }
+.cardSlot { min-height: 150px; }
+.card { position: relative; border-radius: 22px; padding: 18px 20px 20px; display: flex; flex-direction: column; gap: 12px; max-width: 520px; }
+.cardKick { font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--signal-ink); }
+.cardFact { margin: 0; padding-right: 26px; font-size: 18px; line-height: 1.45; font-weight: 560; color: var(--ink); text-wrap: pretty; }
+.close { position: absolute; right: 12px; top: 12px; width: 30px; height: 30px; border-radius: 99px; border: 1px solid var(--edge); background: transparent; color: var(--ink2); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+.start { display: inline-flex; align-items: center; gap: 8px; font-weight: 650; font-size: 15px; color: var(--ink2); text-decoration: none; padding: 8px 0; }
+.start:hover { color: var(--ink); }
+
+@media (min-width: 980px) {
+  .hero { grid-template-columns: minmax(0, 1fr) minmax(0, 1.05fr); min-height: max(720px, 100svh); max-height: 1100px; align-items: center; }
+  .stage { order: 2; height: 100%; min-height: 720px; }
+  .copy { order: 1; margin: 0; padding: 110px 0 60px clamp(40px, 6.6vw, 96px); max-width: 640px; gap: 20px; }
+  .sub { font-size: clamp(17px, 1.3vw, 19px); }
+  .chips { flex-wrap: wrap; overflow: visible; margin: 0; padding: 0; }
+  .hint { bottom: 28px; }
+}

@@ -8,7 +8,7 @@ const ROWS: [string, string][] = [
   ["Before you change anything", "Talk to a doctor before changing diet, weight, exercise or supplements if you have a health condition, take regular medicines, are pregnant or breastfeeding, or are under 18."],
   ["No diagnosis", "Nothing on this site diagnoses or screens for any condition, including the quiz, which describes personality traits only."],
   ["Evidence can change", "Every claim carries the strength of its evidence and the date it was checked. Science moves; we update pages as it does."],
-  ["Using our work", "Text, design and films are © Human Factory Settings. The renders are made from BodyParts3D, © The Database Center for Life Science, CC BY 4.0; any reuse of a render must credit BodyParts3D."],
+  ["Using our work", "Text, design and films are © Human Factory Settings. The 3D pictures are made from BodyParts3D, © The Database Center for Life Science, CC BY 4.0; any reuse of a render must credit BodyParts3D."],
   ["Preview", "This is a preview build, not yet public. Pages, numbers and features may change before launch."],
 ];
 

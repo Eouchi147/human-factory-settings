@@ -65,7 +65,7 @@ export const STATIONS: Station[] = [
     visual: "halflife",
     simple: "Your body clears caffeine slowly. Five hours after a coffee, about half of it is still working.",
     clear:
-      "On average it takes about 5 hours to clear half of the caffeine you drink, but that ranges from 1.5 to 9.5 hours between people. A coffee at 17:00 can still be more than a third there at 23:00.",
+      "On average it takes about 5 hours to clear half of the caffeine you drink, but that ranges from 1.5 to 9.5 hours between people. A coffee at 5 p.m. can still be more than a third there at 11 p.m.",
     expert:
       "Mean plasma half-life about 5 h, with an elimination half-life ranging from 1.5 to 9.5 h. Smoking speeds its metabolism; oral contraceptives can double the half-life.",
     ev: 4,
@@ -87,15 +87,16 @@ export const STATIONS: Station[] = [
   {
     id: "cutoff",
     title: "So set a cutoff:",
-    serif: "six hours before bed.",
+    serif: "nine hours before bed.",
     visual: "cutoff",
-    simple: "Have your last caffeine 6 hours before bed. If you still sleep badly after a week, try 8.",
+    simple: "Have your last coffee 9 hours before bed. If you still sleep badly after a week, move it an hour earlier.",
     clear:
-      "Count back 6 hours from your bedtime and make that your last caffeine, including tea, cola, energy drinks and chocolate. Europe's food safety agency notes that even 100 mg near bedtime can disturb sleep.",
+      "Count back 9 hours from your bedtime and make that your last coffee. A review of 24 studies worked out that a regular coffee needs at least 8.8 hours to stop cutting into sleep. Europe's food safety agency notes that even 100 mg near bedtime can disturb sleep.",
     expert:
-      "A 6 h cutoff follows the Drake data and the mean half-life; slow metabolisers may need 8 h or more. EFSA: up to 400 mg a day is safe for healthy adults, and 100 mg close to bedtime can affect sleep.",
-    ev: 2,
+      "Gardiner et al. 2023 (24 studies): caffeine reduced total sleep time by about 45 min; to avoid that, coffee (107 mg) at least 8.8 h before bedtime and a pre-workout dose (217.5 mg) at least 13.2 h before. Slow metabolisers may need longer. EFSA: up to 400 mg a day is safe for healthy adults, and 100 mg close to bedtime can affect sleep.",
+    ev: 3,
     source: [
+      { label: "Gardiner et al. 2023, Sleep Medicine Reviews", href: "https://doi.org/10.1016/j.smrv.2023.101764" },
       { label: "Drake et al. 2013", href: "https://doi.org/10.5664/jcsm.3170" },
       { label: "EFSA, caffeine", href: "https://www.efsa.europa.eu/en/topics/topic/caffeine" },
     ],

@@ -6,16 +6,18 @@ import { useEffect, useState } from "react";
 import { Glass, GlassShadow } from "./Glass";
 import { Icon, Logo } from "./Icons";
 
+const AREA_PATHS = ["/sleep-energy", "/weight-food", "/fitness-strength", "/stress-mood", "/habits-focus", "/connection-purpose", "/your-body", "/body", "/stories", "/guides", "/feel-better"];
+
 const NAV = [
-  { href: "/body", label: "Your body", short: "Body", icon: "explore" as const },
-  { href: "/feel-better", label: "Feel better", short: "Feel better", icon: "restore" as const },
+  { href: "/", label: "Home", short: "Home", icon: "you" as const },
+  { href: "/#fix", label: "Topics", short: "Topics", icon: "layers" as const },
+  { href: "/tools", label: "Tools", short: "Tools", icon: "dial" as const },
   { href: "/watch", label: "Watch", short: "Watch", icon: "play" as const },
-  { href: "/quiz", label: "Quiz", short: "Quiz", icon: "dial" as const },
 ];
 
 function isOn(path: string, href: string) {
-  if (href === "/body") return path.startsWith("/body") || path.startsWith("/stories");
-  if (href === "/feel-better") return path.startsWith("/feel-better") || path.startsWith("/guides");
+  if (href === "/") return path === "/";
+  if (href === "/#fix") return AREA_PATHS.some((p) => path.startsWith(p));
   return path.startsWith(href);
 }
 
@@ -40,7 +42,7 @@ export function SiteHeader() {
             <span className="word">Human Factory Settings</span>
           </Link>
           <nav aria-label="Main" style={{ display: "flex", gap: 2 }}>
-            {NAV.map((n) => (
+            {NAV.filter((n) => n.href !== "/").map((n) => (
               <Link key={n.href} href={n.href} className={`nav-link ${isOn(path, n.href) ? "on" : ""}`} aria-current={isOn(path, n.href) ? "page" : undefined}>
                 {n.label}
               </Link>

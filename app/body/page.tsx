@@ -7,6 +7,7 @@ import { Measured } from "@/components/Evidence";
 import { Reveal } from "@/components/Reveal";
 import { Icon } from "@/components/Icons";
 import { BLUR } from "@/lib/blur";
+import { BodyStage } from "@/components/hero/BodyStage";
 
 export const metadata: Metadata = {
   title: "How your body works",
@@ -30,6 +31,13 @@ export default function ExplorePage() {
           </p>
         </header>
 
+        <section id="explore" style={{ scrollMarginTop: 90 }} aria-label="Spin a 3D body">
+          <BodyStage />
+        </section>
+
+        <div className="stack gap-12" style={{ marginTop: 16 }}>
+          <span className="kick">Pick a part</span>
+        </div>
         <div className={s.grid}>
           {systems.map((x, i) => (
             <Reveal key={x.slug} delay={(i % 3) * 0.06}>

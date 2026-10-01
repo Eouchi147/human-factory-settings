@@ -56,18 +56,19 @@ export function Quiz() {
   if (!started) {
     return (
       <div className="quiz-intro stack gap-20">
-        <div className="kick">Find your setting · 11 questions · about 2 minutes</div>
+        <div className="kick">Personality quiz · 11 questions · about 2 minutes</div>
         <h1 className="h1">
-          Where do you sit on the <span className="serif">dial?</span>
+          What&apos;s your <span className="serif">personality type?</span>
         </h1>
         <p className="lede">
-          Eight questions measure two traits psychology measures well: how outgoing you are, and how strongly you react to stress. Three more suggest how you like to
-          communicate. You get a position on a map, not a box, with the old temperament names shown for what they are: tradition.
+          Eight questions come from real psychology research. They measure two things science measures well: how outgoing you are, and how strongly you react to
+          stress. Three fun questions add how you like to talk and plan. You land on a map, not in a box. The old type names, like &quot;sanguine&quot;, are there for
+          fun, not as science.
         </p>
         <div className="row-wrap gap-8">
           <Ev level={4} text="Two well-studied traits" />
-          <Ev level={0} text="Names: tradition" />
-          <Ev level={1} text="Style: early" />
+          <Ev level={0} text="Old type names: not science" />
+          <Ev level={1} text="Talk style: early evidence" />
         </div>
         <div className="row-wrap gap-12">
           <button type="button" className="btn btn-signal" onClick={() => setStarted(true)}>
@@ -146,8 +147,8 @@ export function Quiz() {
       </AnimatePresence>
       <p className="cap" style={{ marginTop: 28, textTransform: "none", letterSpacing: ".02em", lineHeight: 1.6 }}>
         {isStyle
-          ? "Our own questions, not a validated test. Evidence for the three styles: early."
-          : "Public-domain questions from the International Personality Item Pool (Mini-IPIP). Scored on your device. Nothing is stored."}
+          ? "Our own questions, not a scientific test. Just for fun."
+          : "Questions from a free research questionnaire (the Mini-IPIP). Scored on your phone or computer. Nothing is stored."}
       </p>
     </div>
   );
@@ -173,7 +174,7 @@ function Result({ r, restart }: { r: { e: number; n: number; t: keyof typeof TEM
           <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
             <Dial size={132} active={r.index} />
             <div className="stack gap-6">
-              <div className="kick">Your factory setting</div>
+              <div className="kick">Your type</div>
               <div className="x108" style={{ fontSize: 34, fontWeight: 650, letterSpacing: "-.02em", lineHeight: 1.02 }}>
                 {T.name}
                 <br />
@@ -198,8 +199,8 @@ function Result({ r, restart }: { r: { e: number; n: number; t: keyof typeof TEM
             </span>
           </div>
           <p className="cap" style={{ margin: 0, textTransform: "none", letterSpacing: ".02em", lineHeight: 1.6 }}>
-            The lines sit at the middle of each scale. Four questions per trait is a short test, so the dashed ring shows our estimate of how far the true score could be
-            (about ±10 points): near a line, you could belong on either side.
+            The lines mark the middle of each scale. Four questions per trait is a short test, so the dashed ring shows roughly how far off your score could be,
+            about 10 points either way. Near a line? You could belong on either side.
           </p>
         </div>
 
@@ -211,8 +212,8 @@ function Result({ r, restart }: { r: { e: number; n: number; t: keyof typeof TEM
             {[
               ["The two traits it measures", <Ev key="a" level={4} />],
               ["Your score from 8 questions", <Ev key="b" level={3} />],
-              ["The four temperament names", <Ev key="c" level={0} text="Tradition" />],
-              ["Your communication style", <Ev key="d" level={1} />],
+              ["The four old type names", <Ev key="c" level={0} text="Old idea" />],
+              ["Your talk style", <Ev key="d" level={1} />],
             ].map(([k, v], i) => (
               <div key={i} className="spec-row" style={{ padding: "10px 0", borderTop: i ? undefined : 0 }}>
                 <span style={{ fontSize: 14, color: "var(--ink2)" }}>{k}</span>
@@ -232,13 +233,13 @@ function Result({ r, restart }: { r: { e: number; n: number; t: keyof typeof TEM
               <Ev level={1} />
             </div>
             <div style={{ fontSize: 15, color: "var(--ink)" }}>
-              <b>Framing that tends to fit:</b> {tip.fits}
+              <b>What tends to work for you:</b> {tip.fits}
             </div>
             <div style={{ fontSize: 15, color: "var(--ink2)" }}>
               <b style={{ color: "var(--ink)" }}>Watch for:</b> {tip.watch}
             </div>
             <p style={{ margin: 0, fontSize: 13, color: "var(--ink3)" }}>
-              The plan is the same for everyone; only the framing changes. <Link href="/guides/weight#in-your-style">From the weight guide</Link>.
+              The plan is the same for everyone; only how you frame it changes. <Link href="/guides/weight#in-your-style">From the weight guide</Link>.
             </p>
           </div>
 

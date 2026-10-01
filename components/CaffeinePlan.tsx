@@ -3,43 +3,52 @@
 import { useEffect, useState } from "react";
 import { motion } from "motion/react";
 import { ClockRing } from "./SleepViz";
+import { clock12 } from "@/lib/time";
 
-const BEDS = [21.5, 22, 22.5, 23, 23.5, 24];
-const fmt = (h: number) => `${String(Math.floor(h % 24)).padStart(2, "0")}:${h % 1 ? "30" : "00"}`;
+export const BEDS = [21.5, 22, 22.5, 23, 23.5, 24];
+export const fmt = clock12;
 const KEY = "hfs-plan-caffeine";
 
-export function CaffeinePlan({ dialClass, bedsClass }: { dialClass: string; bedsClass: string }) {
-  const [bed, setBed] = useState(23);
+/** Remembers the bedtime and the ticks on this device only. */
+export function loadPlan(): { bed?: number; done?: boolean[] } {
+  try {
+    const raw = window.localStorage.getItem(KEY);
+    if (!raw) return {};
+    const v = JSON.parse(raw);
+    return {
+      bed: typeof v.bed === "number" && BEDS.includes(v.bed) ? v.bed : undefined,
+      done: Array.isArray(v.done) && v.done.length === 5 ? v.done.map(Boolean) : undefined,
+    };
+  } catch {
+    return {};
+  }
+}
+export function savePlan(b: number, d: boolean[]) {
+  try {
+    window.localStorage.setItem(KEY, JSON.stringify({ bed: b, done: d }));
+  } catch {
+    /* ignore */
+  }
+}
+
+export function CaffeinePlan({ dialClass, bedsClass, bed, onBed }: { dialClass: string; bedsClass: string; bed: number; onBed: (b: number) => void }) {
   const [done, setDone] = useState<boolean[]>([false, false, false, false, false]);
 
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(KEY);
-      if (raw) {
-        const v = JSON.parse(raw);
-        if (typeof v.bed === "number" && BEDS.includes(v.bed)) setBed(v.bed);
-        if (Array.isArray(v.done) && v.done.length === 5) setDone(v.done.map(Boolean));
-      }
-    } catch {
-      /* per-device convenience only */
-    }
+    const v = loadPlan();
+    if (v.done) setDone(v.done);
   }, []);
 
-  const save = (b: number, d: boolean[]) => {
-    try {
-      window.localStorage.setItem(KEY, JSON.stringify({ bed: b, done: d }));
-    } catch {
-      /* ignore */
-    }
-  };
+  const setBed = (b: number) => onBed(b);
+  const save = savePlan;
 
-  const cutoff = bed - 6;
+  const cutoff = bed - 9; // Gardiner et al. 2023: a regular coffee at least 8.8 hours before bed
   const steps = [
-    { t: "Set your cutoff: 6 hours before bed", d: `Bed at ${fmt(bed)} means your last caffeine by ${fmt(cutoff)}.` },
-    { t: "Find the hidden caffeine", d: "Tea, cola, energy drinks, pre-workout, chocolate, some pain relievers." },
+    { t: "Set your cutoff: 9 hours before bed", d: `Bed at ${fmt(bed)} means your last caffeine by ${fmt(cutoff)}.` },
+    { t: "Find the hidden caffeine", d: "Tea, cola, energy drinks, pre-workout powders, chocolate, and some pain relievers." },
     { t: "Swap the afternoon cup", d: "Decaf, herbal tea, water, or a 10-minute walk outside." },
     { t: "Track 7 nights", d: "How long you take to fall asleep, and how rested you feel on waking." },
-    { t: "Keep it, or move it earlier", d: "Still sleeping badly after a week? Try 8 hours." },
+    { t: "Keep it, or move it earlier", d: "Still sleeping badly after a week? Move it an hour earlier: in some people caffeine lasts much longer." },
   ];
   const count = done.filter(Boolean).length;
 
