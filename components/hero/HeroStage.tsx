@@ -1,13 +1,15 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import s from "./hero.module.css";
 import { AREAS, type Area } from "@/lib/areas";
 import { GROUPS_OF, PARTS, type Part } from "@/lib/parts";
 import { Icon } from "../Icons";
 import { useBody3D } from "./useBody3D";
+import { ExplorerOverlay } from "../explorer/ExplorerOverlay";
+import { SYSTEM_FOR_PART, type SystemId } from "@/lib/anatomy";
 
 type Sel = { kind: "area"; area: Area } | { kind: "part"; part: Part } | null;
 
@@ -21,6 +23,11 @@ export function HeroStage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
   const { api, state, built } = useBody3D(canvas, onPick);
+  const [explore, setExplore] = useState<{ system: SystemId | null } | null>(null);
+  // the home page's body rests while the explorer covers it
+  useEffect(() => {
+    api.current?.setPaused(!!explore);
+  }, [explore, api]);
 
   const pickArea = (a: Area) => {
     if (sel?.kind === "area" && sel.area.slug === a.slug) {
@@ -50,12 +57,17 @@ export function HeroStage() {
           // eslint-disable-next-line @next/next/no-img-element
           <img className={s.fallback} src="/img/home_phone.jpg" alt="A 3D human body: skeleton, organs, arteries and veins" />
         ) : null}
-        {state === "ready" ? (
-          <div className={`${s.hint} ${built ? s.hintOn : ""}`}>
-            <Icon name="rotate" size={14} />
-            Drag to spin. Tap a part.
-            <button type="button" onClick={() => api.current?.replay()} className={s.replay} aria-label="Build it again">
-              <Icon name="redo" size={14} />
+        {state === "ready" || state === "failed" ? (
+          <div className={`${s.hint} ${built || state === "failed" ? s.hintOn : ""}`}>
+            {state === "ready" ? (
+              <span className={s.hintText}>
+                <Icon name="rotate" size={14} />
+                Drag to spin
+              </span>
+            ) : null}
+            <button type="button" className={s.explore} onClick={() => setExplore({ system: null })}>
+              <Icon name="layers" size={15} />
+              Explore in 3D
             </button>
           </div>
         ) : null}
@@ -94,10 +106,16 @@ export function HeroStage() {
                   <>
                     <span className={s.cardKick}>{PARTS[sel.part].name}</span>
                     <p className={s.cardFact}>{PARTS[sel.part].line}</p>
-                    <Link href={PARTS[sel.part].href} className="btn btn-ghost btn-sm" style={{ alignSelf: "flex-start" }}>
-                      See how it works
-                      <Icon name="arrow" size={15} />
-                    </Link>
+                    <div className="row-wrap gap-8">
+                      <button type="button" className="btn btn-signal btn-sm" onClick={() => setExplore({ system: SYSTEM_FOR_PART[sel.part] ?? null })}>
+                        <Icon name="layers" size={15} />
+                        Take it apart in 3D
+                      </button>
+                      <Link href={PARTS[sel.part].href} className="btn btn-ghost btn-sm">
+                        How it works
+                        <Icon name="arrow" size={15} />
+                      </Link>
+                    </div>
                   </>
                 )}
               </motion.div>
@@ -124,6 +142,7 @@ export function HeroStage() {
           <Icon name="arrow" size={15} />
         </a>
       </div>
+      <AnimatePresence>{explore ? <ExplorerOverlay key="explore" system={explore.system} onClose={() => setExplore(null)} /> : null}</AnimatePresence>
     </section>
   );
 }

@@ -7,33 +7,34 @@ import { Measured } from "@/components/Evidence";
 import { Reveal } from "@/components/Reveal";
 import { Icon } from "@/components/Icons";
 import { BLUR } from "@/lib/blur";
-import { BodyStage } from "@/components/hero/BodyStage";
+import { BodyExplorerLazy } from "@/components/explorer/BodyExplorerLazy";
 
 export const metadata: Metadata = {
   title: "How your body works",
-  description: "How your body works, one part at a time: plain words, real 3D pictures, and the science underneath.",
+  description: "Every system of your body in 3D and in colour: pick one and watch it come apart, part by part, in plain words.",
 };
 
 export default function ExplorePage() {
   const systems = SYSTEMS.filter((x) => x.inExplore);
   const organs = SYSTEMS.filter((x) => !x.inExplore);
   return (
-    <div className="page-top">
+    <div className="page-top" style={{ paddingTop: "calc(var(--header-h) + 8px)" }}>
       <div className="wrap stack gap-32">
+        <h1 className="visually-hidden">How your body works, one system at a time</h1>
+        <section id="explore" style={{ scrollMarginTop: 72 }} aria-label="Your body in 3D">
+          <BodyExplorerLazy />
+        </section>
+
         <header className={s.head}>
           <div className="kick a-in">Your body</div>
-          <h1 className="h1 a-in a-d1">
+          <p className="h1 a-in a-d1" style={{ margin: 0 }}>
             How your body works, <span className="serif">one part at a time.</span>
-          </h1>
+          </p>
           <p className="lede a-in a-d2">
             Pick a part. Each page explains what it does in plain words, with real 3D pictures. Every picture comes from the same 3D body, so the sizes fit together: the
-            13.2 cm heart sits in the chest of a body 1.83 m tall.
+            13.2 cm heart sits in the chest of a body 1.83 m tall.
           </p>
         </header>
-
-        <section id="explore" style={{ scrollMarginTop: 90 }} aria-label="Spin a 3D body">
-          <BodyStage />
-        </section>
 
         <div className="stack gap-12" style={{ marginTop: 16 }}>
           <span className="kick">Pick a part</span>

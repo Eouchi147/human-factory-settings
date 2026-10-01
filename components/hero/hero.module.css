@@ -27,6 +27,13 @@
   opacity: 0; transition: opacity 0.8s var(--ease);
 }
 .hintOn { opacity: 1; }
+.hintText { display: inline-flex; align-items: center; gap: 7px; padding-left: 4px; }
+.explore {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 13px; border-radius: 999px; border: 0; cursor: pointer;
+  background: var(--ink); color: var(--bg); font-size: 13px; font-weight: 680; white-space: nowrap;
+  box-shadow: 0 0 0 4px rgba(255, 106, 43, 0.14); transition: background 0.3s var(--ease), box-shadow 0.3s var(--ease);
+}
+.explore:hover { background: #fff; box-shadow: 0 0 0 5px rgba(255, 106, 43, 0.24); }
 .replay { width: 26px; height: 26px; border-radius: 99px; border: 0; background: rgba(236, 238, 241, 0.08); color: var(--ink2); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
 .replay:hover { background: rgba(236, 238, 241, 0.16); color: var(--ink); }
 

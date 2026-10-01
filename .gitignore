@@ -7,3 +7,7 @@ next-env.d.ts
 .DS_Store
 .env*
 npm-debug.log*
+
+# written by next dev
+AGENTS.md
+CLAUDE.md

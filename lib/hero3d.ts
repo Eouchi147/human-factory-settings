@@ -33,30 +33,31 @@ const PART_OF: Record<string, Part> = Object.fromEntries(
 
 type T = { color: number; roughness: number; clearcoat?: number; clearcoatRoughness?: number; sheen?: number; sheenColor?: number; sheenRoughness?: number; opacity?: number };
 const TISSUE: Record<string, T> = {
-  bone: { color: 0xe4d9c2, roughness: 0.58, clearcoat: 0.18, clearcoatRoughness: 0.5, sheen: 0.25, sheenColor: 0xfff4e0 },
-  tooth: { color: 0xf2ede2, roughness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.2 },
-  cartilage: { color: 0xcfd6cf, roughness: 0.4, clearcoat: 0.5, clearcoatRoughness: 0.3, sheen: 0.3, sheenColor: 0xeaf4ff },
-  heart: { color: 0x97302b, roughness: 0.34, clearcoat: 0.55, clearcoatRoughness: 0.22, sheen: 0.5, sheenColor: 0xff8a7a },
-  valve: { color: 0xe9d6c6, roughness: 0.4, clearcoat: 0.4 },
-  artery: { color: 0xc92f28, roughness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.18 },
-  vein: { color: 0x35489a, roughness: 0.32, clearcoat: 0.55, clearcoatRoughness: 0.2 },
-  nerve: { color: 0xe8bd48, roughness: 0.4, clearcoat: 0.35, clearcoatRoughness: 0.3 },
-  brain: { color: 0xdfb7ad, roughness: 0.52, sheen: 0.8, sheenColor: 0xffd9d0, sheenRoughness: 0.55, clearcoat: 0.2 },
-  deepbrain: { color: 0xc98f86, roughness: 0.5, sheen: 0.6, sheenColor: 0xffc9bd },
+  // the same palette as the explorer (lib/anatomy.ts)
+  bone: { color: 0xe6dac1, roughness: 0.56, clearcoat: 0.18, clearcoatRoughness: 0.5, sheen: 0.25, sheenColor: 0xfff4e0 },
+  tooth: { color: 0xf4efe4, roughness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.2 },
+  cartilage: { color: 0xc9dbd6, roughness: 0.4, clearcoat: 0.5, clearcoatRoughness: 0.3, sheen: 0.3, sheenColor: 0xeaf4ff },
+  heart: { color: 0xa8322b, roughness: 0.34, clearcoat: 0.55, clearcoatRoughness: 0.22, sheen: 0.5, sheenColor: 0xff8a7a },
+  valve: { color: 0xead8c2, roughness: 0.4, clearcoat: 0.4 },
+  artery: { color: 0xd3342a, roughness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.18 },
+  vein: { color: 0x3a55b4, roughness: 0.32, clearcoat: 0.55, clearcoatRoughness: 0.2 },
+  nerve: { color: 0xf0c94c, roughness: 0.4, clearcoat: 0.35, clearcoatRoughness: 0.3 },
+  brain: { color: 0xe2b6ac, roughness: 0.52, sheen: 0.8, sheenColor: 0xffd9d0, sheenRoughness: 0.55, clearcoat: 0.2 },
+  deepbrain: { color: 0xcf968c, roughness: 0.5, sheen: 0.6, sheenColor: 0xffc9bd },
   white: { color: 0xece2d6, roughness: 0.6, sheen: 0.4, sheenColor: 0xffffff },
-  airway: { color: 0xe6bfb3, roughness: 0.42, clearcoat: 0.35, sheen: 0.4, sheenColor: 0xffe2d9 },
-  gut: { color: 0xd4906f, roughness: 0.4, clearcoat: 0.45, clearcoatRoughness: 0.22, sheen: 0.5, sheenColor: 0xffc9b1 },
-  colon: { color: 0xc98a6c, roughness: 0.42, clearcoat: 0.4, sheen: 0.4, sheenColor: 0xffc2aa },
-  stomach: { color: 0xd39283, roughness: 0.42, clearcoat: 0.45, sheen: 0.5, sheenColor: 0xffc8b8 },
-  liver: { color: 0x7b2a22, roughness: 0.36, clearcoat: 0.42, clearcoatRoughness: 0.26, sheen: 0.35, sheenColor: 0xff9a80 },
-  pancreas: { color: 0xe0b684, roughness: 0.55, sheen: 0.4, sheenColor: 0xfff0d0 },
-  gall: { color: 0x55773f, roughness: 0.28, clearcoat: 0.7 },
-  duct: { color: 0x6c8c4f, roughness: 0.35, clearcoat: 0.5 },
-  kidney: { color: 0x8a352c, roughness: 0.34, clearcoat: 0.55 },
-  bladder: { color: 0xd9bb98, roughness: 0.45, clearcoat: 0.35 },
-  gland: { color: 0xd49a44, roughness: 0.45, clearcoat: 0.3 },
-  spleen: { color: 0x672838, roughness: 0.36, clearcoat: 0.5 },
-  diaphragm: { color: 0xa0453c, roughness: 0.46, sheen: 0.6, sheenColor: 0xff9f8f, clearcoat: 0.25, opacity: 0.8 },
+  airway: { color: 0xf0b0a4, roughness: 0.42, clearcoat: 0.35, sheen: 0.4, sheenColor: 0xffe2d9 },
+  gut: { color: 0xeba58c, roughness: 0.4, clearcoat: 0.45, clearcoatRoughness: 0.22, sheen: 0.5, sheenColor: 0xffc9b1 },
+  colon: { color: 0xc99062, roughness: 0.42, clearcoat: 0.4, sheen: 0.4, sheenColor: 0xffc2aa },
+  stomach: { color: 0xe79c86, roughness: 0.42, clearcoat: 0.45, sheen: 0.5, sheenColor: 0xffc8b8 },
+  liver: { color: 0x8e352a, roughness: 0.36, clearcoat: 0.42, clearcoatRoughness: 0.26, sheen: 0.35, sheenColor: 0xff9a80 },
+  pancreas: { color: 0xe8c277, roughness: 0.55, sheen: 0.4, sheenColor: 0xfff0d0 },
+  gall: { color: 0x5f9147, roughness: 0.28, clearcoat: 0.7 },
+  duct: { color: 0x6c9a52, roughness: 0.35, clearcoat: 0.5 },
+  kidney: { color: 0x9e3c33, roughness: 0.34, clearcoat: 0.55 },
+  bladder: { color: 0xe2be7e, roughness: 0.45, clearcoat: 0.35 },
+  gland: { color: 0xe5a24a, roughness: 0.45, clearcoat: 0.3 },
+  spleen: { color: 0x7d3352, roughness: 0.36, clearcoat: 0.5 },
+  diaphragm: { color: 0xb84d42, roughness: 0.46, sheen: 0.6, sheenColor: 0xff9f8f, clearcoat: 0.25, opacity: 0.8 },
 };
 
 // when each group arrives (seconds after the model is ready). Calm on purpose: one layer at a time,
@@ -141,6 +142,7 @@ type GroupRec = {
 export type HeroApi = {
   setFocus: (f: Focus) => void;
   replay: () => void;
+  setPaused: (p: boolean) => void;
   dispose: () => void;
 };
 
@@ -200,7 +202,11 @@ export async function createHero(
   gltf.scene.traverse((o) => {
     const m = o as THREE.Mesh;
     if (!m.isMesh) return;
-    const [g, tissue] = (m.name || o.parent?.name || "").split("__");
+    // the group and tissue live in the name of the node that holds the mesh ("heart__valve"); the mesh itself is
+    // named by the loader ("mesh_3"), so walk up until a name has both parts
+    let named: THREE.Object3D | null = o;
+    while (named && !named.name.includes("__")) named = named.parent;
+    const [g, tissue] = (named?.name ?? "").split("__");
     const t = TISSUE[tissue] || TISSUE.bone;
     const mat = lite
       ? new THREE.MeshStandardMaterial({ color: t.color, roughness: t.roughness, metalness: 0 })
@@ -213,6 +219,7 @@ export async function createHero(
     mat.opacity = t.opacity ?? 1;
     mat.transparent = (t.opacity ?? 1) < 1;
     mat.userData.baseOpacity = t.opacity ?? 1;
+    mat.depthWrite = (t.opacity ?? 1) >= 1;
     if (REVEAL_GLOW[g]) makeRevealable(mat, g + tissue + (lite ? "l" : "p"), REVEAL_GLOW[g]);
     const geo = m.geometry as THREE.BufferGeometry;
     // quantised attributes (int16 positions, int8 normals) become plain floats, then the node transform
@@ -389,6 +396,7 @@ export async function createHero(
   size();
 
   let visible = true;
+  let paused = false;
   const io = new IntersectionObserver(([e]) => (visible = e.isIntersecting), { threshold: 0.01 });
   io.observe(canvas);
 
@@ -402,7 +410,7 @@ export async function createHero(
     const raw = now - last;
     const dt = Math.min(0.05, raw / 1000);
     last = now;
-    if (!visible || document.hidden) return;
+    if (!visible || document.hidden || paused) return;
     if (!tuned) {
       samples.push(raw);
       if (samples.length >= 90) {
@@ -435,8 +443,13 @@ export async function createHero(
         const base = (m.userData.baseOpacity as number) ?? 1;
         const op = base * fade * (1 - 0.88 * rec.dim);
         m.opacity = op;
-        m.transparent = op < 0.999;
-        m.depthWrite = op > 0.6;
+        // switching between opaque and see-through needs a new shader variant (opaque ones ignore opacity)
+        const tr = op < 0.999;
+        if (m.transparent !== tr) {
+          m.transparent = tr;
+          m.needsUpdate = true;
+        }
+        m.depthWrite = op > 0.6 && base >= 1;
         m.emissiveIntensity = focus && focus.groups.length && rec.dimTarget === 0 ? 0.06 + 0.04 * Math.sin(clock * 3) : 0;
         const r = m.userData.reveal as Reveal | undefined;
         if (r && rec.reveal) {
@@ -521,6 +534,10 @@ export async function createHero(
 
   return {
     setFocus,
+    setPaused: (p) => {
+      paused = p;
+      last = performance.now();
+    },
     replay: () => {
       introStart = clock;
       introDone = false;

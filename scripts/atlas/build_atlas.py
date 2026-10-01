@@ -1,0 +1,162 @@
+"""Build the systems model for the 3D explorer.
+
+Source: BodyParts3D 4.0, (c) The Database Center for Life Science, CC BY 4.0, as prepared by the human-atlas
+project (2,234 meshes). Every mesh is sorted into a system and a legend part (classify.py), simplified, and
+either kept as its own piece (so it can move on its own in the exploded view) or merged with the rest of its
+part. Output, per file (core = everything but muscles; muscles = the muscles):
+  <out>/<file>.raw.bin   positions as float32, normals as float32, indices as uint32, piece after piece
+  <out>/<file>.pieces.json   one row per piece: system, part, material, tone, side, counts
+The Node step (encode.mjs) quantises and compresses these with meshoptimizer.
+"""
+import json, os, sys
+from collections import defaultdict
+import numpy as np
+import fast_simplification as fsimp
+from classify import classify, side as side_of
+
+# the BodyParts3D meshes as prepared by the human-atlas project (atlas.json + body-*.bin)
+MODELS = os.environ.get("ATLAS_SRC", "/home/claude/eouchi147/human-atlas/public/models")
+OUT = sys.argv[1] if len(sys.argv) > 1 else "out"
+os.makedirs(OUT, exist_ok=True)
+
+A = json.load(open(os.path.join(MODELS, "atlas.json")))
+chunks = {}
+
+
+def chunk(ci):
+    if ci not in chunks:
+        chunks[ci] = open(os.path.join(MODELS, A["chunks"][ci]["url"].split("/")[-1]), "rb").read()
+    return chunks[ci]
+
+
+# how much detail each part keeps (fraction of triangles), the smallest piece worth drawing (bounding-box
+# diagonal in metres), and whether its pieces are merged into one (they then move together)
+DEFAULT = {"keep": 0.3, "min": 0.0, "merge": False}
+SPEC = {
+    ("skeleton", "skull"): {"keep": 0.22}, ("skeleton", "spine"): {"keep": 0.16}, ("skeleton", "ribcage"): {"keep": 0.22},
+    ("skeleton", "arms"): {"keep": 0.34}, ("skeleton", "legs"): {"keep": 0.3}, ("skeleton", "pelvis"): {"keep": 0.4},
+    ("skeleton", "shoulders"): {"keep": 0.3},
+    ("muscles", "other"): {"keep": 0.16, "min": 0.012}, ("muscles", "sides"): {"keep": 0.1}, ("muscles", "forearms"): {"keep": 0.22},
+    ("muscles", "chest"): {"keep": 0.3}, ("muscles", "upperback"): {"keep": 0.3},
+    ("nervous", "frontal"): {"keep": 0.3}, ("nervous", "parietal"): {"keep": 0.3}, ("nervous", "temporal"): {"keep": 0.34},
+    ("nervous", "occipital"): {"keep": 0.36}, ("nervous", "cerebellum"): {"keep": 0.4}, ("nervous", "brainstem"): {"keep": 0.3, "merge": True},
+    ("nervous", "deep"): {"keep": 0.22}, ("nervous", "white"): {"keep": 0.2}, ("nervous", "ventricles"): {"keep": 0.25, "merge": True},
+    ("nervous", "eyes"): {"keep": 0.08, "merge": True}, ("nervous", "facenerves"): {"keep": 0.2, "merge": True}, ("nervous", "spinalcord"): {"keep": 1.0},
+    ("cardio", "atria"): {"keep": 0.6}, ("cardio", "ventricles"): {"keep": 0.5}, ("cardio", "valves"): {"keep": 0.35},
+    ("cardio", "arteries"): {"keep": 0.13, "min": 0.03, "merge": True}, ("cardio", "veins"): {"keep": 0.13, "min": 0.03, "merge": True},
+    ("cardio", "aorta"): {"keep": 0.6, "merge": True}, ("cardio", "venacava"): {"keep": 0.8, "merge": True},
+    ("cardio", "coronary"): {"keep": 0.25, "min": 0.012, "merge": True},
+    ("breathing", "nose"): {"keep": 0.5, "merge": True}, ("breathing", "throat"): {"keep": 0.12, "merge": True},
+    ("breathing", "voicebox"): {"keep": 0.12}, ("breathing", "windpipe"): {"keep": 0.8},
+    ("breathing", "rightlung"): {"keep": 0.45, "min": 0.01}, ("breathing", "leftlung"): {"keep": 0.45, "min": 0.01},
+    ("breathing", "diaphragm"): {"keep": 0.3},
+    ("digestion", "mouth"): {"keep": 0.8}, ("digestion", "esophagus"): {"keep": 1.0}, ("digestion", "stomach"): {"keep": 1.0},
+    ("digestion", "liver"): {"keep": 0.42}, ("digestion", "gallbladder"): {"keep": 0.45, "merge": True}, ("digestion", "pancreas"): {"keep": 0.7},
+    ("digestion", "smallgut"): {"keep": 0.6}, ("digestion", "largegut"): {"keep": 0.4},
+    ("urinary", "kidneys"): {"keep": 1.0}, ("urinary", "ureters"): {"keep": 1.0}, ("urinary", "bladder"): {"keep": 1.0},
+    ("endocrine", "hypothalamus"): {"keep": 0.8, "merge": True}, ("endocrine", "pituitary"): {"keep": 1.0}, ("endocrine", "pineal"): {"keep": 1.0},
+    ("endocrine", "adrenals"): {"keep": 0.8}, ("endocrine", "pancreas"): {"keep": 0.7},
+    ("immune", "thymus"): {"keep": 1.0}, ("immune", "spleen"): {"keep": 1.0},
+}
+FILE_OF = lambda system: "muscles" if system == "muscles" else "core"
+
+
+def spec(s, c):
+    d = dict(DEFAULT)
+    d.update(SPEC.get((s, c), {}))
+    return d
+
+
+def load(p):
+    buf = chunk(p["chunk"])
+    V = np.frombuffer(buf, dtype=np.float32, count=p["vertexCount"] * 3, offset=p["positions"]).reshape(-1, 3).astype(np.float64)
+    F = np.frombuffer(buf, dtype=np.uint32, count=p["indexCount"], offset=p["indices"]).reshape(-1, 3).astype(np.int64)
+    return V, F
+
+
+def simplify(V, F, keep):
+    if len(F) <= 160 or keep >= 0.98:
+        return V, F
+    try:
+        V2, F2 = fsimp.simplify(V.astype(np.float32), F.astype(np.int32), target_reduction=1 - keep, agg=6)
+        if len(F2) >= 16:
+            return V2.astype(np.float64), F2.astype(np.int64)
+    except Exception as e:
+        print("simplify failed", e)
+    return V, F
+
+
+def weld(V, F, eps=1e-6):
+    """Drop unused vertices."""
+    used = np.unique(F)
+    remap = -np.ones(len(V), dtype=np.int64)
+    remap[used] = np.arange(len(used))
+    return V[used], remap[F]
+
+
+def normals(V, F):
+    n = np.zeros_like(V)
+    fn = np.cross(V[F[:, 1]] - V[F[:, 0]], V[F[:, 2]] - V[F[:, 0]])
+    for k in range(3):
+        np.add.at(n, F[:, k], fn)
+    l = np.linalg.norm(n, axis=1, keepdims=True)
+    l[l == 0] = 1
+    return n / l
+
+
+pieces = defaultdict(list)  # file -> list of piece dicts (with arrays)
+merged = defaultdict(list)  # (file, system, cluster, material, tone, side) -> list of (V, F)
+stats = defaultdict(lambda: [0, 0, 0])
+for p in A["parts"]:
+    for (s, c, mat, tone) in classify(p, None):
+        sp = spec(s, c)
+        b = np.array(p["bounds"])
+        if float(np.linalg.norm(b[1] - b[0])) < sp["min"]:
+            continue
+        V, F = load(p)
+        V, F = simplify(V, F, sp["keep"])
+        V, F = weld(V, F)
+        sd = side_of(p["name"])
+        stats[(s, c)][0] += 1
+        stats[(s, c)][1] += len(F)
+        if sp["merge"]:
+            # merged parts keep left and right apart only when the part is a pair (eyes); vessels become one piece per tone
+            key_side = sd if c in ("eyes",) else 0
+            merged[(FILE_OF(s), s, c, mat, tone, key_side)].append((V, F))
+        else:
+            pieces[FILE_OF(s)].append({"system": s, "cluster": c, "material": mat, "tone": tone, "side": sd, "name": p["name"], "V": V, "F": F})
+
+for (f, s, c, mat, tone, sd), parts in merged.items():
+    Vs, Fs, base = [], [], 0
+    for V, F in parts:
+        Vs.append(V)
+        Fs.append(F + base)
+        base += len(V)
+    pieces[f].append({"system": s, "cluster": c, "material": mat, "tone": tone, "side": sd, "name": f"{c} ({len(parts)} merged)", "V": np.concatenate(Vs), "F": np.concatenate(Fs)})
+
+for f, plist in pieces.items():
+    # stable order: by system, then part, then position top to bottom (so cascades read naturally)
+    plist.sort(key=lambda q: (q["system"], q["cluster"], -float(q["V"][:, 1].mean())))
+    raw = open(os.path.join(OUT, f + ".raw.bin"), "wb")
+    rows = []
+    tris = 0
+    for q in plist:
+        V, F = q["V"], q["F"]
+        N = normals(V, F)
+        if len(V) > 65535:
+            raise SystemExit(f"piece too big for 16-bit indices: {q['name']} {len(V)}")
+        raw.write(V.astype(np.float32).tobytes())
+        raw.write(N.astype(np.float32).tobytes())
+        raw.write(F.astype(np.uint32).ravel().tobytes())
+        rows.append({"system": q["system"], "cluster": q["cluster"], "material": q["material"], "tone": q["tone"], "side": q["side"], "name": q["name"],
+                     "v": int(len(V)), "i": int(F.size)})
+        tris += len(F)
+    raw.close()
+    json.dump(rows, open(os.path.join(OUT, f + ".pieces.json"), "w"))
+    print(f, "pieces", len(rows), "triangles", tris)
+
+summary = defaultdict(lambda: [0, 0])
+for (s, c), (n, t, _) in stats.items():
+    summary[s][0] += n
+    summary[s][1] += t
+print(json.dumps({k: v for k, v in sorted(summary.items())}))
