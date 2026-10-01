@@ -11,3 +11,6 @@ npm-debug.log*
 # written by next dev
 AGENTS.md
 CLAUDE.md
+
+# python bytecode from the model scripts
+__pycache__/
