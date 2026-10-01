@@ -1,0 +1,14 @@
+{
+  "id": "hard",
+  "title": "Hard words: anatomy, sleep science and the brand line",
+  "gap_after": [0.7, 0.7, 0.7, 0.7, 0.7, 0.7, 0],
+  "lines": [
+    {"id": "01", "text": "Your body came with factory settings. Modern life moves them.", "tts": "Your body came with factory settings. Modern life moves them."},
+    {"id": "02", "text": "Fascia is the connective tissue that wraps and links your muscles.", "tts": "Fascia is the connective tissue that wraps and links your muscles."},
+    {"id": "03", "text": "Under your foot, the plantar fascia runs from the heel bone to the base of the toes.", "tts": "Under your foot, the plantar fascia runs from the heel bone to the base of the toes."},
+    {"id": "04", "text": "Your body clock sits in the hypothalamus, in a cluster of cells called the suprachiasmatic nucleus.", "tts": "Your body clock sits in the hypothalamus, in a cluster of cells called the suprachiasmatic nucleus."},
+    {"id": "05", "text": "Melatonin rises in the evening. Cortisol peaks soon after you wake.", "tts": "Melatonin rises in the evening. Cortisol peaks soon after you wake."},
+    {"id": "06", "text": "Mewing promises a sharper jawline. Orthodontists say there is no good evidence for it.", "tts": "Mewing promises a sharper jawline. Orthodontists say there is no good evidence for it."},
+    {"id": "07", "text": "The tibialis posterior and the fibularis longus help hold up the arch of your foot.", "tts": "The tibialis posterior and the fibularis longus help hold up the arch of your foot."}
+  ]
+}

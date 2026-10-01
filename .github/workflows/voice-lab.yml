@@ -1,0 +1,83 @@
+name: voice-lab
+on:
+  push:
+    branches: [voice-lab]
+    paths: ['voice/job.json']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: voice-lab
+  cancel-in-progress: false
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.p.outputs.matrix }}
+      run: ${{ steps.p.outputs.run }}
+      scan: ${{ steps.p.outputs.scan }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: p
+        run: python3 voice/plan.py >> "$GITHUB_OUTPUT"
+  scan:
+    needs: plan
+    if: needs.plan.outputs.scan == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: mkdir -p results && python3 voice/scan.py > results/scan.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: scan
+          path: results/scan.json
+  render:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJson(needs.plan.outputs.matrix) }}
+    env:
+      HF_HUB_DISABLE_PROGRESS_BARS: '1'
+      TOKENIZERS_PARALLELISM: 'false'
+      PYTHONUNBUFFERED: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install
+        run: bash voice/engines/setup_${{ matrix.engine }}.sh
+      - name: Render
+        run: python voice/engines/${{ matrix.engine }}_render.py ${{ matrix.args }} --out results/${{ matrix.id }}
+      - name: Check
+        if: always()
+        run: python voice/qa.py results/${{ matrix.id }}
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: ${{ matrix.id }}
+          path: results/${{ matrix.id }}
+          if-no-files-found: ignore
+  collect:
+    needs: [plan, scan, render]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: incoming
+      - run: sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+      - name: Collect and commit
+        run: |
+          RUN="${{ needs.plan.outputs.run }}"
+          mkdir -p "voice/out/$RUN"
+          if [ -f incoming/scan/scan.json ]; then cp incoming/scan/scan.json "voice/out/$RUN/scan.json"; rm -rf incoming/scan; fi
+          python3 voice/collect.py incoming "$RUN"
+          git config user.name "voice-lab"
+          git config user.email "voice-lab@users.noreply.github.com"
+          git add voice/out
+          git commit -q -m "voice lab: results $RUN" || exit 0
+          for i in 1 2 3 4 5; do git pull --rebase -q && git push -q && break; sleep 7; done

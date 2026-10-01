@@ -1,0 +1,9 @@
+{
+  "run": "r1",
+  "scan": true,
+  "jobs": [
+    {"id": "kokoro-us", "engine": "kokoro", "args": "--voices af_heart,af_bella,af_nicole,af_aoede,af_kore,af_sarah,am_michael,am_fenrir,am_puck,am_onyx --texts film1,hard"},
+    {"id": "kokoro-uk", "engine": "kokoro", "args": "--voices bf_emma,bf_isabella,bf_alice,bf_lily,bm_george,bm_fable,bm_lewis,bm_daniel --texts film1,hard"},
+    {"id": "chatterbox", "engine": "chatterbox", "args": "--voices default=default --settings 0.5:0.5,0.35:0.3 --texts film1,hard"}
+  ]
+}

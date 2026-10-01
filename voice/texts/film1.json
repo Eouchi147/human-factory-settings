@@ -1,0 +1,17 @@
+{
+  "id": "film1",
+  "title": "Film 1: Why am I always tired?",
+  "gap_after": [0.55, 0.7, 0.8, 0.7, 0.8, 0.25, 0.8, 0.8, 0.9, 0],
+  "lines": [
+    {"id": "01", "text": "Always tired? Check these three things first.", "tts": "Always tired? Check these three things first.", "slot": 4},
+    {"id": "02", "text": "One: short sleep. All day, a chemical called adenosine builds up in your brain and makes you sleepy.", "tts": "One: short sleep. All day, a chemical called adenosine builds up in your brain, and makes you sleepy.", "slot": 8},
+    {"id": "03", "text": "Sleep clears it. Cut sleep short, and some is left when you wake.", "tts": "Sleep clears it. Cut sleep short, and some is left when you wake.", "slot": 6},
+    {"id": "04", "text": "Two: late coffee. Coffee doesn't clear that chemical. It hides it, and that cuts into your sleep.", "tts": "Two: late coffee. Coffee doesn't clear that chemical. It hides it, and that cuts into your sleep.", "slot": 8},
+    {"id": "05", "text": "A coffee at six p.m.? About half of it is still in you at eleven.", "tts": "A coffee at six p.m.? About half of it is still in you at eleven.", "slot": 7},
+    {"id": "06", "text": "Three: late light. Bright light at night, even room light, tells your body clock it's still day,", "tts": "Three: late light. Bright light at night, even room light, tells your body clock it's still day,", "slot": 7},
+    {"id": "07", "text": "so your sleep signal comes later.", "tts": "so your sleep signal comes later.", "slot": 4},
+    {"id": "08", "text": "For a seven a.m. alarm: in bed by eleven, last coffee by two, lights low from eight.", "tts": "For a seven a.m. alarm: in bed by eleven, last coffee by two, lights low from eight.", "slot": 8},
+    {"id": "09", "text": "Still tired with enough sleep? See a doctor: low iron or your thyroid can cause it.", "tts": "Still tired with enough sleep? See a doctor. Low iron, or your thyroid, can cause it.", "slot": 7},
+    {"id": "10", "text": "Back to factory settings.", "tts": "Back to factory settings.", "slot": 4}
+  ]
+}
