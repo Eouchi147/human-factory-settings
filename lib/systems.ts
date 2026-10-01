@@ -1,5 +1,5 @@
 /* The body, part by part. Every "Measured" value was measured on our 3D body (rendered from
-   BodyParts3D, CC BY 4.0). Textbook values carry their source and an evidence level. */
+   BodyParts3D, CC BY 4.0, scaled to 1.83 m tall). Textbook values carry their source and an evidence level. */
 
 import type { Level } from "@/components/Evidence";
 
@@ -49,8 +49,8 @@ export const SYSTEMS: SystemPage[] = [
     alt: "The skeleton of the 3D body, from the skull to the feet",
     card: "The frame. It holds you up, protects your organs, and makes blood cells in its marrow.",
     cardRows: [
-      ["Height of our 3D body", "1.73 m"],
-      ["Thigh bone, the longest", "46.7 cm"],
+      ["Height of our 3D body", "1.83 m"],
+      ["Thigh bone, the longest", "49.4 cm"],
     ],
     simple:
       "Your skeleton is the frame that holds you up. It protects your brain, heart and lungs, and the soft marrow inside some bones makes new blood cells every day.",
@@ -60,8 +60,8 @@ export const SYSTEMS: SystemPage[] = [
       "206 bones in the adult: 80 in the axial skeleton and 126 in the appendicular skeleton. In adults, blood cells are made mainly in the red marrow of the axial skeleton and the ends of the long bones; bone is remodelled continuously by osteoclasts and osteoblasts.",
     rows: [
       { k: "Bones in an adult", v: "206", ev: 4 },
-      { k: "Height of our 3D body", v: "1.73 m", measured: true },
-      { k: "Thigh bone (femur), the longest", v: "46.7 cm on our 3D body", measured: true },
+      { k: "Height of our 3D body", v: "1.83 m", measured: true },
+      { k: "Thigh bone (femur), the longest", v: "49.4 cm on our 3D body", measured: true },
       { k: "Spine bones above the pelvis", v: "24: 7 in the neck, 12 in the chest, 5 in the lower back", ev: 4 },
       { k: "Ribs", v: "12 pairs", ev: 4 },
       { k: "Bones in each foot", v: "26", ev: 4 },
@@ -81,7 +81,7 @@ export const SYSTEMS: SystemPage[] = [
     alt: "The heart, arteries and veins of the 3D body",
     card: "A pump and a closed loop of pipes that reaches every living cell.",
     cardRows: [
-      ["Heart length", "12.5 cm"],
+      ["Heart length", "13.2 cm"],
       ["Resting heartbeat, adult", "60 to 100 a minute"],
     ],
     simple:
@@ -91,7 +91,7 @@ export const SYSTEMS: SystemPage[] = [
     expert:
       "Pulmonary and systemic circulations in series. Blood leaves through elastic and muscular arteries, exchanges across capillaries, and returns through venules and veins, which act as the main reservoir: at rest the systemic veins hold about 64 percent of the blood volume.",
     rows: [
-      { k: "Heart length on our 3D body", v: "12.5 cm", measured: true },
+      { k: "Heart length on our 3D body", v: "13.2 cm", measured: true },
       { k: "Resting heartbeat, adult", v: "60 to 100 beats a minute", ev: 4 },
       { k: "Share of your blood sitting in your veins at rest", v: "about 64%", ev: 4 },
       { k: "Chambers and valves", v: "4 and 4", ev: 4 },
@@ -116,8 +116,8 @@ export const SYSTEMS: SystemPage[] = [
     alt: "The airway tree of the 3D body: the windpipe and its branches",
     card: "An airway tree that splits again and again, ending in tiny air sacs.",
     cardRows: [
-      ["Windpipe length", "11 cm"],
-      ["Airway tree width", "23.9 cm"],
+      ["Windpipe length", "11.6 cm"],
+      ["Airway tree width", "25.3 cm"],
     ],
     simple:
       "Air goes down one tube, your windpipe. It splits in two, then keeps splitting into smaller and smaller tubes, and they end in tiny air sacs where oxygen slips into your blood.",
@@ -126,8 +126,8 @@ export const SYSTEMS: SystemPage[] = [
     expert:
       "A conducting zone from the trachea to the terminal bronchioles, then a respiratory zone of respiratory bronchioles, alveolar ducts and alveoli, across about 23 generations of branching. Stereology puts the adult mean at about 480 million alveoli.",
     rows: [
-      { k: "Windpipe length on our 3D body", v: "11 cm", measured: true },
-      { k: "Airway tree width on our 3D body", v: "23.9 cm", measured: true },
+      { k: "Windpipe length on our 3D body", v: "11.6 cm", measured: true },
+      { k: "Airway tree width on our 3D body", v: "25.3 cm", measured: true },
       { k: "Times the airways split in two", v: "about 23", ev: 3, evText: "Good evidence" },
       { k: "Tiny air sacs (alveoli), adult", v: "about 480 million", ev: 3, evText: "Good evidence" },
     ],
@@ -150,8 +150,8 @@ export const SYSTEMS: SystemPage[] = [
     alt: "The digestive organs of the 3D body: liver, stomach and intestines",
     card: "Where food becomes fuel and building blocks for every cell.",
     cardRows: [
-      ["Liver width", "22.8 cm"],
-      ["Stomach length", "14.9 cm"],
+      ["Liver width", "24.1 cm"],
+      ["Stomach length", "15.8 cm"],
     ],
     simple:
       "Food travels one long tube from your mouth to your bowel. On the way it is ground up, soaked in acid and juices, and broken into pieces small enough to pass into your blood.",
@@ -160,8 +160,8 @@ export const SYSTEMS: SystemPage[] = [
     expert:
       "Mechanical and chemical digestion along the alimentary canal. Most absorption happens in the small intestine (duodenum, jejunum, ileum), whose circular folds, villi and microvilli multiply the surface area; bile emulsifies fats and pancreatic enzymes digest carbohydrates, proteins and lipids.",
     rows: [
-      { k: "Liver width on our 3D body", v: "22.8 cm", measured: true },
-      { k: "Stomach length on our 3D body", v: "14.9 cm", measured: true },
+      { k: "Liver width on our 3D body", v: "24.1 cm", measured: true },
+      { k: "Stomach length on our 3D body", v: "15.8 cm", measured: true },
       { k: "Small intestine length, living adult", v: "about 3 m", ev: 4 },
       { k: "Liver weight, typical adult", v: "about 1.4 kg", ev: 4 },
     ],
@@ -183,7 +183,7 @@ export const SYSTEMS: SystemPage[] = [
     alt: "The brain of the 3D body, seen from the side, with its folds, the cerebellum at the back and the brainstem",
     card: "The control room. It senses, decides, remembers and runs everything else.",
     cardRows: [
-      ["Brain, front to back", "17.4 cm"],
+      ["Brain, front to back", "18.4 cm"],
       ["Nerve cells", "about 86 billion"],
     ],
     simple:
@@ -193,7 +193,7 @@ export const SYSTEMS: SystemPage[] = [
     expert:
       "About 86 billion neurons in the adult human brain, most of them in the cerebellum (about 69 billion) rather than the cerebral cortex (about 16 billion). At about 2 percent of body weight, the brain uses about 20 percent of the body's resting oxygen.",
     rows: [
-      { k: "Brain, front to back, on our 3D body", v: "17.4 cm", measured: true },
+      { k: "Brain, front to back, on our 3D body", v: "18.4 cm", measured: true },
       { k: "Nerve cells (neurons), adult", v: "about 86 billion", ev: 3, evText: "Good evidence" },
       { k: "Of those, in the cerebellum at the back", v: "about 69 billion", ev: 3, evText: "Good evidence" },
       { k: "Share of the body's oxygen, at rest", v: "about 20%, for 2% of your weight", ev: 3, evText: "Good evidence" },
@@ -202,7 +202,7 @@ export const SYSTEMS: SystemPage[] = [
       { label: "Azevedo et al. 2009, equal numbers of neuronal and nonneuronal cells", href: "https://doi.org/10.1002/cne.21974" },
       { label: "Raichle and Gusnard 2002, appraising the brain's energy budget", href: "https://doi.org/10.1073/pnas.172399499" },
     ],
-    dims: [{ a: [240.6, 483.7], b: [579.7, 450.5], label: "17.4 cm", sub: "Front to back", off: [0, -64] }],
+    dims: [{ a: [240.6, 483.7], b: [579.7, 450.5], label: "18.4 cm", sub: "Front to back", off: [0, -64] }],
     related: [{ href: "/stories/why-you-wake-up-tired", kicker: "Story", title: "Why you wake up tired" }],
     inExplore: true,
   },
@@ -217,8 +217,8 @@ export const SYSTEMS: SystemPage[] = [
     alt: "The two kidneys of the 3D body with their blood vessels",
     card: "Two filters that clean your blood and balance water and salt.",
     cardRows: [
-      ["Left kidney, length", "10.8 cm"],
-      ["Right kidney, length", "10.6 cm"],
+      ["Left kidney, length", "11.4 cm"],
+      ["Right kidney, length", "11.2 cm"],
     ],
     simple:
       "Two bean-shaped filters behind your belly. All day they clean your blood, keep what you need, and send the rest out as urine.",
@@ -227,8 +227,8 @@ export const SYSTEMS: SystemPage[] = [
     expert:
       "Glomerular filtration of about 180 L a day in men and 150 L a day in women, of which about 99 percent is reabsorbed along the tubules, leaving 1 to 2 L of urine. Each kidney holds on the order of a million nephrons; the left usually sits a little higher than the right.",
     rows: [
-      { k: "Left kidney length on our 3D body", v: "10.8 cm", measured: true },
-      { k: "Right kidney length on our 3D body", v: "10.6 cm", measured: true },
+      { k: "Left kidney length on our 3D body", v: "11.4 cm", measured: true },
+      { k: "Right kidney length on our 3D body", v: "11.2 cm", measured: true },
       { k: "Fluid filtered from the blood a day", v: "about 150 to 180 litres", ev: 4 },
       { k: "How much of it goes back into the blood", v: "about 99%", ev: 4 },
     ],
@@ -247,7 +247,7 @@ export const SYSTEMS: SystemPage[] = [
     alt: "The heart of the 3D body with the arteries that feed it and the big vessels at its top",
     card: "Two pumps side by side, four chambers, four valves.",
     cardRows: [
-      ["Length", "12.5 cm"],
+      ["Length", "13.2 cm"],
       ["Beats in a day", "about 100,000"],
     ],
     simple:
@@ -257,7 +257,7 @@ export const SYSTEMS: SystemPage[] = [
     expert:
       "Four chambers (right and left atria, right and left ventricles) and four valves (tricuspid, pulmonary, mitral, aortic). The left and right coronary arteries arise from the aortic root and supply the myocardium.",
     rows: [
-      { k: "Length on our 3D body", v: "12.5 cm", measured: true },
+      { k: "Length on our 3D body", v: "13.2 cm", measured: true },
       { k: "Size, typical adult", v: "about 12 × 8 × 6 cm", ev: 4 },
       { k: "Weight, typical adult", v: "300 to 350 g men · 250 to 300 g women", ev: 4 },
       { k: "Resting heartbeat, adult", v: "60 to 100 beats a minute", ev: 4 },
@@ -268,7 +268,7 @@ export const SYSTEMS: SystemPage[] = [
       { label: "OpenStax Anatomy and Physiology 2e, 19.1 (size, weight, beats a day)", href: "https://openstax.org/books/anatomy-and-physiology-2e/pages/19-1-heart-anatomy" },
       { label: "Mayo Clinic (resting rate)", href: "https://www.mayoclinic.org/healthy-lifestyle/fitness/expert-answers/heart-rate/faq-20057979" },
     ],
-    dims: [{ a: [974.5, 1364.1], b: [722.6, 559.6], label: "12.5 cm", sub: "Length", off: [150, 150] }],
+    dims: [{ a: [974.5, 1364.1], b: [722.6, 559.6], label: "13.2 cm", sub: "Length", off: [150, 150] }],
     callouts: [
       { at: [717.4, 471.6], y: 300, side: "left", kicker: "Aorta", value: "Main artery out of the heart" },
       { at: [597.8, 529.3], y: 536, side: "left", kicker: "Superior vena cava", value: "Blood back from the upper body", hideBelow: 620 },
@@ -294,7 +294,7 @@ export const SYSTEMS: SystemPage[] = [
     alt2: { img: "/img/liver_exploded.jpg", alt: "The liver of the 3D body, pulled apart into its eight pieces", label: "Pulled apart", baseLabel: "Whole" },
     card: "Built from segments that fit together like a puzzle.",
     cardRows: [
-      ["Width", "22.8 cm"],
+      ["Width", "24.1 cm"],
       ["Pieces", "8"],
     ],
     simple:
@@ -304,7 +304,7 @@ export const SYSTEMS: SystemPage[] = [
     expert:
       "The Couinaud classification defines eight segments by the branching of the hepatic and portal veins. Each has independent vascular inflow, outflow and biliary drainage, the basis of segmental resection. About three quarters of hepatic blood flow arrives through the portal vein.",
     rows: [
-      { k: "Width on our 3D body", v: "22.8 cm", measured: true },
+      { k: "Width on our 3D body", v: "24.1 cm", measured: true },
       { k: "Pieces (segments)", v: "8", ev: 4 },
       { k: "Where its blood comes from", v: "about 3/4 from the gut, 1/4 from the heart", ev: 4 },
       { k: "Typical adult weight", v: "about 1.4 kg", ev: 4 },
@@ -315,7 +315,7 @@ export const SYSTEMS: SystemPage[] = [
       { label: "StatPearls, the portal venous system (blood supply)", href: "https://www.ncbi.nlm.nih.gov/books/NBK554589/" },
       { label: "Mayo Clinic, living liver donation (regrowth)", href: "https://newsnetwork.mayoclinic.org/discussion/mayo-clinic-q-and-a-living-liver-donation/" },
     ],
-    dims: [{ a: [229.4, 579.2], b: [839.3, 366], label: "22.8 cm", sub: "Width", off: [-40, -110] }],
+    dims: [{ a: [229.4, 579.2], b: [839.3, 366], label: "24.1 cm", sub: "Width", off: [-40, -110] }],
     related: [
       { href: "/body/digestion", kicker: "The bigger picture", title: "Where your food goes" },
     ],

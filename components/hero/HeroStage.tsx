@@ -67,23 +67,8 @@ export function HeroStage() {
           <span className="l1">You came with</span>
           <span className="l2">factory settings.</span>
         </h1>
-        <p className={`${s.sub} a-in a-d2`}>
-          Your body runs on a few settings: sleep, food, movement, stress, focus and people. Get them right and most of health follows. Pick one to see what it does inside
-          you.
-        </p>
-        <div className={`${s.chips} a-in a-d3`} role="group" aria-label="What do you want to fix?">
-          {AREAS.map((a) => {
-            const on = sel?.kind === "area" && sel.area.slug === a.slug;
-            return (
-              <button key={a.slug} type="button" className={`${s.chip} ${on ? s.chipOn : ""}`} aria-pressed={on} onClick={() => pickArea(a)}>
-                <Icon name={a.icon} size={16} />
-                {a.chip}
-              </button>
-            );
-          })}
-        </div>
-        <div className={s.cardSlot} aria-live="polite">
-          <AnimatePresence mode="wait">
+        <div className={`${s.slot} a-in a-d2`} aria-live="polite">
+          <AnimatePresence mode="wait" initial={false}>
             {sel ? (
               <motion.div
                 key={sel.kind === "area" ? sel.area.slug : sel.part}
@@ -117,13 +102,27 @@ export function HeroStage() {
                 )}
               </motion.div>
             ) : (
-              <motion.a key="start" href="#fix" className={s.start} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-                Or see everything people ask us
-                <Icon name="arrow" size={15} />
-              </motion.a>
+              <motion.p key="sub" className={s.sub} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+                Your body runs on a few settings: sleep, food, movement, stress, focus and people. Pick one to see what it does inside you.
+              </motion.p>
             )}
           </AnimatePresence>
         </div>
+        <div className={`${s.chips} a-in a-d3`} role="group" aria-label="What do you want to fix?">
+          {AREAS.map((a) => {
+            const on = sel?.kind === "area" && sel.area.slug === a.slug;
+            return (
+              <button key={a.slug} type="button" className={`${s.chip} ${on ? s.chipOn : ""}`} aria-pressed={on} onClick={() => pickArea(a)}>
+                <Icon name={a.icon} size={16} />
+                {a.chip}
+              </button>
+            );
+          })}
+        </div>
+        <a href="#fix" className={`${s.start} a-in a-d3`}>
+          Or see everything people ask us
+          <Icon name="arrow" size={15} />
+        </a>
       </div>
     </section>
   );

@@ -1,5 +1,6 @@
 /* The live 3D body on the home page.
-   Real anatomy: BodyParts3D 4.0 (c) The Database Center for Life Science, CC BY 4.0, simplified for the web.
+   Real anatomy: BodyParts3D 4.0 (c) The Database Center for Life Science, CC BY 4.0, simplified for the web
+   and scaled to 1.83 m.
    On load the body builds itself (bones, then organs, then blood vessels and nerves) while the camera rises
    from the feet; then it turns slowly, the heart beats and the lungs breathe. People can drag it round, tap a
    part, or pick a setting. A setting dims everything except the parts it acts on and changes how the body
@@ -22,6 +23,9 @@ export type Mood = {
 };
 export type Focus = { groups: string[]; mood?: Mood } | null;
 const CALM: Required<Mood> = { bpm: 64, breaths: 14, night: 0, warm: 0, signals: 0 };
+/** The reference body is 1.73 m in BodyParts3D; we show it as an adult 1.83 m tall. */
+export const SCALE = 1.83 / 1.73;
+const S = SCALE;
 
 const PART_OF: Record<string, Part> = Object.fromEntries(
   (Object.entries(GROUPS_OF) as [Part, string[]][]).flatMap(([p, gs]) => gs.map((g) => [g, p] as const)),
@@ -178,7 +182,7 @@ export async function createHero(
     return new THREE.BufferGeometry().setFromPoints(pts);
   };
   const lm = (o: number) => new THREE.LineBasicMaterial({ color: 0xeceef1, transparent: true, opacity: o, depthWrite: false });
-  ring.add(new THREE.Line(circ(0.62), lm(0.3)), new THREE.Line(circ(0.66), lm(0.12)));
+  ring.add(new THREE.Line(circ(0.62 * S), lm(0.3)), new THREE.Line(circ(0.66 * S), lm(0.12)));
   ring.position.y = 0.0005;
   scene.add(ring);
 
@@ -225,6 +229,7 @@ export async function createHero(
       geo.setAttribute(name, new THREE.BufferAttribute(f, 3));
     }
     geo.applyMatrix4(m.matrixWorld);
+    geo.scale(S, S, S);
     geo.computeBoundingBox();
     geo.computeBoundingSphere();
     const mesh = new THREE.Mesh(geo, mat);
@@ -259,15 +264,19 @@ export async function createHero(
     });
   };
   if (heart) {
-    setReveal("arteries", heart.center.clone().add(new THREE.Vector3(0, 0.04, 0)), 1.62, 1);
-    setReveal("veins", heart.center.clone(), 1.7, -1);
+    setReveal("arteries", heart.center.clone().add(new THREE.Vector3(0, 0.04 * S, 0)), 1.62 * S, 1);
+    setReveal("veins", heart.center.clone(), 1.7 * S, -1);
   }
-  if (brain) setReveal("nerves", brain.center.clone().add(new THREE.Vector3(0, -0.02, 0)), 1.85, 1);
-  if (air) setReveal("airways", new THREE.Vector3(air.center.x, air.box.max.y, air.center.z), 0.42, 1);
+  if (brain) setReveal("nerves", brain.center.clone().add(new THREE.Vector3(0, -0.02 * S, 0)), 1.85 * S, 1);
+  if (air) setReveal("airways", new THREE.Vector3(air.center.x, air.box.max.y, air.center.z), 0.42 * S, 1);
 
   // ------------------------------------------------------------------ camera
-  const FULL = { theta: -16, radius: 4.8, camY: 1.06, targetY: 0.97, targetX: 0, fov: 26 };
-  const START = { theta: -40, radius: 1.9, camY: 0.32, targetY: 0.12, targetX: 0, fov: 26 };
+  // phones show the stage nearly square, under a header: give the head more room above it
+  const narrow = canvas.clientWidth / Math.max(1, canvas.clientHeight) < 1.25;
+  const FULL = narrow
+    ? { theta: -16, radius: 4.95 * S, camY: 1.12 * S, targetY: 1.05 * S, targetX: 0, fov: 26 }
+    : { theta: -16, radius: 4.8 * S, camY: 1.06 * S, targetY: 0.97 * S, targetX: 0, fov: 26 };
+  const START = { theta: -40, radius: 1.9 * S, camY: 0.32 * S, targetY: 0.12 * S, targetX: 0, fov: 26 };
   let cam = { ...START };
   let camFrom = { ...START };
   let camTo = { ...FULL };
@@ -339,7 +348,7 @@ export async function createHero(
     const size = box.getSize(new THREE.Vector3());
     const aspect = canvas.clientWidth / Math.max(1, canvas.clientHeight);
     const half = Math.max(size.y / 2, size.x / 2 / aspect) * 1.5;
-    const radius = Math.max(0.9, Math.min(4.6, half / Math.tan(((FULL.fov / 2) * Math.PI) / 180)));
+    const radius = Math.max(0.9 * S, Math.min(4.6 * S, half / Math.tan(((FULL.fov / 2) * Math.PI) / 180)));
     return { theta: FULL.theta, radius, camY: c.y + radius * 0.06, targetY: c.y, targetX: 0, fov: FULL.fov };
   };
   const setFocus = (f: Focus) => {
@@ -418,7 +427,7 @@ export async function createHero(
       rec.pivot.visible = show;
       rec.pivot.position.copy(rec.center);
       rec.pivot.scale.set(1, 1, 1);
-      if (style === "rise") rec.pivot.position.y -= 0.045 * (1 - e);
+      if (style === "rise") rec.pivot.position.y -= 0.045 * S * (1 - e);
       const fade = style === "grow" || style === "shrink" ? 1 : clamp01(u / 0.75);
       // dimming for focus
       rec.dim += (rec.dimTarget - rec.dim) * Math.min(1, dt * 5);
@@ -456,7 +465,7 @@ export async function createHero(
     if (hr && t > 3.0) hr.pivot.scale.setScalar(1 + (0.03 + 0.012 * clamp01((mood.bpm - 64) / 60)) * beat(beatPh));
     const art = groups.get("arteries");
     if (art && t > 5.3) {
-      const r = (beatPh - Math.floor(beatPh)) * 5.6;
+      const r = (beatPh - Math.floor(beatPh)) * 5.6 * S;
       art.mats.forEach((m) => {
         const u = m.userData.reveal as Reveal | undefined;
         if (u) u.uPulseR.value = r;
@@ -465,7 +474,7 @@ export async function createHero(
     const nv = groups.get("nerves");
     if (nv && t > 6.1) {
       const on = mood.signals > 0.05;
-      const r = (sigPh - Math.floor(sigPh)) * 2.1;
+      const r = (sigPh - Math.floor(sigPh)) * 2.1 * S;
       nv.mats.forEach((m) => {
         const u = m.userData.reveal as Reveal | undefined;
         if (!u) return;

@@ -67,7 +67,7 @@ export function Footer() {
         <hr className="hair" style={{ margin: "36px 0 18px" }} />
         <div style={{ display: "flex", flexWrap: "wrap", gap: "8px 24px", justifyContent: "space-between", fontSize: 12.5, lineHeight: 1.6 }}>
           <span>
-            3D body model: BodyParts3D, © The Database Center for Life Science, licensed under CC Attribution 4.0 International. Pictures and films made from it by Human
+            3D body model: BodyParts3D, © The Database Center for Life Science, licensed under CC Attribution 4.0 International, simplified and scaled to 1.83 m. Pictures and films made from it by Human
             Factory Settings.
           </span>
           <span style={{ fontSize: 12.5 }}>Preview: not public yet</span>

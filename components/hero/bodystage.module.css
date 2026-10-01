@@ -1,9 +1,9 @@
-.wrap { display: grid; grid-template-columns: 1fr; gap: 18px; }
+.wrap { display: grid; grid-template-columns: minmax(0, 1fr); gap: 18px; }
 .stage {
   position: relative; height: 64svh; min-height: 420px; max-height: 760px; border-radius: 28px; overflow: hidden; border: 1px solid var(--edge);
   background: radial-gradient(70% 60% at 50% 42%, #171b22 0%, #0b0d10 70%, #08090b 100%);
 }
-.side { display: flex; flex-direction: column; gap: 16px; }
+.side { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
 .chips { display: flex; gap: 8px; overflow-x: auto; margin: 0 calc(-1 * var(--gutter)); padding: 2px var(--gutter) 4px; scrollbar-width: none; }
 .chips::-webkit-scrollbar { display: none; }
 .slot { min-height: 170px; }

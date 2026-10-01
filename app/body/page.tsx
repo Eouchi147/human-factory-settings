@@ -27,7 +27,7 @@ export default function ExplorePage() {
           </h1>
           <p className="lede a-in a-d2">
             Pick a part. Each page explains what it does in plain words, with real 3D pictures. Every picture comes from the same 3D body, so the sizes fit together: the
-            12.5 cm heart sits in the chest of a body 1.73 m tall.
+            13.2 cm heart sits in the chest of a body 1.83 m tall.
           </p>
         </header>
 

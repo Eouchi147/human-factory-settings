@@ -44,7 +44,7 @@ const AZ: { t: string; d: string; href?: string }[] = [
 const CREDITS: { t: string; d: string; href?: string }[] = [
   {
     t: "3D body model",
-    d: "BodyParts3D, © The Database Center for Life Science, licensed under CC Attribution 4.0 International. Pictures, films and measurements made from it by Human Factory Settings.",
+    d: "BodyParts3D, © The Database Center for Life Science, licensed under CC Attribution 4.0 International. We simplified it for the web and scaled it to an adult 1.83 m tall. Pictures, films and measurements made from it by Human Factory Settings.",
     href: "https://lifesciencedb.jp/bp3d/",
   },
   { t: "Quiz questions", d: "Mini-IPIP items (Donnellan et al. 2006) from the International Personality Item Pool, placed in the public domain.", href: "https://ipip.ori.org/newPermission.htm" },
