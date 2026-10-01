@@ -568,7 +568,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
   const clampZoom = (z: number) => Math.max(0.12, Math.min(3, z));
   const wholeBox = new THREE.Box3(new THREE.Vector3(-0.34 * S, 0, -0.15 * S), new THREE.Vector3(0.34 * S, 1.73 * S, 0.15 * S));
   const sizeNow = () => ({ w: canvas.clientWidth || 1, h: canvas.clientHeight || 1 });
-  const fitBox = (box: THREE.Box3, yaw: number, pitch: number) => {
+  const fitBox = (box: THREE.Box3, yaw: number, pitch: number, minDist = 0.35 * S) => {
     const { w, h } = sizeNow();
     const size = box.getSize(new THREE.Vector3());
     const center = box.getCenter(new THREE.Vector3());
@@ -581,7 +581,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     const tanV = t * (freeH / h);
     const tanH = t * (freeW / h);
     const dist = Math.max(ch / 2 / tanV, cw / 2 / tanH) * 1.12 + depth / 2;
-    return { dist: Math.max(0.35 * S, dist), target: center };
+    return { dist: Math.max(minDist, dist), target: center };
   };
   const frameNow = () => {
     let box: THREE.Box3;
@@ -598,7 +598,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
         // a picked part keeps some of the system around it; a part shown on its own fills the free space
         const s = box.getSize(new THREE.Vector3());
         const m = Math.max(s.x, s.y, s.z);
-        const pad = isolated ? Math.max(0, 0.05 * S - m) / 2 + m * 0.03 : Math.max(0, 0.16 * S - m) / 2 + m * 0.18;
+        const pad = isolated ? Math.max(0, 0.035 * S - m) / 2 + m * 0.03 : Math.max(0, 0.16 * S - m) / 2 + m * 0.18;
         box.expandByVector(new THREE.Vector3(1, 1, 1).multiplyScalar(pad));
         if (isolated && part.spec.view) {
           yaw = part.spec.view.turn * DEG;
@@ -616,7 +616,8 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     } else {
       box = wholeBox.clone();
     }
-    const f = fitBox(box, yaw, pitch);
+    // a small gland shown on its own may come close; otherwise the camera stays outside the body
+    const f = fitBox(box, yaw, pitch, isolated && selected ? 0.12 * S : 0.35 * S);
     goal.yaw = yaw;
     goal.pitch = pitch;
     goal.dist = f.dist;
@@ -858,6 +859,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     }
   };
   let sysAlpha = 0;
+  let ringA = 1; // the floor rings fade rather than blink
 
   // ------------------------------------------------------------------ play: come apart slowly, then visit each part
   type Step = { t: number; run: () => void };
@@ -1250,10 +1252,11 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
       lastExplodeSent = explode;
       opts.onExplode(explode);
     }
-    const ringTo = current === null ? 1 : current === "skeleton" || current === "muscles" || current === "cardio" ? 1 - explode : 0;
-    ringMats[0].opacity = 0.28 * ringTo;
-    ringMats[1].opacity = 0.11 * ringTo;
-    ring.visible = ringTo > 0.01;
+    const ringTo = current === null ? 1 : !isolated && (current === "skeleton" || current === "muscles" || current === "cardio") ? 1 - explode : 0;
+    ringA += (ringTo - ringA) * damp(dt, 0.25);
+    ringMats[0].opacity = 0.28 * ringA;
+    ringMats[1].opacity = 0.11 * ringA;
+    ring.visible = ringA > 0.01;
     beatPh += (dt * 64) / 60;
     breathPh += (dt * 14) / 60;
     updateMatrices(offsetsDirty);
