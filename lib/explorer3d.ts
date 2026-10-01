@@ -9,6 +9,9 @@
 import * as THREE from "three";
 import { MeshoptDecoder } from "three/examples/jsm/libs/meshopt_decoder.module.js";
 import { RoomEnvironment } from "three/examples/jsm/environments/RoomEnvironment.js";
+import { Line2 } from "three/examples/jsm/lines/Line2.js";
+import { LineGeometry } from "three/examples/jsm/lines/LineGeometry.js";
+import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 import { BODY_AXES, SYSTEMS3D, WHOLE_BODY, type PartSpec, type SystemId, type SystemSpec, type Vec3 } from "./anatomy";
 
 /** The reference body is 1.73 m in BodyParts3D; we show it as an adult 1.83 m tall. */
@@ -66,10 +69,14 @@ type PartRec = {
   pieces: Piece[];
   center: THREE.Vector3;
   anchor: THREE.Vector3; // a point on its surface, for its number on screen
-  anchorPiece: Piece;
+  anchorPiece: Piece | null; // null for a drawn line
   dim: number;
   dimTo: number;
+  drawn: Drawn | null;
 };
+
+/** A line drawn over the body (the foot's arches, the textbook posture line), with dots on it. */
+type Drawn = { line: Line2; mat: LineMaterial; dots: THREE.Points | null; dotMat: THREE.PointsMaterial | null; box: THREE.Box3; alpha: number };
 
 type SysRec = {
   spec: SystemSpec;
@@ -79,6 +86,7 @@ type SysRec = {
   box0: THREE.Box3; // together
   box1: THREE.Box3; // apart
   window: number; // how long each piece takes to move, as a share of the explode
+  covered: Set<Piece> | null; // pieces of its context that this view draws itself (worked out once both are loaded)
 };
 
 export type Insets = { top: number; right: number; bottom: number; left: number };
@@ -140,7 +148,29 @@ const SURF: Record<string, Surf> = {
   glass: { roughness: 0.04, clearcoat: 1, clearcoatRoughness: 0.03, opacity: 0.26 },
   // the fat of the breast: soft and half see-through, so the milk glands show inside
   fat: { roughness: 0.42, clearcoat: 0.35, clearcoatRoughness: 0.3, sheen: 0.5, sheenColor: 0xfff0d0, opacity: 0.45 },
+  // fascia drawn in (the thigh's sleeve, the sole's band): a thin silvery film you see the muscles through
+  fascia: { roughness: 0.22, clearcoat: 0.9, clearcoatRoughness: 0.12, sheen: 0.8, sheenColor: 0xeef5ff, sheenRoughness: 0.3, opacity: 0.52 },
+  // dense fascia (the IT band): white and glossy, like a tendon
+  band: { roughness: 0.28, clearcoat: 0.7, clearcoatRoughness: 0.18, sheen: 0.6, sheenColor: 0xf6fbff },
 };
+
+/** A soft round dot, for the landmarks on a drawn line. */
+function dotTexture() {
+  const c = document.createElement("canvas");
+  c.width = c.height = 64;
+  const g = c.getContext("2d")!;
+  g.beginPath();
+  g.arc(32, 32, 27, 0, Math.PI * 2);
+  g.fillStyle = "rgba(12,14,18,0.92)";
+  g.fill();
+  g.beginPath();
+  g.arc(32, 32, 17, 0, Math.PI * 2);
+  g.fillStyle = "#ffffff";
+  g.fill();
+  const t = new THREE.CanvasTexture(c);
+  t.colorSpace = THREE.SRGBColorSpace;
+  return t;
+}
 
 // colours in the whole-body view, where the brain is shown as it looks, not colour-coded by lobe
 const NATURAL: Record<string, string> = {
@@ -241,6 +271,39 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     }
     return x;
   };
+  // lines drawn over the body: always on top (they are a diagram over the anatomy), widths in screen pixels
+  const drawnAll: Drawn[] = [];
+  const drawnParts: { sys: SystemId; rec: PartRec }[] = [];
+  let dotTex: THREE.Texture | null = null;
+  const makeDrawn = (ps: PartSpec): Drawn => {
+    const pts = ps.path!.map(([x, y, z]) => new THREE.Vector3(x * S, y * S, z * S));
+    const curve = pts.length > 2 ? new THREE.CatmullRomCurve3(pts, false, "centripetal").getPoints(72) : pts;
+    const geo = new LineGeometry();
+    geo.setPositions(curve.flatMap((p) => [p.x, p.y, p.z]));
+    const mat = new LineMaterial({ color: new THREE.Color(ps.color), linewidth: 3, transparent: true, opacity: 0, depthTest: false, depthWrite: false });
+    mat.resolution.set(canvas.clientWidth || 1, canvas.clientHeight || 1);
+    const line = new Line2(geo, mat);
+    line.computeLineDistances();
+    line.renderOrder = 20;
+    line.visible = false;
+    line.frustumCulled = false;
+    scene.add(line);
+    let dots: THREE.Points | null = null, dotMat: THREE.PointsMaterial | null = null;
+    if (ps.dots?.length) {
+      dotTex ??= dotTexture();
+      const g = new THREE.BufferGeometry().setFromPoints(ps.dots.map(([x, y, z]) => new THREE.Vector3(x * S, y * S, z * S)));
+      dotMat = new THREE.PointsMaterial({ color: new THREE.Color(ps.color), size: 13 * renderer.getPixelRatio(), sizeAttenuation: false, map: dotTex, transparent: true, opacity: 0, depthTest: false, depthWrite: false });
+      dots = new THREE.Points(g, dotMat);
+      dots.renderOrder = 21;
+      dots.visible = false;
+      dots.frustumCulled = false;
+      scene.add(dots);
+    }
+    const box = new THREE.Box3().setFromPoints(pts);
+    const d: Drawn = { line, mat, dots, dotMat, box, alpha: 0 };
+    drawnAll.push(d);
+    return d;
+  };
   const systems = new Map<SystemId, SysRec>();
   const batches: Batch[] = [];
   const loaded = new Set<string>();
@@ -248,7 +311,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
   let disposed = false;
 
   // ------------------------------------------------------------------ loading
-  const loadFile = (file: "core" | "muscles" | "female") => {
+  const loadFile = (file: SystemSpec["file"]) => {
     if (loaded.has(file)) return Promise.resolve();
     const running = loading.get(file);
     if (running) return running;
@@ -427,7 +490,17 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
             }
           }
         }
-        parts.set(ps.id, { id: ps.id, spec: ps, pieces: mine, center: c, anchor, anchorPiece, dim: 0, dimTo: 0 });
+        parts.set(ps.id, { id: ps.id, spec: ps, pieces: mine, center: c, anchor, anchorPiece, dim: 0, dimTo: 0, drawn: null });
+      }
+      // lines drawn over the body: no pieces of their own, a fat line (and dots) in the part's colour
+      for (const ps of spec.parts) {
+        if (!ps.path || ps.path.length < 2) continue;
+        const d = makeDrawn(ps);
+        const k = Math.floor((ps.path.length - 1) / 2);
+        const anchor = new THREE.Vector3(...ps.path[k]).multiplyScalar(S).lerp(new THREE.Vector3(...ps.path[k + 1]).multiplyScalar(S), ps.path.length % 2 ? 0 : 0.5);
+        const rec: PartRec = { id: ps.id, spec: ps, pieces: [], center: d.box.getCenter(new THREE.Vector3()), anchor, anchorPiece: null, dim: 0, dimTo: 0, drawn: d };
+        parts.set(ps.id, rec);
+        drawnParts.push({ sys: spec.id, rec });
       }
       plan(spec, parts, pieces);
       const box0 = new THREE.Box3(), box1 = new THREE.Box3();
@@ -439,8 +512,14 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
         tmp.copy(p.box).translate(p.full);
         box1.union(tmp);
       }
+      // a drawn line is framed too (the posture line runs from the floor to above the head)
+      for (const rec of parts.values()) {
+        if (!rec.drawn || (spec.frame?.parts && !spec.frame.parts.includes(rec.id))) continue;
+        box0.union(rec.drawn.box);
+        box1.union(rec.drawn.box);
+      }
       const maxDelay = pieces.reduce((a, p) => Math.max(a, p.delay), 0);
-      systems.set(spec.id, { spec, parts, batches: sysBatches, pieces, box0, box1, window: Math.max(0.42, 1 - maxDelay) });
+      systems.set(spec.id, { spec, parts, batches: sysBatches, pieces, box0, box1, window: Math.max(0.42, 1 - maxDelay), covered: null });
     }
     for (const b of batches) for (const p of b.pieces) p.pos = null;
     // pieces drawn twice (the pancreas and hypothalamus also belong to the hormone glands)
@@ -553,13 +632,33 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
       }
     }
     // whole body: no duplicates, natural colours; one system: its legend colours; alone: just the picked part
+    const rec = current ? systems.get(current) ?? null : null;
+    const ctxId = rec ? rec.spec.contextSystem ?? "skeleton" : null;
+    const hide = rec?.spec.hideContext ?? [];
+    const covered = rec ? coveredOf(rec) : null;
     for (const b of batches)
       for (const p of b.pieces) {
         let v = !(current === null && p.dup) && (!p.onlyPicked || p.part === selected);
         if (isolated && selected && b.system === current) v = p.part === selected;
+        // a close-up view leaves out the context it draws itself (the spine in the posture view), or that would stand in the way
+        if (rec && b.system === ctxId && b.system !== current && (hide.includes(p.part) || covered?.has(p))) v = false;
         b.mesh.setVisibleAt(p.inst, v);
       }
     colorsDirty = true;
+  };
+  /** The pieces of a view's context that the view draws itself, found by matching their boxes (within 4 mm). */
+  const coveredOf = (rec: SysRec) => {
+    if (rec.covered) return rec.covered;
+    const ctx = systems.get(rec.spec.contextSystem ?? "skeleton");
+    if (!ctx || ctx === rec) return null;
+    const tol = 0.004 * S;
+    const near = (a: THREE.Box3, b: THREE.Box3) =>
+      Math.abs(a.min.x - b.min.x) < tol && Math.abs(a.min.y - b.min.y) < tol && Math.abs(a.min.z - b.min.z) < tol &&
+      Math.abs(a.max.x - b.max.x) < tol && Math.abs(a.max.y - b.max.y) < tol && Math.abs(a.max.z - b.max.z) < tol;
+    const set = new Set<Piece>();
+    for (const q of ctx.pieces) if (rec.pieces.some((p) => near(p.box, q.box))) set.add(q);
+    rec.covered = set;
+    return set;
   };
   const setMaterial = (b: Batch) => {
     b.mesh.material = b.look === "xray" ? xrayOf(b).m : b.solid;
@@ -618,6 +717,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
         box = new THREE.Box3();
         const tmp = new THREE.Box3();
         part.pieces.forEach((p) => box.union(tmp.copy(p.box).translate(p.off)));
+        if (part.drawn) box.union(part.drawn.box);
         // a picked part keeps some of the system around it; a part shown on its own fills the free space
         const s = box.getSize(new THREE.Vector3());
         const m = Math.max(s.x, s.y, s.z);
@@ -750,6 +850,7 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     return a;
   };
   const v3 = new THREE.Vector3();
+  const ZERO = new THREE.Vector3();
   const camDir = new THREE.Vector3();
   const corner = new THREE.Vector3();
   type Placed = { L: Label; ax: number; ay: number; y: number; op: number };
@@ -792,11 +893,13 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     for (const L of labels) {
       const rec = systems.get(L.sys)?.parts.get(L.part);
       const alpha = labelAlpha(L.sys);
-      if ((!rec && !L.at) || alpha < 0.05 || ((isolated || rec?.spec.onlyPicked) && L.part !== selected)) {
+      // a drawn line's name goes with its line (it fades while the system is apart)
+      const lineA = rec?.drawn ? rec.drawn.alpha / Math.max(0.01, sysAlpha) : 1;
+      if ((!rec && !L.at) || alpha < 0.05 || lineA < 0.15 || ((isolated || rec?.spec.onlyPicked) && L.part !== selected)) {
         hideLabel(L);
         continue;
       }
-      const point = L.at ?? v3.copy(rec!.anchor).add(rec!.anchorPiece.off);
+      const point = L.at ?? v3.copy(rec!.anchor).add(rec!.anchorPiece?.off ?? ZERO);
       corner.copy(point).project(camera);
       const ax = ((corner.x + 1) / 2) * W, ay = ((1 - corner.y) / 2) * H;
       if (corner.z > 1 || ax < -20 || ax > W + 20 || ay < top - 30 || ay > bottom + 30) {
@@ -807,9 +910,9 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
         L.w = L.tag.offsetWidth;
         L.h = L.tag.offsetHeight;
       }
-      const c = L.at ?? v3.copy(rec!.center).add(rec!.anchorPiece.off);
-      const behind = corner.copy(c).sub(aim).dot(camDir) > 0.03 * S;
-      const op = alpha * (behind ? 0.45 : 1) * (selected && current && L.part !== selected ? 0.38 : 1);
+      const c = L.at ?? v3.copy(rec!.center).add(rec!.anchorPiece?.off ?? ZERO);
+      const behind = !rec?.drawn && corner.copy(c).sub(aim).dot(camDir) > 0.03 * S;
+      const op = alpha * Math.min(1, lineA) * (behind ? 0.45 : 1) * (selected && current && L.part !== selected ? 0.38 : 1);
       // a name changes sides only once its part is clearly across the middle, so turning the body does not flick it
       const goLeft = L.side === "l" ? ax < cx + 28 : L.side === "r" ? ax < cx - 28 : ax < cx;
       (goLeft ? left : right).push({ L, ax, ay, y: ay - L.h / 2, op });
@@ -883,6 +986,21 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
   };
   let sysAlpha = 0;
   let ringA = 1; // the floor rings fade rather than blink
+  const drawnTarget = (id: SystemId, rec: PartRec) => {
+    if (id !== current || isolated) return 0;
+    const apart = Math.min(1, Math.max(0, (explode - 0.03) / 0.27));
+    return sysAlpha * (1 - apart * apart * (3 - 2 * apart)) * (selected && selected !== rec.id ? 0.3 : 1);
+  };
+  const showDrawn = (rec: PartRec) => {
+    const d = rec.drawn!;
+    d.line.visible = d.alpha > 0.004;
+    d.mat.opacity = d.alpha;
+    d.mat.linewidth = selected === rec.id ? 5.5 : 3.4;
+    if (d.dots && d.dotMat) {
+      d.dots.visible = d.line.visible;
+      d.dotMat.opacity = d.alpha;
+    }
+  };
 
   // ------------------------------------------------------------------ play: come apart slowly, then visit each part
   type Step = { t: number; run: () => void };
@@ -903,14 +1021,21 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     const sys = current ? systems.get(current) : null;
     if (!sys) return;
     stop();
-    const order = sys.spec.parts.filter((p) => p.label !== false && sys.parts.has(p.id)).map((p) => p.id);
+    const all = sys.spec.parts.filter((p) => p.label !== false && sys.parts.has(p.id)).map((p) => p.id);
+    // drawn lines (the arches) are visited first, while everything is together; then it comes apart
+    const lines = all.filter((id) => sys.parts.get(id)!.drawn);
+    const order = all.filter((id) => !sys.parts.get(id)!.drawn);
     const steps: Step[] = [];
     let t = 0;
     if (explode > 0.08) {
       steps.push({ t, run: () => { explodeTau = 0.5; explodeTo = 0; selectPart(null); frameNow(); } });
       t += reduced ? 0.4 : 1.8;
     }
-    steps.push({ t, run: () => { explodeTau = reduced ? 0.3 : 1.25; explodeTo = 1; selectPart(null); tau = 1.6; } });
+    for (const id of lines) {
+      steps.push({ t, run: () => { tau = reduced ? 0.25 : 1.35; selectPart(id); opts.onTour?.(id); } });
+      t += reduced ? 2.6 : 3.8;
+    }
+    steps.push({ t, run: () => { explodeTau = reduced ? 0.3 : 1.25; explodeTo = 1; selectPart(null); opts.onTour?.(null); tau = 1.6; } });
     t += reduced ? 1.2 : 5.6;
     for (const id of order) {
       steps.push({ t, run: () => { tau = reduced ? 0.25 : 1.35; selectPart(id); opts.onTour?.(id); } });
@@ -953,6 +1078,11 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     const sys = current ? systems.get(current) : null;
     selected = sys && id && sys.parts.has(id) ? id : null;
     if (sys) for (const rec of sys.parts.values()) rec.dimTo = selected && rec.id !== selected ? 1 : 0;
+    // a drawn line (an arch of the foot) only fits the bones put together: picking one brings them back together
+    if (selected && sys?.parts.get(selected)?.drawn && explodeTo > 0.05 && !seq) {
+      explodeTau = reduced ? 0.15 : 0.6;
+      explodeTo = 0;
+    }
     const wasAlone = isolated;
     if (!selected && isolated) setIsolated(false);
     else applyLooks(); // shows the part alone, or one that is drawn only while picked
@@ -1182,6 +1312,10 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     renderer.setSize(w, h, false);
     camera.aspect = w / h;
     camera.updateProjectionMatrix();
+    for (const d of drawnAll) {
+      d.mat.resolution.set(w, h);
+      if (d.dotMat) d.dotMat.size = 13 * renderer.getPixelRatio();
+    }
     frameNow();
   };
   const ro = new ResizeObserver(size);
@@ -1300,6 +1434,14 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
       updateColors();
       colorsDirty = false;
     }
+    // lines drawn over the body: shown in their own view, faded as it comes apart, dim when another part is picked
+    for (const { sys: id, rec } of drawnParts) {
+      const d = rec.drawn!;
+      const to = drawnTarget(id, rec);
+      d.alpha += (to - d.alpha) * damp(dt, 0.2);
+      if (Math.abs(to - d.alpha) < 0.003) d.alpha = to;
+      showDrawn(rec);
+    }
 
     // the hand-made view: momentum after a flick, eased moves after a double tap or a button
     if (!pointers.size) {
@@ -1375,8 +1517,9 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
     if (sys) for (const rec of sys.parts.values()) rec.dim = rec.dimTo = 0;
     tau = 0.7;
     frameNow();
-    // a system comes apart on its own once, in slow motion; then the slider is yours
-    if (sys) {
+    // a system comes apart on its own once, in slow motion; then the slider is yours (a close-up view of a whole,
+    // like the foot's arches, stays together until you pull it apart)
+    if (sys && sys.spec.autoApart !== false) {
       startSeq([
         { t: reduced ? 0 : 0.5, run: () => { explodeTau = reduced ? 0.2 : 0.85; explodeTo = 1; } },
         { t: reduced ? 0.8 : 3.6, run: () => { seq = null; explodeTau = FOLLOW; tau = 0.55; } },
@@ -1411,7 +1554,8 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
       selectPart(id, id === null);
     },
     isolate: (on) => {
-      setIsolated(on && !!selected);
+      const drawn = !!(selected && current && systems.get(current)?.parts.get(selected)?.drawn);
+      setIsolated(on && !!selected && !drawn);
       easeToPart();
     },
     zoomBy: (f) => {
@@ -1451,6 +1595,11 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
       }
       const sys = current ? systems.get(current) : null;
       if (sys) for (const rec of sys.parts.values()) rec.dim = rec.dimTo;
+      sysAlpha = current ? 1 : 0;
+      for (const { sys: id, rec } of drawnParts) {
+        rec.drawn!.alpha = drawnTarget(id, rec);
+        showDrawn(rec);
+      }
       colorsDirty = true;
       updateMatrices(true);
       frameNow();
@@ -1476,6 +1625,13 @@ export async function createExplorer(canvas: HTMLCanvasElement, opts: ExplorerOp
         b.solid.dispose();
       }
       for (const x of xrays.values()) x.m.dispose();
+      for (const d of drawnAll) {
+        d.line.geometry.dispose();
+        d.mat.dispose();
+        d.dots?.geometry.dispose();
+        d.dotMat?.dispose();
+      }
+      dotTex?.dispose();
       ringMats.forEach((m) => m.dispose());
       ring.children.forEach((l) => (l as THREE.Line).geometry.dispose());
       pmrem.dispose();

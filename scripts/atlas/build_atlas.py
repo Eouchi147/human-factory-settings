@@ -5,7 +5,8 @@ project (2,234 meshes); and for the female organs, the Human Reference Atlas 3D 
 (Kristen Browne and Heidi Schlehlein, HuBMAP, CC BY 4.0), as prepared by the same project (ATLAS_SRC_F). Every mesh
 is sorted into a system and a legend part (classify.py), simplified, and either kept as its own piece (so it can
 move on its own in the exploded view) or merged with the rest of its part. Output, per file (core = everything but
-muscles and the female set; muscles = the muscles; female = the female organs and the pelvis behind them):
+muscles and the female set; muscles = the muscles; female = the female organs and the pelvis behind them; focus = the close-up views of the
+feet, the spine for posture, the mouth and the thigh's fascia, from focus.py):
   <out>/<file>.raw.bin   positions as float32, normals as float32, indices as uint32, piece after piece
   <out>/<file>.pieces.json   one row per piece: system, part, material, tone, side, counts
 The Node step (encode.mjs) quantises and compresses these with meshoptimizer.
@@ -66,7 +67,8 @@ SPEC = {
     ("reproF", "breasts"): {"merge": True, "pair": True}, ("reproF", "uterus"): {"merge": True},
     ("reproF", "cervix"): {"merge": True}, ("pelvisF", "bones"): {"merge": True}, ("pelvisF", "organs"): {"merge": True},
 }
-FILE_OF = lambda system: "muscles" if system == "muscles" else "female" if system in ("reproF", "pelvisF") else "core"
+FILE_OF = lambda system: "muscles" if system == "muscles" else "female" if system in ("reproF", "pelvisF") else "focus" if system in FOCUS else "core"
+FOCUS = ("feet", "posture", "mouth", "fascia")  # close-up views, built by focus.py into their own file
 
 # the female set as prepared by the human-atlas project (atlas-female.json + female-*.bin, from its git history:
 # commit d72b4f6 of github.com/Eouchi147/human-atlas); not set: the female organs are left out of the build
@@ -281,6 +283,14 @@ if FEMALE:
         put("cervix", "cervix", low)
     if shells["vagina"]:
         put("vagina", "vagina", solid([(V, F) for (_, V, F) in shells["vagina"]]))
+
+# the close-up views (feet, posture, mouth, fascia): their own file, loaded only when one is opened
+if os.environ.get("ATLAS_FOCUS", "1") == "1":
+    import focus
+    for q in focus.build(smooth=smooth if RAW else None):
+        stats[(q["system"], q["cluster"])][0] += 1
+        stats[(q["system"], q["cluster"])][1] += len(q["F"])
+        pieces["focus"].append(q)
 
 for (f, s, c, mat, tone, sd), parts in merged.items():
     Vs, Fs, base = [], [], 0

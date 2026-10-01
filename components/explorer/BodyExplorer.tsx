@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from "react";
 import { AnimatePresence, motion } from "motion/react";
 import s from "./explorer.module.css";
-import { REPRO, SYSTEMS3D, SYSTEM_ORDER, WHOLE_LABELS, systemById, type SystemId } from "@/lib/anatomy";
+import { FOCUS_ORDER, REPRO, SYSTEMS3D, SYSTEM_ORDER, WHOLE_LABELS, systemById, type SystemId } from "@/lib/anatomy";
 import type { ExplorerApi } from "@/lib/explorer3d";
 import { Icon } from "../Icons";
 
@@ -293,7 +293,11 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
             <span>Building your body</span>
           </div>
         ) : null}
-        {busy ? <div className={s.busy}>{system === "muscles" ? "Loading the muscles" : system === "reproF" ? "Loading the female organs" : "Loading"}</div> : null}
+        {busy ? (
+          <div className={s.busy}>
+            {system === "muscles" ? "Loading the muscles" : system === "reproF" ? "Loading the female organs" : system && FOCUS_ORDER.includes(system) ? "Loading the close-ups" : "Loading"}
+          </div>
+        ) : null}
         {state === "failed" ? (
           <div className={s.failed}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -329,9 +333,11 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
                 </div>
                 <p className={s.cardLine}>{partSpec.line}</p>
                 <div className={s.cardActions}>
-                  <button type="button" className={`${s.alone} ${alone ? s.aloneOn : ""}`} onClick={toggleAlone} aria-pressed={alone}>
-                    {alone ? "Show everything" : "Show only this"}
-                  </button>
+                  {partSpec.path ? null : (
+                    <button type="button" className={`${s.alone} ${alone ? s.aloneOn : ""}`} onClick={toggleAlone} aria-pressed={alone}>
+                      {alone ? "Show everything" : "Show only this"}
+                    </button>
+                  )}
                   {partSpec.href ?? spec.href ? (
                     <Link href={(partSpec.href ?? spec.href)!} className={s.cardLink}>
                       How it works <Icon name="arrow" size={14} />
@@ -438,6 +444,18 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
             return (
               <button key={id} type="button" className={`${s.sys} ${system === id ? s.sysOn : ""}`} aria-pressed={system === id} onClick={() => chooseSystem(id)}>
                 <span className={s.sysDot} style={{ background: x.color2 ? `linear-gradient(90deg, ${x.color} 50%, ${x.color2} 50%)` : x.color }} />
+                {x.name}
+              </button>
+            );
+          })}
+          <span className={s.upClose} aria-hidden="true">
+            Up close
+          </span>
+          {FOCUS_ORDER.map((id) => {
+            const x = systemById(id)!;
+            return (
+              <button key={id} type="button" className={`${s.sys} ${system === id ? s.sysOn : ""}`} aria-pressed={system === id} onClick={() => chooseSystem(id)}>
+                <span className={s.sysDot} style={{ background: x.color }} />
                 {x.name}
               </button>
             );

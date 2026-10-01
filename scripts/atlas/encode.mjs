@@ -46,6 +46,17 @@ const ERR = {
   "reproF/breasts": 0.0003,
   "reproF/ligaments": 0.00025,
   "pelvisF": 0.0008,
+  "feet": 0.00022,
+  "feet/sole": 0.0003,
+  "feet/slings": 0.0005,
+  "feet/shin": 0.0008,
+  "posture": 0.0005,
+  "mouth": 0.0002,
+  "mouth/lips": 0.0003,
+  "mouth/throat": 0.0003,
+  "fascia": 0.0006,
+  "fascia/sleeve": 0.0009,
+  "fascia/itband": 0.0005,
 };
 const errOf = (s, c) => ERR[`${s}/${c}`] ?? ERR[s] ?? ERR.default;
 
@@ -162,7 +173,9 @@ const manifest = {
   v: 2,
   source: file === "female"
     ? "Human Reference Atlas, 3D Reference Organ Set for Female v1.5, Kristen Browne and Heidi Schlehlein (HuBMAP), CC BY 4.0, https://doi.org/10.48539/HBM352.BTSQ.586. Simplified for the web by Human Factory Settings."
-    : "BodyParts3D 4.0, (c) The Database Center for Life Science, CC BY 4.0. Simplified for the web by Human Factory Settings.",
+    : file === "focus"
+      ? "BodyParts3D 4.0, (c) The Database Center for Life Science, CC BY 4.0. Simplified for the web by Human Factory Settings, who also drew in the two shapes marked (drawn): the plantar fascia and the thigh's fascia sleeve, which BodyParts3D does not have."
+      : "BodyParts3D 4.0, (c) The Database Center for Life Science, CC BY 4.0. Simplified for the web by Human Factory Settings.",
   units: file === "female"
     ? "metres, y up, x towards the body's left, z towards the front; her own size divided by 1.83 / 1.73, which the explorer multiplies back"
     : "metres, y up, x towards the body's left, z towards the front; reference body 1.73 m",

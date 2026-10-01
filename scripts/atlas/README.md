@@ -19,4 +19,16 @@ get it from its history: `git show d72b4f6:public/models/atlas-female.json` and 
    eye keep their detail), quantise positions to 13 bits and compress with meshoptimizer (vertex codec v0, read by
    three's decoder). Needs `npm i meshoptimizer`. Normals are rebuilt in the browser.
 
+`focus.{json,bin}` holds the close-up views (`node encode.mjs focus ...`), built by `focus.py` from the same
+BodyParts3D meshes when `build_atlas.py` runs (skip it with `ATLAS_FOCUS=0`):
+- feet: the right foot's bones, small muscles, the lower ends of the three leg muscles that sling its arches and the long
+  plantar ligament; the plantar fascia is not in the data, so it is drawn in (a thin fan under the sole muscles)
+- posture: the spine in four regions (the explorer hides the skeleton's own copy and draws the textbook plumb line)
+- mouth: the mouth and throat cut down the middle, right half kept, cut faces closed (trimesh, watertight meshes)
+- fascia: the right thigh's muscles, IT band and femur, and the fascia sleeve the data lacks, drawn a few millimetres
+  outside the muscles (voxel envelope) and split in eight strips that open like petals
+Shapes that are drawn in are named "(drawn)" in the pieces and on screen. `landmarks.py` measures the points for the
+lines the explorer draws (the foot's three arches, the posture line's landmarks); its output is copied into
+`lib/anatomy.ts`. `source.py` reads meshes from the human-atlas files for both.
+
 What each system shows and says (names, colours, legend lines, how parts move apart) lives in `lib/anatomy.ts`.
