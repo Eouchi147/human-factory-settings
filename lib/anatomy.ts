@@ -278,20 +278,20 @@ export const SYSTEMS3D: SystemSpec[] = [
     contextSystem: "pelvisF",
     doubleSided: true,
     // the camera keeps to her pelvis; the breasts are framed when picked
-    frame: { parts: ["ovaries", "tubes", "uterus", "cervix", "vagina", "ligaments"] },
-    view: { turn: -26, tilt: 10 },
-    note: "From a second 3D dataset, the Human Reference Atlas female set, in her own pelvis. Not in it yet: the vulva (the outer genitals).",
+    frame: { parts: ["ovaries", "tubes", "uterus", "cervix", "vagina"] },
+    view: { turn: -18, tilt: 16 },
+    note: "From a second 3D dataset, the Human Reference Atlas, built from the Visible Human Project's female donor, a 59-year-old woman. Not in it yet: the vulva (the outer genitals).",
     credit: {
       text: "3D anatomy: Human Reference Atlas female organ set v1.5, Kristen Browne and Heidi Schlehlein (HuBMAP), CC BY 4.0, simplified",
       href: "https://doi.org/10.48539/HBM352.BTSQ.586",
     },
     parts: [
-      { id: "ovaries", name: "Ovaries", line: "Hold your eggs and make the hormones estrogen and progesterone.", color: "#ecb8a6", move: [0.05, 0.02, 0.02], mirror: true, at: 0 },
-      { id: "tubes", name: "Fallopian tubes", short: "Tubes", line: "Catch each egg an ovary releases. This is usually where sperm meets the egg.", color: "#f0a0ae", move: [0.03, 0.035, 0.03], mirror: true, at: 0.06 },
-      { id: "uterus", name: "Uterus", line: "A muscular organ where a pregnancy grows. Its lining sheds each month as a period.", color: "#d76a7a", move: [0, 0.03, 0.05], at: 0.12 },
-      { id: "cervix", name: "Cervix", line: "The neck of the uterus, opening into the vagina.", color: "#c25a6a", move: [0, -0.015, -0.02], at: 0.18 },
-      { id: "vagina", name: "Vagina", line: "The muscular canal from the cervix to the outside of the body.", color: "#e3909b", move: [0, -0.06, -0.02], at: 0.24 },
-      { id: "ligaments", name: "Ligaments", line: "Bands and thin sheets that hold the uterus, tubes and ovaries in place.", color: "#eadbd0", tones: { sheet: "#f2e4dc" }, move: [0, 0.01, -0.07], at: 0.3 },
+      { id: "ovaries", name: "Ovaries", line: "Hold your eggs and make the hormones estrogen and progesterone.", color: "#efd2c4", move: [0.045, 0.015, 0.015], mirror: true, at: 0 },
+      { id: "tubes", name: "Fallopian tubes", short: "Tubes", line: "Catch each egg an ovary releases. This is usually where sperm meets the egg.", color: "#e8909c", move: [0.03, 0.03, 0.025], mirror: true, at: 0.06 },
+      { id: "uterus", name: "Uterus", line: "A muscular organ where a pregnancy grows. Its lining sheds each month as a period.", color: "#c4566a", move: [0, 0.035, 0.03], at: 0.12 },
+      { id: "cervix", name: "Cervix", line: "The neck of the uterus, opening into the vagina.", color: "#df97a2", move: [0, 0.005, 0.005], at: 0.18 },
+      { id: "vagina", name: "Vagina", line: "The muscular canal from the cervix to the outside of the body.", color: "#b9707f", move: [0, -0.05, -0.015], at: 0.24 },
+      { id: "ligaments", name: "Ligaments", line: "Cords that help hold the uterus and ovaries in place.", color: "#dcc6b9", move: [0, 0.005, -0.03], at: 0.3, onlyPicked: true },
       { id: "breasts", name: "Breasts", line: "Milk glands and the ducts that lead from them to the nipple, set in fat.", color: "#f0c4ae", tones: { lobe: "#efb9a6", duct: "#e29a86", fat: "#f6dfa0", areola: "#b97a6c", sheet: "#f2e4dc" }, move: [0.04, 0.03, 0], mirror: true, at: 0.3, onlyPicked: true, view: { turn: -24, tilt: 4 } },
     ],
   },
@@ -325,7 +325,10 @@ export const SYSTEMS3D: SystemSpec[] = [
     context: "none",
     hidden: true,
     view: { turn: -26, tilt: 10 },
-    parts: [{ id: "bones", name: "Bones", line: "", color: "#e6dac1", label: false }],
+    parts: [
+      { id: "bones", name: "Bones", line: "", color: "#e6dac1", label: false },
+      { id: "organs", name: "Bladder and rectum", line: "", color: "#e6dac1", label: false },
+    ],
   },
 ];
 

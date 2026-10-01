@@ -273,17 +273,15 @@ def classify_female(p):
             return [("reproF", "ovaries", "organ", "ovary")]
         if "uterine tube" in n:
             return [("reproF", "tubes", "organ", "tube")]
-        if has(n, *UTERUS):
-            return [("reproF", "uterus", "organ", "uterus")]
-        if has(n, *CERVIX):
-            return [("reproF", "cervix", "organ", "cervix")]
-        if n == "vagina":
-            return [("reproF", "vagina", "organ", "vagina")]
+        # the uterus, cervix and vagina come as open shells (rings, caps, walls) meant to fit together; the build
+        # rebuilds each as one closed organ from them (build_atlas.solid), so they are marked, not drawn as they are
+        if has(n, *UTERUS) or n in ("uterine cervix", "internal cervical os", "external cervical os"):
+            return [("reproF", "uterus+cervix", "solid", n)]
+        if n in ("vagina", "cervicovaginal junction"):
+            return [("reproF", "vagina", "solid", n)]
         if has(n, *CORDS):
             return [("reproF", "ligaments", "organ", "ligament")]
-        if has(n, *SHEETS):
-            return [("reproF", "ligaments", "glass", "sheet")]  # thin sheets: see-through, so the organs show
-        return []  # the pouch between uterus and bladder (a fold of lining, not an organ)
+        return []  # the thin sheets (broad ligament, mesosalpinx, mesovarium) and the pouch: they would veil the organs
     if sysname == "integumentary":
         if "mammary lobe" in n:
             return [("reproF", "breasts", "organ", "lobe")]
@@ -300,6 +298,11 @@ def classify_female(p):
         if n in ("compact bone tissue", "fused sacrum", "coccyx", "femur") or re.match(r"(lumbar|thoracic) vertebra", n):
             return [("pelvisF", "bones", "bone", "bone")]
         return []
+    # the bladder in front and the rectum behind: shown faintly, so the organs sit where they really do
+    if sysname == "urinary" and ("urinary bladder" in n or "trigone" in n):
+        return [("pelvisF", "organs", "organ", "organ")]
+    if sysname == "digestive" and n == "rectum":
+        return [("pelvisF", "organs", "organ", "organ")]
     return []
 
 

@@ -64,7 +64,7 @@ SPEC = {
     # pairs keep left and right apart when merged ("pair"), so the two sides can part
     ("reproF", "tubes"): {"merge": True, "pair": True}, ("reproF", "ligaments"): {"merge": True, "pair": True},
     ("reproF", "breasts"): {"merge": True, "pair": True}, ("reproF", "uterus"): {"merge": True},
-    ("reproF", "cervix"): {"merge": True}, ("pelvisF", "bones"): {"merge": True},
+    ("reproF", "cervix"): {"merge": True}, ("pelvisF", "bones"): {"merge": True}, ("pelvisF", "organs"): {"merge": True},
 }
 FILE_OF = lambda system: "muscles" if system == "muscles" else "female" if system in ("reproF", "pelvisF") else "core"
 
@@ -212,6 +212,35 @@ def side_f(p):
     return 0
 
 
+def solid(groups, h=0.0004, close=4):
+    """One closed, smooth organ from the open shells the source splits it into: mark every surface in a fine grid
+    (h metres), close the small gaps between shells (close voxels), fill the inside, trace its outer surface
+    (marching cubes) and smooth away the steps. The shape is the data's own outline; nothing is drawn in."""
+    from scipy import ndimage
+    from skimage import measure
+    Vall = np.concatenate([V for V, F in groups])
+    lo = Vall.min(0) - (close + 3) * h
+    dims = np.ceil((Vall.max(0) + (close + 3) * h - lo) / h).astype(int) + 1
+    occ = np.zeros(dims, dtype=bool)
+    for V, F in groups:
+        v2, f2 = trimesh.remesh.subdivide_to_size(V, F, max_edge=h * 0.5)
+        idx = np.floor((v2 - lo) / h).astype(int)
+        occ[idx[:, 0], idx[:, 1], idx[:, 2]] = True
+    ball = ndimage.generate_binary_structure(3, 1)
+    occ = ndimage.binary_dilation(occ, ball, iterations=close)
+    occ = ndimage.binary_fill_holes(occ)
+    occ = ndimage.binary_erosion(occ, ball, iterations=close)
+    verts, faces, _, _ = measure.marching_cubes(occ.astype(np.float32), level=0.5, spacing=(h, h, h))
+    m = trimesh.Trimesh(verts + lo, faces, process=True)
+    m = max(m.split(only_watertight=False), key=lambda x: len(x.faces))  # the organ, not stray specks
+    trimesh.smoothing.filter_taubin(m, lamb=0.5, nu=-0.53, iterations=30)
+    return m
+
+
+def centre(groups, name):
+    return np.concatenate([V for (n, V, F) in groups if n == name]).mean(0)
+
+
 if FEMALE:
     FA = json.load(open(os.path.join(FEMALE, "atlas-female.json")))
     fchunks = {}
@@ -221,8 +250,37 @@ if FEMALE:
             fchunks[ci] = open(os.path.join(FEMALE, FA["chunks"][ci]["url"].split("/")[-1]), "rb").read()
         return fchunks[ci]
 
+    shells = defaultdict(list)  # organ -> [(source name, V, F)], rebuilt as closed organs below
     for p in FA["parts"]:
-        add(p, classify_female(p), get=fchunk, sd=side_f(p), scale=SCALE)
+        got = classify_female(p)
+        keep = [g for g in got if g[2] != "solid"]
+        for (s_, c, mat, tone) in got:
+            if mat == "solid":
+                V, F = load(p, fchunk)
+                shells[c].append((tone, V.astype(np.float64), F))
+        add(p, keep, get=fchunk, sd=side_f(p), scale=SCALE)
+
+    def put(c, tone, m):
+        V = np.asarray(m.vertices, dtype=np.float64) / SCALE
+        F = np.asarray(m.faces, dtype=np.int64)
+        V, F = weld(V, F)
+        stats[("reproF", c)][0] += 1
+        stats[("reproF", c)][1] += len(F)
+        pieces["female"].append({"system": "reproF", "cluster": c, "material": "organ", "tone": tone, "side": 0, "name": f"{c} (rebuilt closed)", "V": V, "F": F})
+
+    if shells["uterus+cervix"]:
+        g = shells["uterus+cervix"]
+        u = solid([(V, F) for (_, V, F) in g])
+        # cut where the cervix begins (the internal os), across the uterus's own axis (cervix to fundus)
+        axis = centre(g, "fundus of uterus") - centre(g, "external cervical os")
+        axis /= np.linalg.norm(axis)
+        o = centre(g, "internal cervical os")
+        top = trimesh.intersections.slice_mesh_plane(u, axis, o, cap=True)
+        low = trimesh.intersections.slice_mesh_plane(u, -axis, o, cap=True)
+        put("uterus", "uterus", top)
+        put("cervix", "cervix", low)
+    if shells["vagina"]:
+        put("vagina", "vagina", solid([(V, F) for (_, V, F) in shells["vagina"]]))
 
 for (f, s, c, mat, tone, sd), parts in merged.items():
     Vs, Fs, base = [], [], 0

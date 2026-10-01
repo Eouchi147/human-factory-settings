@@ -151,7 +151,13 @@ const NATURAL: Record<string, string> = {
 
 function makeXray(tint: number) {
   const u = { uTint: { value: new THREE.Color(tint) }, uAlpha: { value: 1 } };
-  const m = new THREE.MeshLambertMaterial({ color: 0x000000, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+  // screen blend: adds light over the dark background like an x-ray, but barely brightens a solid organ
+  // behind it, so bone in front of an organ never washes it out to white
+  const m = new THREE.MeshLambertMaterial({ color: 0x000000, transparent: true, depthWrite: false });
+  m.blending = THREE.CustomBlending;
+  m.blendEquation = THREE.AddEquation;
+  m.blendSrc = THREE.OneMinusDstColorFactor;
+  m.blendDst = THREE.OneFactor;
   m.onBeforeCompile = (sh) => {
     Object.assign(sh.uniforms, u);
     sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nuniform vec3 uTint;\nuniform float uAlpha;").replace(
