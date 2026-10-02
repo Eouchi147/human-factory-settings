@@ -1,0 +1,141 @@
+{
+ "n": 10,
+ "slug": "foam-rolling",
+ "question": "Does foam rolling work?",
+ "area": "posture-looks",
+ "page": "/posture-looks/what-is-fascia",
+ "posts": "2026-11-10",
+ "lines": [
+  {
+   "say": [
+    "Foam rolling.",
+    "Lie on a tube, wince, and believe you're breaking up your fascia."
+   ],
+   "gap": 0.8
+  },
+  {
+   "say": [
+    "Fascia is real: tough collagen wrapped around every muscle."
+   ],
+   "src": [
+    "frs",
+    "openstax"
+   ]
+  },
+  {
+   "say": [
+    "To squash the thick kind by just one percent, one model says you'd need about nine hundred and twenty-five kilos.",
+    "Lying on a roller doesn't come close."
+   ],
+   "src": [
+    "chaudhry2008"
+   ]
+  },
+  {
+   "say": [
+    "So what does rolling do?",
+    "Before exercise, about four percent more flexibility."
+   ],
+   "src": [
+    "wiewelhove2019"
+   ]
+  },
+  {
+   "say": [
+    "No better than stretching.",
+    "And in one trial, the extra range was gone within thirty minutes."
+   ],
+   "src": [
+    "wilke2020",
+    "nakamura2021"
+   ]
+  },
+  {
+   "say": [
+    "After exercise, it eases soreness a little."
+   ],
+   "src": [
+    "wiewelhove2019"
+   ]
+  },
+  {
+   "say": [
+    "One likely reason: your nerves turn down pain and tension for a while.",
+    "The release is mostly in the name."
+   ],
+   "src": [
+    "behm2019"
+   ]
+  },
+  {
+   "say": [
+    "Flushing out lactic acid?",
+    "In one lab test, sports massage actually slowed its clearing."
+   ],
+   "src": [
+    "wiltshire2010"
+   ]
+  },
+  {
+   "say": [
+    "Use it as a warm-up, not a repair kit."
+   ],
+   "src": [
+    "wiewelhove2019"
+   ]
+  },
+  {
+   "say": [
+    "Muscle pain that won't settle with rest?",
+    "See a doctor, not a foam roller."
+   ],
+   "src": [
+    "mayomps"
+   ],
+   "gap": 1.0
+  },
+  {
+   "say": [
+    "Back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "frs": [
+   "Fascia Research Society, fascia nomenclature: \"The fascial system consists of the three-dimensional continuum of soft, collagen containing, loose and dense fibrous connective tissues that permeate the body.\"",
+   "https://fasciaresearchsociety.org/science-research/fascia-nomenclature"
+  ],
+  "openstax": [
+   "OpenStax Anatomy and Physiology 2e, 10.2: \"Each muscle is wrapped in a sheath of dense, irregular connective tissue called the epimysium\"",
+   "https://openstax.org/books/anatomy-and-physiology-2e/pages/10-2-skeletal-muscle"
+  ],
+  "chaudhry2008": [
+   "Chaudhry H et al. Three-dimensional mathematical model for deformation of human fasciae in manual therapy. J Am Osteopath Assoc 2008;108(8):379-390: fascia lata \"a predicted normal load of 9075 N (925 kg) and a tangential force of 4515 N (460 kg) are needed to produce even 1% compression and 1% shear\" (a mathematical model)",
+   "https://www.degruyterbrill.com/document/doi/10.7556/jaoa.2008.108.8.379/html"
+  ],
+  "wiewelhove2019": [
+   "Wiewelhove T et al. A meta-analysis of the effects of foam rolling on performance and recovery. Front Physiol 2019;10:376: 21 studies; before exercise flexibility +4.0% (g = 0.34); after exercise muscle pain perception reduced +6.0% (g = 0.47); effects \"rather minor and partly negligible\"; supports \"foam rolling as a warm-up activity rather than a recovery tool\"",
+   "https://www.frontiersin.org/articles/10.3389/fphys.2019.00376/full"
+  ],
+  "wilke2020": [
+   "Wilke J et al. Acute effects of foam rolling on range of motion in healthy adults: a systematic review with multilevel meta-analysis. Sports Med 2020;50:387-402: 26 trials; vs stretching SMD -0.02 (CI -0.73 to 0.69), no difference",
+   "https://link.springer.com/article/10.1007/s40279-019-01205-7"
+  ],
+  "nakamura2021": [
+   "Nakamura M et al. J Sports Sci Med 2021;20:62-68: 45 participants; ankle range rose after 3 or 10 rounds of 30 s rolling and \"returned to baseline value after 30 minutes\"",
+   "https://jssm.org/jssm-20-62.xml-Fulltext"
+  ],
+  "behm2019": [
+   "Behm DG, Wilke J. Do self-myofascial release devices release myofascia? Rolling mechanisms: a narrative review. Sports Med 2019;49(8):1173-1181: \"insufficient evidence to support that the primary mechanisms underlying rolling and other similar devices are the release of myofascial restrictions and thus the term ‘self-myofascial release’ devices is misleading\"; proposed mechanisms include global pain modulation and reflex reductions in muscle tone; \"Rolling mechanisms underlying their effect on pain suppression are not well elucidated.\"",
+   "https://www.bisp-surf.de/Record/PU202002000917"
+  ],
+  "wiltshire2010": [
+   "Wiltshire EV et al. Massage impairs postexercise muscle blood flow and \"lactic acid\" removal. Med Sci Sports Exerc 2010;42:1062-1071: 12 subjects, sports massage of the forearm after 2 min of strenuous handgrip exercise; \"Massage impairs La(-) and H+ removal from muscle after strenuous exercise by mechanically impeding blood flow\"",
+   "https://api.openalex.org/works/doi:10.1249/MSS.0b013e3181c9214f"
+  ],
+  "mayomps": [
+   "Mayo Clinic, Myofascial pain syndrome (5 Jan 2024): \"if your muscle pain doesn’t go away with rest, massage and other self-care measures, make an appointment with your healthcare professional\"",
+   "https://www.mayoclinic.org/diseases-conditions/myofascial-pain-syndrome/symptoms-causes/syc-20375444"
+  ]
+ }
+}

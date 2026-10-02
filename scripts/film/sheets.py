@@ -1,6 +1,6 @@
 """Recording sheets in the narrator's voice: one table per film (line, how to read it), the guide length from the voice reports.
-Writes rec_f1.md and rec_f2to6.md (markdown for the Direction doc tabs)."""
-import json, os
+Writes rec_f1.md, rec_f2to6.md and rec_f7to12.md (markdown for the Direction doc tabs)."""
+import json, os, datetime
 V = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'voice/guides')
 REPO = '/home/claude/human-factory-settings/content/films'
 S = {
@@ -63,8 +63,73 @@ S = {
     ("The trial that worked built up **slowly:** ‖ **two and a half thousand** steps a day, ‖ then **five thousand**, ‖ then **seven.**", "One beat between each step."),
     ("Feet **painful, stiff, weak or numb?** ‖ See a **doctor**, ‖ not a **shoe shop.**", "Warm, then dry."),
     ("Back to **factory settings.**", "Flat.")],
+7: [("**Mewing.** ‖ Press your whole tongue **flat** against the roof of your mouth, ‖ and wait for a **sharper jaw.**", "Deadpan: read the promise like an instruction manual."),
+    ("It started as one **orthodontist's theory.** ‖ The internet **removed the orthodontist.**", "Flat on the second sentence."),
+    ("Proof it reshapes a **face?** ‖ Britain's orthodontists found **no independent studies.**", ""),
+    ("America's orthodontists **agree**, ‖ and warn that long-term pressure can **loosen teeth** ‖ and **shift your bite.**", ""),
+    ("A normal mouth at rest: ‖ lips **closed**, ‖ breathing through your **nose**, ‖ tongue tip resting behind your **top or bottom** front teeth.", "Slow, like a checklist."),
+    ("And your teeth **slightly apart.** ‖ Mewing tells you to **close them.**", "Dry on the last three words."),
+    ("Mouth and throat exercises do have a **real use.** ‖ In small trials, ‖ a set programme of them ‖ cut sleep apnoea events in **adults.**", "Apnoea: ap-NEE-a."),
+    ("Holding **one tongue position** ‖ is **not** that programme.", "Dry."),
+    ("Children who always breathe through their mouth ‖ do tend to have **longer faces.** ‖ A link, ‖ **not proof.**", ""),
+    ("If your child snores with **pauses** or **gasps**, ‖ or often breathes through the **mouth**, ‖ see a **doctor.** ‖ Big **tonsils** or **adenoids** are a common cause.", "Plain and warm. No humour here."),
+    ("Back to **factory settings.**", "Flat.")],
+8: [("Can't fall **asleep?** ‖ Here's what's been **measured.**", "Dry."),
+    ("Normal is about **ten to twenty minutes.** ‖ Out within a **minute** can mean you're **short on sleep.** ‖ Not a **talent.**", "Flat on the last three words."),
+    ("In studies, ‖ caffeine added about **nine minutes** to falling asleep, ‖ and cut about **forty-five minutes** of sleep.", ""),
+    ("For a regular cup, ‖ one review put the cut-off at almost **nine hours** before bed. ‖ The NHS says **six.**", "A beat before the last sentence."),
+    ("A warm **bath** or **shower**, ‖ one to two hours before bed, ‖ gets you there **sooner.**", ""),
+    ("Trying **hard** backfires ‖ when your head is **busy.** ‖ Students told to fall asleep **fast**, ‖ with **marches** playing, ‖ reported **thirty-four** minutes. ‖ The ones who didn't try: ‖ **twenty-two.**", "Deadpan. A beat before \"twenty-two\"."),
+    ("Not asleep after **twenty minutes?** ‖ Get **up.** ‖ Do something **quiet**, ‖ away from **screens.** ‖ Go back when you're **sleepy.**", "Calm, like instructions."),
+    ("It's part of **CBT** for insomnia, ‖ the **first-line** treatment. ‖ Across **twenty** trials, ‖ people with insomnia fell asleep about **nineteen minutes** faster.", "CBT: say the three letters."),
+    ("Over **thirty minutes**, ‖ **three** nights a week, ‖ for **three months?** ‖ That may be **insomnia.** ‖ See a **doctor.**", "Plain. No humour."),
+    ("Back to **factory settings.**", "Flat.")],
+9: [("Breathe **in**, ‖ and your heart speeds up a **little.** ‖ Breathe **out**, ‖ and it **slows.**", "Slow. Let the listener feel it."),
+    ("You already **sigh** every few minutes without noticing: ‖ a **second breath** on top of the first, ‖ to reopen tiny **air sacs** that fold shut.", ""),
+    ("In a **Stanford** trial, ‖ a **hundred and eight** people, ‖ mostly students, ‖ were given **five minutes** a day of breathing or meditation, ‖ for a **month.**", ""),
+    ("Sighing **on purpose**, ‖ **two** breaths in, ‖ **one long** breath out, ‖ lifted good mood **more** than meditation did.", "Slow on the instruction."),
+    ("Feeling anxious dropped **just as much** with meditation. ‖ And the trial had no **do-nothing** group.", "Dry on the last words."),
+    ("Across **twelve** trials, ‖ breathing exercises cut stress by a **small to medium** amount. ‖ **Useful.** ‖ Not **magic.**", ""),
+    ("Longer **out-breaths?** ‖ In a **twelve-week** trial, ‖ they were **not clearly better** than equal breaths.", ""),
+    ("Skip **hard, fast** breathing drills. ‖ They drop your **carbon dioxide** ‖ and can make you **dizzy.** ‖ **Never** do them in or near **water.**", "Plain on the last sentence."),
+    ("Struggling to **cope** with stress, ‖ or nothing you try is **helping?** ‖ See a **doctor.**", "Plain and warm."),
+    ("Back to **factory settings.**", "Flat.")],
+10: [("**Foam rolling.** ‖ Lie on a **tube**, ‖ **wince**, ‖ and believe you're breaking up your **fascia.**", "Deadpan. Fascia: FASH-ee-a."),
+    ("Fascia is **real:** ‖ tough **collagen** wrapped around **every muscle.**", ""),
+    ("To squash the thick kind by just **one percent**, ‖ one model says you'd need about **nine hundred and twenty-five kilos.** ‖ Lying on a roller doesn't **come close.**", "Flat on the last sentence."),
+    ("So what does rolling **do?** ‖ Before exercise, ‖ about **four percent** more flexibility.", ""),
+    ("No better than **stretching.** ‖ And in one trial, ‖ the extra range was **gone** within **thirty minutes.**", ""),
+    ("After exercise, ‖ it eases soreness **a little.**", ""),
+    ("One likely reason: ‖ your **nerves** turn down **pain** and **tension** for a while. ‖ The release is mostly **in the name.**", "Dry on the last sentence."),
+    ("Flushing out **lactic acid?** ‖ In one lab test, ‖ sports massage actually **slowed** its clearing.", ""),
+    ("Use it as a **warm-up**, ‖ not a **repair kit.**", ""),
+    ("Muscle pain that won't settle with **rest?** ‖ See a **doctor**, ‖ not a **foam roller.**", "Plain, then dry on the last three words."),
+    ("Back to **factory settings.**", "Flat.")],
+11: [("**Creatine.** ‖ Not a **steroid.** ‖ Your body makes about a **gram** of it a day.", "Creatine: KREE-a-teen."),
+    ("About **ninety-five percent** sits in your **muscles**, ‖ where it refuels **short, hard** efforts.", ""),
+    ("Supplements top up that store ‖ by **twenty to forty percent.**", ""),
+    ("In trials, ‖ lifting while taking it ‖ added a little over **a kilo** more lean mass ‖ than lifting **alone.**", ""),
+    ("Take it **without** exercising: ‖ **zero point zero three** kilos. ‖ It doesn't do the **workout** for you.", "Deadpan."),
+    ("In the first weeks, ‖ the scale can go up **one to two kilos.** ‖ Mostly **water.**", ""),
+    ("For memory, ‖ a **small** gain in trials. ‖ **No proof** it prevents or treats dementia.", ""),
+    ("The hair loss scare is **one study** ‖ of **twenty rugby players** ‖ that never **measured hair.** ‖ A **twelve-week** trial that **did** ‖ found **no difference.**", "Stress \"did\"."),
+    ("**Gummies?** ‖ In two lab tests, ‖ close to **half** the brands ‖ had almost **no creatine** in them.", "Dry."),
+    ("It can raise **creatinine** on blood tests, ‖ so tell your **doctor** you take it. ‖ **Kidney** problems, ‖ **diabetes** ‖ or high blood **pressure?** ‖ Ask your doctor **first.**", "Creatinine: kree-AT-i-neen. Plain."),
+    ("Back to **factory settings.**", "Flat.")],
+12: [("People now **tape their mouths shut** at night. ‖ On **purpose.**", "Deadpan."),
+    ("In three yearly **US** polls, ‖ **five to twelve percent** of adults ‖ said they'd **tried it.**", "US: say the two letters."),
+    ("The **promise:** ‖ better sleep, ‖ less snoring, ‖ even a **sharper jaw.**", ""),
+    ("A twenty twenty-five review found **ten** studies, ‖ **two hundred and thirteen** people in total.", ""),
+    ("**Two** showed the main sleep apnoea score **improving.** ‖ Both in **mild** cases. ‖ **Neither** had a comparison group.", ""),
+    ("The authors' verdict: ‖ the data **don't support it** as a treatment.", ""),
+    ("Your **nose** is the better airway in sleep. ‖ But people breathe through the mouth **for a reason**, ‖ often a **blocked nose.**", ""),
+    ("Tape your mouth over a **blocked nose**, ‖ and you've shut your **only other way** to breathe.", "Plain. No humour."),
+    ("**Jawline?** ‖ **No** scientific evidence.", "Dry."),
+    ("Snoring with **pauses**, ‖ **gasping** in your sleep, ‖ **tired** all day, ‖ or a nose that's often **blocked?** ‖ **Don't tape.** ‖ See a **doctor.**", "Plain. No humour."),
+    ("Back to **factory settings.**", "Flat.")],
 }
-NAMES = {1: '01-tired', 2: '02-posture', 3: '03-steps', 4: '04-belly-fat', 5: '05-protein', 6: '06-barefoot'}
+NAMES = {1: '01-tired', 2: '02-posture', 3: '03-steps', 4: '04-belly-fat', 5: '05-protein', 6: '06-barefoot',
+         7: '07-mewing', 8: '08-fall-asleep', 9: '09-breath', 10: '10-foam-rolling', 11: '11-creatine', 12: '12-mouth-taping'}
 HOW = ("Read each line twice, with about three seconds of silence after each take. Calm and close, like talking to one friend "
        "across a table. Say the fact straight, then the dry line flatter than the fact: don't smile into it, let it land in the pause. "
        "Warning lines stay plain. Bold words carry the weight; a ‖ is a short pause. If a line trips you, just say it again.")
@@ -94,3 +159,13 @@ for n in range(2, 7):
     spec, dur, t = table(n); parts.append(f"\n## Film {n}: {spec['question']}\n\nGuide: {dur} s.\n\n{t}")
 open('rec_f2to6.md', 'w').write(''.join(parts))
 print('ok', len(f1), sum(len(p) for p in parts))
+if all(os.path.exists(f'{V}/{NAMES[n]}-report.json') for n in range(7, 13)):
+    parts = [f"# Recording: films 7 to 12\n\nBatch 2, written 2 Oct. Record by 30 October. About 45 minutes for all six, in one sitting if you can.\n\n"
+             f"## Three steps\n\n1. **Once, before you start.** In the RØDE Central app, check on-board recording is still **Manual** (32-bit float).\n"
+             f"2. **Record.** Small soft room, transmitter a hand's width below your chin. One file per film: press record, say the film's number (\"Film seven\"), read its lines, then stop.\n"
+             f"3. **Send.** Put the files in the **HFS voice** folder on Google Drive, or attach them here. I pick the best takes and fit each film to your timing.\n\n{HOW}\n"]
+    for n in range(7, 13):
+        spec, dur, t = table(n); d = datetime.date.fromisoformat(spec['posts'])
+        parts.append(f"\n## Film {n}: {spec['question']}\n\nPosts {d.strftime('%A')} {d.day} {d.strftime('%B')}. Guide: {dur} s.\n\n{t}")
+    open('rec_f7to12.md', 'w').write(''.join(parts))
+    print('batch 2 sheet ok', sum(len(p) for p in parts))

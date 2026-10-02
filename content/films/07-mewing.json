@@ -1,0 +1,160 @@
+{
+ "n": 7,
+ "slug": "mewing",
+ "question": "Does mewing work?",
+ "area": "posture-looks",
+ "page": "/posture-looks/does-mewing-work",
+ "posts": "2026-11-03",
+ "lines": [
+  {
+   "say": [
+    "Mewing.",
+    "Press your whole tongue flat against the roof of your mouth, and wait for a sharper jaw."
+   ],
+   "src": [
+    "cleveland2025"
+   ],
+   "gap": 0.8
+  },
+  {
+   "say": [
+    "It started as one orthodontist's theory.",
+    "The internet removed the orthodontist."
+   ],
+   "src": [
+    "gdpuk2025"
+   ]
+  },
+  {
+   "say": [
+    "Proof it reshapes a face?",
+    "Britain's orthodontists found no independent studies."
+   ],
+   "src": [
+    "bos2024"
+   ]
+  },
+  {
+   "say": [
+    "America's orthodontists agree, and warn that long-term pressure can loosen teeth and shift your bite."
+   ],
+   "src": [
+    "aao2024"
+   ]
+  },
+  {
+   "say": [
+    "A normal mouth at rest: lips closed, breathing through your nose, tongue tip resting behind your top or bottom front teeth."
+   ],
+   "src": [
+    "asha"
+   ]
+  },
+  {
+   "say": [
+    "And your teeth slightly apart.",
+    "Mewing tells you to close them."
+   ],
+   "src": [
+    "asha",
+    "nhstmd",
+    "cleveland2025"
+   ]
+  },
+  {
+   "say": [
+    "Mouth and throat exercises do have a real use.",
+    "In small trials, a set programme of them cut sleep apnoea events in adults."
+   ],
+   "src": [
+    "cochrane2020",
+    "saba2024"
+   ]
+  },
+  {
+   "say": [
+    "Holding one tongue position is not that programme."
+   ],
+   "src": [
+    "cochrane2020",
+    "cleveland2025"
+   ]
+  },
+  {
+   "say": [
+    "Children who always breathe through their mouth do tend to have longer faces.",
+    "A link, not proof."
+   ],
+   "src": [
+    "zheng2020",
+    "zhao2021"
+   ]
+  },
+  {
+   "say": [
+    "If your child snores with pauses or gasps, or often breathes through the mouth, see a doctor.",
+    "Big tonsils or adenoids are a common cause."
+   ],
+   "src": [
+    "nhskids",
+    "ccmouth"
+   ],
+   "gap": 1.0
+  },
+  {
+   "say": [
+    "Back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "cleveland2025": [
+   "Cleveland Clinic, \"What is mewing?\", 28 Jan 2025 (Colleen Clayton, MD): the online instructions: \"Place the tip of your tongue on the roof of your mouth, just behind your teeth... Close your lips and lightly close your teeth. Flatten your tongue against the roof of your mouth... Hold the position for 20 seconds\"",
+   "https://health.clevelandclinic.org/what-is-mewing"
+  ],
+  "gdpuk2025": [
+   "GDPUK obituary of John Mew, 17 Aug 2025: orthotropics, his theory that most malocclusion is environmentally driven; \"Simplified and popularised online, particularly by his son, Mike Mew, the concept of “mewing” reached a global lay audience, albeit often stripped of its clinical framework\"",
+   "https://www.gdpuk.com/news/latest-news/5056-john-mew-1928-2025-orthodontist-and-controversial-figure-in-british-dentistry"
+  ],
+  "bos2024": [
+   "British Orthodontic Society, statement of 26 Jan 2024, on changing the shape of the face by holding the teeth and tongue: \"There are no independent studies or scientific evidence to support this claim.\"",
+   "https://bos.org.uk/news/claims-about-orthodontics/"
+  ],
+  "aao2024": [
+   "American Association of Orthodontists, press release 22 Jan 2024: \"There’s no scientific evidence to support its claims of reshaping the jawline\"; \"Chronic pressure from mewing can loosen teeth, misalign bite, and contribute to tooth wear and tear.\"",
+   "https://aaoinfo.org/wp-content/uploads/2025/01/Risks-of-Mewing.pdf"
+  ],
+  "asha": [
+   "ASHA Practice Portal, orofacial myofunctional disorders: \"The typical oral resting posture consists of the lips closed; nasal breathing; the teeth slightly apart; and the tongue tip resting against the anterior hard palate, at the lower incisors, or overlying gingiva.\" Treated by trained speech-language pathologists in a team with dentists, orthodontists and ENT doctors",
+   "https://www.asha.org/practice-portal/clinical-topics/orofacial-myofunctional-disorders/"
+  ],
+  "nhstmd": [
+   "NHS, Temporomandibular disorder: \"apart from when eating, your teeth should be apart\"",
+   "https://www.nhs.uk/conditions/temporomandibular-disorder-tmd/"
+  ],
+  "cochrane2020": [
+   "Rueda JR et al. Myofunctional therapy (oropharyngeal exercises) for obstructive sleep apnoea. Cochrane Database Syst Rev 2020;CD013449.pub2: 9 RCTs, 347 participants; vs sham, AHI mean difference -13.20 events/h (95% CI -18.48 to -7.93; 2 studies, 82 participants; low-certainty evidence)",
+   "https://merit.url.edu/en/publications/myofunctional-therapy-oropharyngeal-exercises-for-obstructive-sle-8/"
+  ],
+  "saba2024": [
+   "Saba ES et al. Orofacial myofunctional therapy for obstructive sleep apnea: a systematic review and meta-analysis. Laryngoscope 2024;134(1):480-495: 7 RCTs, 310 patients; adults AHI MD -10.2 (95% CI -15.6 to -4.8); limited benefit in children due to poor compliance",
+   "https://researchdiscovery.drexel.edu/esploro/outputs/journalArticle/Orofacial-Myofunctional-Therapy-for-Obstructive-Sleep/991022202115404721"
+  ],
+  "zheng2020": [
+   "Zheng W et al. Facial morphological characteristics of mouth breathers vs nasal breathers: systematic review and meta-analysis. Exp Ther Med 2020;19:3738-3750: longer anterior face height in mouth-breathing children; cross-sectional studies only (\"Long-term longitudinal studies are required\")",
+   "https://spandidos-publications.com/10.3892/etm.2020.8611"
+  ],
+  "zhao2021": [
+   "Zhao Z et al. Effects of mouth breathing on facial skeletal development in children: systematic review and meta-analysis. BMC Oral Health 2021;21:108: 10 studies, 1,358 children; all retrospective",
+   "https://link.springer.com/article/10.1186/s12903-021-01458-7"
+  ],
+  "nhskids": [
+   "NHS Healthier Together, obstructive sleep apnoea in children: most common causes \"Large tonsils at the back of the throat\" and \"Large adenoids at the back of the nose\"; signs include \"Breathing through the mouth\"; \"You should see your GP if you think your child might have OSA.\"",
+   "https://www.healthiertogether.nhs.uk/child-under-12-years/obstructive-sleep-apnoea-osa"
+  ],
+  "ccmouth": [
+   "Cleveland Clinic, Mouth breathing: \"Children who mouth breathe may have swollen or infected adenoids or tonsils that block their airways.\"",
+   "https://my.clevelandclinic.org/health/diseases/22734-mouth-breathing"
+  ]
+ }
+}

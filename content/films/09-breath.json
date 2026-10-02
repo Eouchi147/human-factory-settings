@@ -1,0 +1,142 @@
+{
+ "n": 9,
+ "slug": "breath",
+ "question": "The breath that calms you down",
+ "area": "stress-mood",
+ "page": "/stress-mood/breathing-to-calm-down",
+ "posts": "2026-11-07",
+ "lines": [
+  {
+   "say": [
+    "Breathe in, and your heart speeds up a little.",
+    "Breathe out, and it slows."
+   ],
+   "src": [
+    "lehrer2014",
+    "balban2023"
+   ],
+   "gap": 0.8
+  },
+  {
+   "say": [
+    "You already sigh every few minutes without noticing:",
+    "a second breath on top of the first, to reopen tiny air sacs that fold shut."
+   ],
+   "src": [
+    "li2016",
+    "severs2022",
+    "ucla2016"
+   ]
+  },
+  {
+   "say": [
+    "In a Stanford trial, a hundred and eight people, mostly students, were given five minutes a day of breathing or meditation, for a month."
+   ],
+   "src": [
+    "balban2023"
+   ]
+  },
+  {
+   "say": [
+    "Sighing on purpose, two breaths in, one long breath out, lifted good mood more than meditation did."
+   ],
+   "src": [
+    "balban2023"
+   ]
+  },
+  {
+   "say": [
+    "Feeling anxious dropped just as much with meditation.",
+    "And the trial had no do-nothing group."
+   ],
+   "src": [
+    "balban2023"
+   ]
+  },
+  {
+   "say": [
+    "Across twelve trials, breathing exercises cut stress by a small to medium amount.",
+    "Useful. Not magic."
+   ],
+   "src": [
+    "fincham2023"
+   ]
+  },
+  {
+   "say": [
+    "Longer out-breaths?",
+    "In a twelve-week trial, they were not clearly better than equal breaths."
+   ],
+   "src": [
+    "birdee2023"
+   ]
+  },
+  {
+   "say": [
+    "Skip hard, fast breathing drills.",
+    "They drop your carbon dioxide and can make you dizzy. Never do them in or near water."
+   ],
+   "src": [
+    "medlinehv",
+    "cdc2015"
+   ]
+  },
+  {
+   "say": [
+    "Struggling to cope with stress, or nothing you try is helping?",
+    "See a doctor."
+   ],
+   "src": [
+    "nhsstress"
+   ],
+   "gap": 1.0
+  },
+  {
+   "say": [
+    "Back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "lehrer2014": [
+   "Lehrer PM, Gevirtz R. Heart rate variability biofeedback: how and why does it work? Front Psychol 2014;5:756: \"RSA is the heart pattern that occurs when heart rate increases during inhalation and decreases during exhalation.\"",
+   "https://www.frontiersin.org/articles/10.3389/fpsyg.2014.00756/full"
+  ],
+  "balban2023": [
+   "Balban MY et al. Brief structured respiration practices enhance mood and reduce physiological arousal. Cell Rep Med 2023;4(1):100895: remote randomised trial, 108 participants (mostly Stanford undergraduates), 5 min a day for a month; cyclic sighing raised positive affect significantly more than mindfulness meditation; no differences in state anxiety or negative affect between groups; no non-practice control; \"Inhales increase heart rate and exhales decrease heart rate via respiratory sinus arrhythmia\"",
+   "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC9873947/fullTextXML"
+  ],
+  "li2016": [
+   "Li P et al. The peptidergic control circuit for sighing. Nature 2016;530:293-297: \"Sighs also occur spontaneously every few minutes to reinflate alveoli\"",
+   "https://www.nature.com/articles/nature16964"
+  ],
+  "severs2022": [
+   "Severs LJ, Vlemincx E, Ramirez JM. The psychophysiology of the sigh: I. Biol Psychol 2022;170:108313: sighs \"play a critical role in controlling lung compliance by preventing the collapse of alveoli\"",
+   "https://research.vu.nl/en/publications/the-psychophysiology-of-the-sigh-i-the-sigh-from-the-physiologica/"
+  ],
+  "ucla2016": [
+   "UCLA Health news release, 8 Feb 2016, Jack Feldman: \"It starts out as a normal breath, but before you exhale, you take a second breath on top of it.\" (press release)",
+   "https://www.uclahealth.org/news/release/ucla-and-stanford-researchers-pinpoint-origin-of-sighing-reflex-in-the-brain"
+  ],
+  "fincham2023": [
+   "Fincham GW et al. Effect of breathwork on stress and mental health: a meta-analysis of randomised-controlled trials. Sci Rep 2023;13:432: 12 RCTs, 785 adults; self-reported stress g = -0.35 (95% CI -0.55 to -0.14), \"small-to-medium\"; the authors warn against \"a miscalibration between hype and evidence\"",
+   "https://www.nature.com/articles/s41598-022-27247-y"
+  ],
+  "birdee2023": [
+   "Birdee G et al. Slow breathing for reducing stress: the effect of extending exhale. Complement Ther Med 2023;73:102937: randomised, 100 healthy adults, 12 weeks; \"breath ratios do not have a significant differential effect on stress reduction among healthy adults\"",
+   "https://qigonginstitute.org/abstract-print/18181"
+  ],
+  "medlinehv": [
+   "MedlinePlus, Hyperventilation: \"Excessive breathing creates a low level of carbon dioxide in your blood. This causes many of the symptoms of hyperventilation\", including \"Feeling lightheaded, dizzy\"",
+   "https://medlineplus.gov/ency/article/003071.htm"
+  ],
+  "cdc2015": [
+   "Boyd C et al. Fatal and nonfatal drowning outcomes related to dangerous underwater breath-holding behaviors, New York State, 1988-2011. MMWR 2015;64(19): hyperventilation or breath-holding before swimming can cause loss of consciousness underwater",
+   "https://www.cdc.gov/mmwr/preview/mmwrhtml/mm6419a3.htm"
+  ],
+  "nhsstress": [
+   "NHS, Stress (reviewed 6 Mar 2026): \"See a GP if: you’re struggling to cope with stress; things you’re trying yourself are not helping\"",
+   "https://www.nhs.uk/mental-health/feelings-symptoms-behaviours/feelings-and-symptoms/stress/"
+  ]
+ }
+}

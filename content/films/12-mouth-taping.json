@@ -1,0 +1,157 @@
+{
+ "n": 12,
+ "slug": "mouth-taping",
+ "question": "Is mouth taping safe?",
+ "area": "sleep-energy",
+ "page": "/sleep-energy/is-mouth-taping-safe",
+ "posts": "2026-11-14",
+ "lines": [
+  {
+   "say": [
+    "People now tape their mouths shut at night.",
+    "On purpose."
+   ],
+   "src": [
+    "clevelandmt"
+   ],
+   "gap": 0.8
+  },
+  {
+   "say": [
+    "In three yearly US polls, five to twelve percent of adults said they'd tried it."
+   ],
+   "src": [
+    "aasm2023",
+    "aasm2024",
+    "aasm2025"
+   ]
+  },
+  {
+   "say": [
+    "The promise: better sleep, less snoring, even a sharper jaw."
+   ],
+   "src": [
+    "rhee2025",
+    "sleepfoundation"
+   ]
+  },
+  {
+   "say": [
+    "A twenty twenty-five review found ten studies, two hundred and thirteen people in total."
+   ],
+   "src": [
+    "rhee2025"
+   ]
+  },
+  {
+   "say": [
+    "Two showed the main sleep apnoea score improving.",
+    "Both in mild cases. Neither had a comparison group."
+   ],
+   "src": [
+    "rhee2025",
+    "lee2022",
+    "huang2015"
+   ]
+  },
+  {
+   "say": [
+    "The authors' verdict: the data don't support it as a treatment."
+   ],
+   "src": [
+    "rhee2025"
+   ]
+  },
+  {
+   "say": [
+    "Your nose is the better airway in sleep.",
+    "But people breathe through the mouth for a reason, often a blocked nose."
+   ],
+   "src": [
+    "fitzpatrick2003",
+    "rhee2025"
+   ]
+  },
+  {
+   "say": [
+    "Tape your mouth over a blocked nose, and you've shut your only other way to breathe."
+   ],
+   "src": [
+    "rhee2025",
+    "rotenberg2025"
+   ]
+  },
+  {
+   "say": [
+    "Jawline?",
+    "No scientific evidence."
+   ],
+   "src": [
+    "sleepfoundation"
+   ]
+  },
+  {
+   "say": [
+    "Snoring with pauses, gasping in your sleep, tired all day, or a nose that's often blocked?",
+    "Don't tape. See a doctor."
+   ],
+   "src": [
+    "nhsosa",
+    "clevelandmt",
+    "sleepfoundation"
+   ],
+   "gap": 1.0
+  },
+  {
+   "say": [
+    "Back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "clevelandmt": [
+   "Cleveland Clinic, Is mouth tape safe to use while sleeping? (25 Jul 2025, Brian Chen, MD): \"Mouth taping is the act of taping your mouth shut... so you’re forced to breathe through your nose\"; never use it with \"Nasal obstruction\", \"Nasal congestion\", \"Chronic allergies\", \"Sinus infections\", \"Enlarged tonsils\", \"Deviated septum\", \"Heart issues\"",
+   "https://health.clevelandclinic.org/mouth-taping"
+  ],
+  "aasm2023": [
+   "American Academy of Sleep Medicine, 25 Jul 2023: \"More than one in 10 (12%) people have tried the dangerous ‘mouth taping’ trend\"; online survey of 2,005 US adults, 24 to 29 March 2023",
+   "https://aasm.org/viral-tiktok-trends-are-not-the-answer-for-better-sleep/"
+  ],
+  "rhee2025": [
+   "Rhee J, Iansavitchene A, Mannala S, Graham ME, Rotenberg B. Breaking social media fads and uncovering the safety and efficacy of mouth taping. PLOS One 2025;20(5):e0323643: \"10 met inclusion criteria with a total of 213 patients\"; \"Two studies showed statistically significant improvement in established markers of sleep apnea\"; risks \"including asphyxiation in the presence of nasal obstruction\"; \"The existing data does not support mouth taping or oral occlusion as a sound clinical intervention for the general population with sleep disordered breathing.\"",
+   "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0323643"
+  ],
+  "sleepfoundation": [
+   "Sleep Foundation, Mouth taping for sleep (updated 23 Mar 2026): claims include to \"define the jawline\"; \"There is no scientific evidence that mouth taping directly improves the jawline.\"; not for people with untreated sleep apnoea or nasal congestion",
+   "https://www.sleepfoundation.org/sleep-hygiene/mouth-taping-for-sleep"
+  ],
+  "lee2022": [
+   "Lee YC et al. The impact of mouth-taping in mouth-breathers with mild obstructive sleep apnea: a preliminary study. Healthcare (Basel) 2022;10(9):1755: 20 patients, retrospective, \"without a control group\"; median AHI 8.3 to 4.7 events/h",
+   "https://www.mdpi.com/2227-9032/10/9/1755"
+  ],
+  "huang2015": [
+   "Huang TW, Young TH. Novel porous oral patches for patients with mild obstructive sleep apnea and mouth breathing: a pilot study. Otolaryngol Head Neck Surg 2015;152(2):369-373: 30 patients, median AHI 12.0 to 7.8; single-centre case series without a control group (as described by Rhee 2025)",
+   "https://api.crossref.org/works/10.1177/0194599814559383"
+  ],
+  "fitzpatrick2003": [
+   "Fitzpatrick MF et al. Effect of nasal or oral breathing route on upper airway resistance during sleep. Eur Respir J 2003;22(5):827-832: 12 healthy adults; \"Upper airway resistance during sleep and the propensity to obstructive sleep apnoea are significantly lower while breathing nasally rather than orally.\"",
+   "https://publications.ersnet.org/content/erj/22/5/827"
+  ],
+  "rotenberg2025": [
+   "The Canadian Press, 21 May 2025, senior author Brian Rotenberg: taping the mouth when the airway is already blocked behind it means \"you’ve now blocked off basically half of your airway\"",
+   "https://www.cp24.com/news/canada/2025/05/21/no-evidence-mouth-taping-is-effective-and-could-be-harmful-for-some-new-study-says"
+  ],
+  "aasm2024": [
+   "American Academy of Sleep Medicine, 2024 sleep prioritization survey (online, 2,006 US adults, May 2024): \"Mouth taping 101 (5%)\"",
+   "https://aasm.org/wp-content/uploads/2024/07/sleep-prioritization-survey-2024-social-media-trends.pdf"
+  ],
+  "aasm2025": [
+   "American Academy of Sleep Medicine, 2025 survey (online, 2,007 US adults, 5 to 13 June 2025): \"Mouth taping (7%)\"",
+   "https://aasm.org/scrolling-for-sleep-the-social-media-trends-impacting-americans-sleep-habits/"
+  ],
+  "nhsosa": [
+   "NHS, Sleep apnoea (reviewed 11 May 2026): \"See a GP if: your breathing stops and starts while you sleep; you make gasping, snorting or choking noises while you sleep; you always feel very tired during the day\"",
+   "https://www.nhs.uk/conditions/sleep-apnoea/"
+  ]
+ }
+}

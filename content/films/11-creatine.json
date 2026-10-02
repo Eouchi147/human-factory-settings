@@ -1,0 +1,179 @@
+{
+ "n": 11,
+ "slug": "creatine",
+ "question": "What does creatine do?",
+ "area": "fitness-strength",
+ "page": "/fitness-strength/what-does-creatine-do",
+ "posts": "2026-11-12",
+ "lines": [
+  {
+   "say": [
+    "Creatine.",
+    "Not a steroid. Your body makes about a gram of it a day."
+   ],
+   "src": [
+    "antonio2021",
+    "odsconsumer"
+   ],
+   "gap": 0.6
+  },
+  {
+   "say": [
+    "About ninety-five percent sits in your muscles, where it refuels short, hard efforts."
+   ],
+   "src": [
+    "issn2017",
+    "ioc2018"
+   ]
+  },
+  {
+   "say": [
+    "Supplements top up that store by twenty to forty percent."
+   ],
+   "src": [
+    "issn2017"
+   ]
+  },
+  {
+   "say": [
+    "In trials, lifting while taking it added a little over a kilo more lean mass than lifting alone."
+   ],
+   "src": [
+    "delpino2022",
+    "chilibeck2017"
+   ]
+  },
+  {
+   "say": [
+    "Take it without exercising: zero point zero three kilos.",
+    "It doesn't do the workout for you."
+   ],
+   "src": [
+    "delpino2022"
+   ]
+  },
+  {
+   "say": [
+    "In the first weeks, the scale can go up one to two kilos. Mostly water."
+   ],
+   "src": [
+    "ioc2018",
+    "odshp"
+   ]
+  },
+  {
+   "say": [
+    "For memory, a small gain in trials.",
+    "No proof it prevents or treats dementia."
+   ],
+   "src": [
+    "prokopidis2023",
+    "xu2024",
+    "smith2025"
+   ]
+  },
+  {
+   "say": [
+    "The hair loss scare is one study of twenty rugby players that never measured hair.",
+    "A twelve-week trial that did found no difference."
+   ],
+   "src": [
+    "vandermerwe2009",
+    "lak2025"
+   ]
+  },
+  {
+   "say": [
+    "Gummies?",
+    "In two lab tests, close to half the brands had almost no creatine in them."
+   ],
+   "src": [
+    "gummies2025",
+    "gummies2024"
+   ]
+  },
+  {
+   "say": [
+    "It can raise creatinine on blood tests, so tell your doctor you take it.",
+    "Kidney problems, diabetes or high blood pressure? Ask your doctor first."
+   ],
+   "src": [
+    "akf2026",
+    "royaldevon2025",
+    "antonio2021"
+   ],
+   "gap": 1.0
+  },
+  {
+   "say": [
+    "Back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "antonio2021": [
+   "Antonio J et al. Common questions and misconceptions about creatine supplementation. J Int Soc Sports Nutr 2021;18:13: \"because creatine has a completely different chemical structure, it is not an anabolic steroid\"; in one review of studies, 12 showed no rise in serum creatinine, 8 a rise within the normal range, 2 a rise above normal limits",
+   "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC7871530/fullTextXML"
+  ],
+  "odsconsumer": [
+   "NIH Office of Dietary Supplements, Dietary Supplements for Exercise and Athletic Performance (consumer): \"Your body produces some creatine (about 1 gram a day)\"; \"In studies, people often took a loading dose of about 20 grams per day of creatine (in four equal portions) for 5 to 7 days and then 3 to 5 grams a day.\"",
+   "https://ods.od.nih.gov/factsheets/ExerciseAndAthleticPerformance-Consumer/"
+  ],
+  "issn2017": [
+   "Kreider RB et al. ISSN position stand: safety and efficacy of creatine supplementation. J Int Soc Sports Nutr 2017;14:18: skeletal muscle holds about 95%; supplementation increases \"muscle creatine and PCr by 20-40%\"; phosphocreatine \"can be used as a buffer to resynthesize ATP\"",
+   "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC5469049/fullTextXML"
+  ],
+  "ioc2018": [
+   "Maughan RJ et al. IOC consensus statement: dietary supplements and the high-performance athlete. Br J Sports Med 2018;52:439-455: effects \"most pronounced... during tasks <30 s\"; \"A potential 1-2 kg BM increase after creatine loading (primarily as a result of water retention)\"",
+   "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC5867441/fullTextXML"
+  ],
+  "odshp": [
+   "NIH ODS (health professional): typical protocol \"a loading phase for 5-7 days... followed by a maintenance phase of 3-5 g/day\"; creatine with strength training \"can lead to a 1-2 kg increase in total body weight in a month\"",
+   "https://ods.od.nih.gov/factsheets/ExerciseAndAthleticPerformance-HealthProfessional/"
+  ],
+  "delpino2022": [
+   "Delpino F et al. Influence of age, sex, and type of exercise on the efficacy of creatine supplementation on lean body mass. Nutrition 2022;103-104:111791: 35 studies, 1,192 participants; with resistance training MD 1.10 kg (95% CI 0.56 to 1.65); without exercise MD 0.03 kg (95% CI -0.65 to 0.70)",
+   "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:10.1016/j.nut.2022.111791&format=json&resultType=core"
+  ],
+  "chilibeck2017": [
+   "Chilibeck PD et al. Effect of creatine supplementation during resistance training on lean tissue mass and muscular strength in older adults: a meta-analysis. Open Access J Sports Med 2017;8:213-226: 22 studies, 721 participants; lean tissue +1.37 kg (95% CI 0.97 to 1.76)",
+   "https://www.dovepress.com/effect-of-creatine-supplementation-during-resistance-training-on-lean--peer-reviewed-fulltext-article-OAJSM"
+  ],
+  "prokopidis2023": [
+   "Prokopidis K et al. Effects of creatine supplementation on memory in healthy individuals: systematic review and meta-analysis of RCTs. Nutr Rev 2023;81(4):416-427: memory SMD 0.29 (95% CI 0.04 to 0.53); \"The findings presented here should be interpreted with caution.\"",
+   "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC9999677/fullTextXML"
+  ],
+  "xu2024": [
+   "Xu C et al. The effects of creatine supplementation on cognitive function in adults. Front Nutr 2024;11:1424972: 16 RCTs, 492 participants; memory SMD 0.31 (95% CI 0.18 to 0.44), moderate certainty; no effect on overall cognitive function",
+   "https://www.frontiersin.org/journals/nutrition/articles/10.3389/fnut.2024.1424972/full"
+  ],
+  "smith2025": [
+   "Smith AN et al. Creatine monohydrate pilot in Alzheimer’s. Alzheimers Dement (N Y) 2025;11(2):e70101: \"there is currently no clinical evidence demonstrating the effects of CrM in patients with AD\"; single-arm pilot of 20 patients",
+   "https://api.crossref.org/works/10.1002/trc2.70101"
+  ],
+  "vandermerwe2009": [
+   "van der Merwe J et al. Three weeks of creatine monohydrate supplementation affects dihydrotestosterone to testosterone ratio in college-aged rugby players. Clin J Sport Med 2009;19(5):399-404: n = 20; DHT rose 56% after loading; hair was not measured",
+   "https://api.openalex.org/works/doi:10.1097/JSM.0b013e3181b8b52f"
+  ],
+  "lak2025": [
+   "Lak M et al. Does creatine cause hair loss? A 12-week randomized controlled trial. J Int Soc Sports Nutr 2025;22(Suppl 1):2495229: 5 g a day, 38 men analysed; \"There were no significant differences in DHT levels, DHT-to-testosterone ratio, or hair growth parameters between the creatine and placebo groups.\"",
+   "https://www.ebi.ac.uk/europepmc/webservices/rest/PMC12020143/fullTextXML"
+  ],
+  "gummies2025": [
+   "NutraIngredients, 8 Jul 2025: in tests at Eurofins commissioned by a fitness influencer, five of nine creatine gummy brands \"contained less than 2% of the claimed amount of creatine\" (not peer reviewed)",
+   "https://www.nutraingredients.com/Article/2025/07/08/are-creatine-gummies-a-viable-delivery-format/"
+  ],
+  "gummies2024": [
+   "SupplySide Supplement Journal, 4 Mar 2024: the manufacturer NOW tested 12 creatine gummy brands and found 5 failed their label claim, containing \"little to no creatine content\" (not peer reviewed)",
+   "https://supplysidesj.com/supplement-regulations/now-tests-creatine-gummies-finding-almost-half-to-be-severely-understrength-"
+  ],
+  "akf2026": [
+   "American Kidney Fund, 13 Aug 2026: creatine \"can raise your serum creatinine levels\"; \"it’s important to inform your doctor prior to any routine blood work\"; people with kidney conditions, high blood pressure, diabetes or heart disease \"should talk to their doctors before taking any supplements\"",
+   "https://www.kidneyfund.org/article/creatine-scoop-essential-cautions-kidney-community"
+  ],
+  "royaldevon2025": [
+   "Royal Devon University Healthcare NHS Foundation Trust, Protein advice for people with kidney disease (Oct 2025): \"it’s not advisable to take creatine, as it can be hard on the kidneys\"",
+   "https://www.royaldevon.nhs.uk/media/1ypo1pnl/protein-advice-for-people-with-kidney-disease-rd-25-787-001.pdf"
+  ]
+ }
+}
