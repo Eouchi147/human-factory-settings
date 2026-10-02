@@ -39,3 +39,17 @@ python3 film_render.py frames2 --film film02 --w 1080 --h 1920 --fps 24 --t0 0 -
 python3 sound_film02.py guides/02-posture-voice-guide.wav guides/02-posture-report.json snd02
 python3 assemble_film.py 2 frames2 snd02
 ```
+
+## Added on 2 October
+- `rig.js`: a skeleton rig built on the real anatomy (spine, arms, legs with foot IK on any ground) and a walk cycle
+  (`walkAt`), so a skeleton can walk, climb and stand. Film 3 walks up a hill; films 6, 21 and 33 will reuse it.
+- **Re-timing** (`retime.py`, `build_retime.py`, `retime/filmNN.json`): when the words change, the picture follows
+  the new voice instead of being rebuilt. Anchors pair a moment in the new voice with the same moment in the film;
+  a monotone curve through them maps every frame (`--retime` in `film_render.py`), and the sound places its cues
+  through the inverse curve. Films 1 and 2 were re-timed to the narrator's new lines this way.
+- **Motion blur that follows the subject**: a film can declare `carrier(S, t)` (what the camera rides with, like a
+  walker); blur is then measured against it, so the subject stays sharp while the world moves. The blur also never
+  smears a near object onto the far background (no more ghost copies on fast orbits).
+- `films/film03.js` (10,000 steps), `sound_film03.py`: the footsteps and the pedometer's clicks come from the same
+  walk the picture uses.
+- `render_film.sh <film> <outdir> <t1> <port> [retime json]`: a full render in two halves; resumable.

@@ -168,21 +168,29 @@ export function spot(scene, { color = 0xffffff, pos, target, angle = 0.5, penumb
 // (depth from the depth-of-field pass; world points are reprojected with the camera at the shutter's start and end)
 export const MotionShader = {
   uniforms: { tDiffuse: { value: null }, tDepth: { value: null }, uProjInv: { value: new THREE.Matrix4() }, uCamWorld: { value: new THREE.Matrix4() },
-    uVP0: { value: new THREE.Matrix4() }, uVP1: { value: new THREE.Matrix4() }, uRes: { value: new THREE.Vector2(1, 1) }, uMax: { value: 90 }, uOn: { value: 1 } },
+    uVP0: { value: new THREE.Matrix4() }, uVP1: { value: new THREE.Matrix4() }, uRes: { value: new THREE.Vector2(1, 1) }, uMax: { value: 90 }, uOn: { value: 1 },
+    uNear: { value: 0.005 }, uFar: { value: 12 } },
   vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }',
   fragmentShader: `#include <packing>
-    uniform sampler2D tDiffuse, tDepth; uniform mat4 uProjInv, uCamWorld, uVP0, uVP1; uniform vec2 uRes; uniform float uMax, uOn; varying vec2 vUv;
+    uniform sampler2D tDiffuse, tDepth; uniform mat4 uProjInv, uCamWorld, uVP0, uVP1; uniform vec2 uRes; uniform float uMax, uOn, uNear, uFar; varying vec2 vUv;
+    float depthAt(vec2 uv) { float d = unpackRGBAToDepth(texture2D(tDepth, uv)); return d < 0.5 ? 0.9999 : d; }  // the empty background is cleared with its colour, not a depth: far away
+    float lin(float d) { return uNear * uFar / (uFar - d * (uFar - uNear)); }
     void main(){
-      float d = unpackRGBAToDepth(texture2D(tDepth, vUv));
-      if (d < 0.5) d = 0.9999; // the empty background is cleared with its colour, not a depth: treat it as far away
+      float d = depthAt(vUv), z0 = lin(d);
       vec4 v = uProjInv * vec4(vUv * 2.0 - 1.0, d * 2.0 - 1.0, 1.0); v /= v.w;
       vec4 w = uCamWorld * v;
       vec4 a = uVP0 * w, b = uVP1 * w; a /= a.w; b /= b.w;
       vec2 dv = (b.xy - a.xy) * 0.5 * uOn;
       float len = length(dv * uRes); if (len > uMax) dv *= uMax / len;
-      vec3 acc = vec3(0.0);
-      for (int i = 0; i < 16; i++) { float f = (float(i) + 0.5) / 16.0 - 0.5; acc += texture2D(tDiffuse, vUv + dv * f).rgb; }
-      gl_FragColor = vec4(acc / 16.0, 1.0);
+      // gather along the path, but never smear something much nearer onto this pixel (a bone over the far background):
+      // that is what made ghost copies of a subject the camera circles
+      vec3 acc = vec3(0.0); float ws = 0.0;
+      for (int i = 0; i < 16; i++) {
+        float f = (float(i) + 0.5) / 16.0 - 0.5; vec2 uv = vUv + dv * f;
+        float w = step(z0 * 0.85, lin(depthAt(uv)));
+        acc += texture2D(tDiffuse, uv).rgb * w; ws += w;
+      }
+      gl_FragColor = vec4(ws > 0.5 ? acc / ws : texture2D(tDiffuse, vUv).rgb, 1.0);
     }`,
 };
 
@@ -368,6 +376,27 @@ export function logoEnd(S, t, { t0, center, edge }) {
   const bo = ss(t0 + 0.35, t0 + 1.0, t); O.brand.style.opacity = bo.toFixed(3); O.brand.style.filter = `blur(${((1 - bo) * 10).toFixed(2)}px)`;
 }
 
+// a smooth, monotone time map through anchor pairs [[tNew, tOld], ...] (Fritsch-Carlson cubic), so a finished film
+// can follow a new voice: every frame at new time t shows the film at tOld = map(t). Mirrors retime.py exactly.
+export function timeMap(R) {
+  const n = R.length, x = R.map((r) => r[0]), y = R.map((r) => r[1]), d = [], m = new Array(n);
+  for (let i = 0; i < n - 1; i++) d.push((y[i + 1] - y[i]) / (x[i + 1] - x[i]));
+  m[0] = d[0]; m[n - 1] = d[n - 2];
+  for (let i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2;
+  for (let i = 0; i < n - 1; i++) {
+    if (d[i] === 0) { m[i] = 0; m[i + 1] = 0; continue; }
+    const a = m[i] / d[i], b = m[i + 1] / d[i], s = a * a + b * b;
+    if (s > 9) { const k = 3 / Math.sqrt(s); m[i] = k * a * d[i]; m[i + 1] = k * b * d[i]; }
+  }
+  return (t) => {
+    if (t <= x[0]) return y[0] + (t - x[0]) * m[0];
+    if (t >= x[n - 1]) return y[n - 1] + (t - x[n - 1]) * m[n - 1];
+    let i = 0; while (t > x[i + 1]) i++;
+    const h = x[i + 1] - x[i], s = (t - x[i]) / h, s2 = s * s, s3 = s2 * s;
+    return (2 * s3 - 3 * s2 + 1) * y[i] + (s3 - 2 * s2 + s) * h * m[i] + (-2 * s3 + 3 * s2) * y[i + 1] + (s3 - s2) * h * m[i + 1];
+  };
+}
+
 // ------------------------------------------------------------------ a film: one continuous shot, from a definition
 // F = { T, caps, subs, stage, build(S, cfg), update(S, t), pose(S, t) -> {p, l, fov}, focus?(S, t, pose), aperture?, bloom?, preRender?(S, t), overlay?(S, t) }
 export function makeFilm(F) {
@@ -375,6 +404,7 @@ export function makeFilm(F) {
   const dist = (P) => Math.hypot(P.p[0] - P.l[0], P.p[1] - P.l[1], P.p[2] - P.l[2]);
   async function init(cfg) {
     S = await createStage(cfg, F.stage || {});
+    S.tmap = cfg.retime ? timeMap(cfg.retime) : (x) => x;
     const info = await F.build(S, cfg);
     buildOverlay(S, { caps: F.caps || [], subs: F.subs || [], guide: cfg.guide });
     if (F.overlayInit) F.overlayInit(S);
@@ -382,8 +412,9 @@ export function makeFilm(F) {
   }
   function render(t, opts = {}) {
     const sub = opts.sub ?? 1, shutter = opts.shutter ?? 0.5, fps = opts.fps ?? 24, r = S.r, ctx = S.ctx;
+    const M = S.tmap;
     for (let k = 0; k < sub; k++) {
-      const tk = sub > 1 ? t + ((k + 0.5) / sub - 0.5) * (shutter / fps) : t;
+      const tn = sub > 1 ? t + ((k + 0.5) / sub - 0.5) * (shutter / fps) : t, tk = M(tn);
       TIME.value = tk;
       F.update(S, tk);
       const P = F.pose(S, tk); aimCam(S.cam, P, tk, F.shake ?? 1);
@@ -392,11 +423,16 @@ export function makeFilm(F) {
       u.aperture.value = F.aperture ? keys(F.aperture, tk) : 0.004; u.maxblur.value = 0.012 * S.res;
       S.bloom.strength = F.bloom ? keys(F.bloom, tk) : 0.45;
       r.shadowMap.needsUpdate = true;
-      { const half = (shutter / fps) / sub / 2, m = S.motion.uniforms;
-        aimCam(S.camM0, F.pose(S, tk - half), tk - half, F.shake ?? 1); aimCam(S.camM1, F.pose(S, tk + half), tk + half, F.shake ?? 1);
+      { const half = (shutter / fps) / sub / 2, m = S.motion.uniforms, ta = M(tn - half), tb = M(tn + half);
+        let Pa = F.pose(S, ta), Pb = F.pose(S, tb);
+        if (F.carrier) {   // the camera rides with something that moves (a walker): blur relative to it, so the rider stays sharp
+          const c0 = F.carrier(S, tk), sh = (P, c) => { const d = c0.map((v, i) => v - c[i]); return { ...P, p: vadd(P.p, d), l: vadd(P.l, d) }; };
+          Pa = sh(Pa, F.carrier(S, ta)); Pb = sh(Pb, F.carrier(S, tb));
+        }
+        aimCam(S.camM0, Pa, ta, F.shake ?? 1); aimCam(S.camM1, Pb, tb, F.shake ?? 1);
         m.uVP0.value.multiplyMatrices(S.camM0.projectionMatrix, S.camM0.matrixWorldInverse);
         m.uVP1.value.multiplyMatrices(S.camM1.projectionMatrix, S.camM1.matrixWorldInverse);
-        m.uProjInv.value.copy(S.cam.projectionMatrixInverse); m.uCamWorld.value.copy(S.cam.matrixWorld); m.uOn.value = (opts.noMotion || S.cfg.noMotion) ? 0 : 1; }
+        m.uProjInv.value.copy(S.cam.projectionMatrixInverse); m.uCamWorld.value.copy(S.cam.matrixWorld); m.uNear.value = S.cam.near; m.uFar.value = S.cam.far; m.uOn.value = (opts.noMotion || S.cfg.noMotion) ? 0 : 1; }
       if (S.refl) { S.refl.material.uniforms.uBg.value.copy(S.bg); S.refl.material.uniforms.uAmt.value = S.reflAmt; }
       if (F.preRender) F.preRender(S, tk);
       S.composer.render();
@@ -404,27 +440,28 @@ export function makeFilm(F) {
       ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = 1 / (k + 1); ctx.drawImage(r.domElement, 0, 0);
     }
     ctx.globalAlpha = 1;
-    const words = Math.max(0, ...(F.caps || []).filter((c) => !c.noScrim).map((c) => ss(c.t0 - 0.3, c.t0 + 0.2, t) * (1 - ss(c.t1 - 0.3, c.t1 + 0.3, t))));
+    const tf = M(t);
+    const words = Math.max(0, ...(F.caps || []).filter((c) => !c.noScrim).map((c) => ss(c.t0 - 0.3, c.t0 + 0.2, tf) * (1 - ss(c.t1 - 0.3, c.t1 + 0.3, tf))));
     if (words > 0.001) { ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = words; ctx.fillStyle = S.scrim; ctx.fillRect(0, 0, S.size.x, S.size.y * 0.5); ctx.globalAlpha = 1; }
     ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = S.vig; ctx.fillRect(0, 0, S.size.x, S.size.y);
     ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = 0.16;
     const f = Math.round(t * 24), pat = S.grain[f % S.grain.length];
     ctx.save(); ctx.translate(-Math.floor(hash(f) * 256), -Math.floor(hash(f + 0.5) * 256)); ctx.fillStyle = pat; ctx.fillRect(0, 0, S.size.x + 256, S.size.y + 256); ctx.restore();
     ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
-    for (const c of S.O.caps) wordsIn(c, t);
-    if (F.overlay) F.overlay(S, t);
-    if (S.O.sub) { const s = S.O.subs.find(([a, b]) => t >= a - 0.05 && t <= b + 0.35); S.O.sub.textContent = s ? s[2] : ''; }
+    for (const c of S.O.caps) wordsIn(c, tf);
+    if (F.overlay) F.overlay(S, tf);
+    if (S.O.sub) { const s = S.O.subs.find(([a, b]) => tf >= a - 0.05 && tf <= b + 0.35); S.O.sub.textContent = s ? s[2] : ''; }
     return true;
   }
   function motion(t, fps = 24, shutter = 0.5) {
-    const dt = shutter / fps, a = F.pose(S, t - dt / 2), b = F.pose(S, t + dt / 2);
+    const dt = shutter / fps, a = F.pose(S, S.tmap(t - dt / 2)), b = F.pose(S, S.tmap(t + dt / 2));
     const pa = new THREE.Vector3().fromArray(a.p), pb = new THREE.Vector3().fromArray(b.p);
     const fa = new THREE.Vector3().fromArray(a.l).sub(pa), fb = new THREE.Vector3().fromArray(b.l).sub(pb);
     const d = Math.max(0.02, (fa.length() + fb.length()) / 2);
     const ang = fa.normalize().angleTo(fb.normalize()) + pa.distanceTo(pb) / d + Math.abs((a.fov ?? 30) - (b.fov ?? 30)) * Math.PI / 180 * 0.5;
     return (ang / ((a.fov ?? 30) * Math.PI / 180)) * 1920;
   }
-  const api = { init, render, motion, info: () => ({ T: F.T }), T: F.T, debug: () => S };
+  const api = { init, render, motion, info: () => ({ T: F.T }), T: F.T, debug: () => S, film: F };
   window.HFS = window.HFS || {}; window.HFS.film = api;
   return api;
 }

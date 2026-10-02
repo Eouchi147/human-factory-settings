@@ -8,7 +8,8 @@
  "lines": [
   {
    "say": [
-    "How much protein do you actually need?"
+    "How much protein do you need?",
+    "Less than the supplement aisle hopes."
    ],
    "gap": 1.3
   },
@@ -39,8 +40,10 @@
   },
   {
    "say": [
-    "If you lift weights, extra protein does help, a little.",
-    "In forty-nine trials, it added about three hundred grams of lean mass."
+    "If you lift weights, extra protein does help.",
+    "A little.",
+    "In forty-nine trials, it added about three hundred grams of lean mass.",
+    "Not quite the body on the label."
    ],
    "src": [
     "morton2018"
@@ -48,7 +51,7 @@
   },
   {
    "say": [
-    "But above one point six grams per kilo, it stopped adding anything."
+    "And above about one point six grams per kilo, the gains stopped."
    ],
    "src": [
     "morton2018"
@@ -66,7 +69,7 @@
    "say": [
     "So: at least point eight a day.",
     "Training? Up to one point six.",
-    "Past that, more isn't better."
+    "Past that, you're buying more protein, not more muscle."
    ],
    "src": [
     "efsa",
@@ -76,7 +79,8 @@
   {
    "say": [
     "Kidney disease?",
-    "Ask your doctor or dietitian what's right for you."
+    "Ask your doctor or dietitian.",
+    "Not a video. Including this one."
    ],
    "src": [
     "niddk"

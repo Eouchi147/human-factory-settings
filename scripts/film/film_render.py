@@ -7,7 +7,7 @@ ap.add_argument('out'); ap.add_argument('--w', type=int, default=540); ap.add_ar
 ap.add_argument('--fps', type=float, default=12); ap.add_argument('--t0', type=float, default=0); ap.add_argument('--t1', type=float, default=63)
 ap.add_argument('--times', default=''); ap.add_argument('--guide', action='store_true'); ap.add_argument('--blur', action='store_true')
 ap.add_argument('--port', type=int, default=8771); ap.add_argument('--shadow', type=int, default=1024); ap.add_argument('--png', action='store_true')
-ap.add_argument('--extra', default='{}'); ap.add_argument('--rw', type=int, default=0); ap.add_argument('--rh', type=int, default=0); ap.add_argument('--start', type=int, default=0); ap.add_argument('--step', type=int, default=1); ap.add_argument('--end', type=int, default=0); ap.add_argument('--film', default='')
+ap.add_argument('--extra', default='{}'); ap.add_argument('--rw', type=int, default=0); ap.add_argument('--rh', type=int, default=0); ap.add_argument('--start', type=int, default=0); ap.add_argument('--step', type=int, default=1); ap.add_argument('--end', type=int, default=0); ap.add_argument('--film', default=''); ap.add_argument('--retime', default='')
 a = ap.parse_args()
 # motion blur: sub-frames where the picture moves (from the camera's own motion, measured in the page),
 # plus a floor where things move on their own: the time-lapse hands, the dials' clicks, the hands swinging home
@@ -34,10 +34,14 @@ async def main():
             await pg.goto(f'http://127.0.0.1:{a.port}/' + (f'film.html?f={a.film}' if a.film else 'index_film.html'))
             await pg.wait_for_function('!!(window.HFS && window.HFS.filmReady)', timeout=120000)
             t = time.time()
-            info = await pg.evaluate('c => window.HFS.film.init(c)', {'width': a.rw or a.w, 'height': a.rh or a.h, 'guide': a.guide, 'shadow': a.shadow, **json.loads(a.extra)})
+            RT = json.load(open(a.retime))['anchors'] if a.retime else None
+            info = await pg.evaluate('c => window.HFS.film.init(c)', {'width': a.rw or a.w, 'height': a.rh or a.h, 'guide': a.guide, 'shadow': a.shadow, **({'retime': RT} if RT else {}), **json.loads(a.extra)})
             await pg.evaluate('() => document.fonts.ready')
             print('init', round(time.time() - t, 1), 's', json.dumps(info)[:600], logs[:5], flush=True)
             if a.film: FAST[:] = [tuple(x) for x in info.get('fast', [])]   # each film says where things move fast on their own
+            if RT:   # the film's fast stretches are in its own time: move them to the new voice's time
+                sys.path.insert(0, HERE); from retime import timemap, inverse
+                inv = inverse(timemap(RT)); FAST[:] = [(inv(t0), inv(t1), n) for t0, t1, n in FAST]
             if a.times:
                 times = [float(x) for x in a.times.split(',')]
             else:
@@ -52,7 +56,7 @@ async def main():
                 await pg.evaluate('([t, s, f]) => window.HFS.film.render(t, { sub: s, fps: f })', [tt, n, a.fps])
                 if a.png: await pg.screenshot(path=name, timeout=600000)
                 else: await pg.screenshot(path=name, type='jpeg', quality=93, timeout=600000)  # heavy sub-frame work can take minutes
-                if i % 10 == 0 or a.times: print(f'{i} t={tt:.2f} sub={n} {time.time() - t:.2f}s', logs[-3:] if logs else '', flush=True)
+                if (i // a.step) % 5 == 0 or a.times: print(f'{i} t={tt:.2f} sub={n} {time.time() - t:.2f}s', logs[-3:] if logs else '', flush=True)
             await b.close()
     finally:
         srv.terminate()

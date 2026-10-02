@@ -8,7 +8,8 @@
  "lines": [
   {
    "say": [
-    "Are barefoot shoes good for your feet?"
+    "Barefoot shoes: shoes designed to feel like no shoes.",
+    "Do they work?"
    ],
    "gap": 1.3
   },
@@ -37,7 +38,8 @@
   },
   {
    "say": [
-    "Foot exercises did even more: fifty-eight percent."
+    "Foot exercises did even more: fifty-eight percent.",
+    "No new shoes required."
    ],
    "src": [
     "ridge2019"
@@ -54,7 +56,8 @@
   {
    "say": [
     "But don't switch overnight.",
-    "When runners moved to toe shoes over ten weeks, ten of nineteen showed bone stress on MRI."
+    "When runners moved to toe shoes over ten weeks, ten of nineteen showed bone stress on MRI.",
+    "Ten weeks. Still too fast."
    ],
    "src": [
     "ridge2013"
@@ -71,7 +74,7 @@
   {
    "say": [
     "Feet painful, stiff, weak or numb?",
-    "See a doctor."
+    "See a doctor, not a shoe shop."
    ],
    "src": [
     "nhsflat"

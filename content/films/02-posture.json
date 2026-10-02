@@ -9,13 +9,14 @@
   {
    "say": [
     "Trying to fix your posture?",
-    "Here's what the science says."
+    "You may be fixing the wrong thing."
    ]
   },
   {
    "say": [
     "One: there's no perfect posture.",
-    "The straight line in textbooks comes from a nineteenth-century model of a body standing still without using its muscles."
+    "The textbook straight line comes from a nineteenth-century model of a body standing still without using its muscles.",
+    "That describes nobody alive."
    ],
    "src": [
     "barra2024"
@@ -23,7 +24,8 @@
   },
   {
    "say": [
-    "Forty-one reviews of the evidence found no proof that posture causes back pain."
+    "Forty-one reviews of the evidence found no proof that posture causes back pain.",
+    "Forty-one."
    ],
    "src": [
     "swain2020"
@@ -42,7 +44,7 @@
   {
    "say": [
     "Three: text neck.",
-    "The famous sixty pounds on your neck came from a computer model."
+    "The famous sixty pounds on your neck came from a computer model, not from measuring people."
    ],
    "src": [
     "hansraj2014"
@@ -50,7 +52,7 @@
   },
   {
    "say": [
-    "When scientists measured more than seven hundred people, the angle of their neck didn't predict neck pain."
+    "When scientists did measure people, more than seven hundred of them, neck angle didn't predict neck pain."
    ],
    "src": [
     "damasceno2018",
@@ -60,7 +62,8 @@
   {
    "say": [
     "So change position often.",
-    "Get up once an hour."
+    "Get up once an hour.",
+    "The best posture is the next one."
    ],
    "src": [
     "mayo2019",
@@ -79,6 +82,7 @@
   {
    "say": [
     "Back pain with numbness or weakness in both legs, or changes in your bladder?",
+    "That's not posture.",
     "Get help right away."
    ],
    "src": [

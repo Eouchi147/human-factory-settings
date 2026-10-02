@@ -8,13 +8,15 @@
  "lines": [
   {
    "say": [
-    "Doing crunches to lose belly fat?"
+    "Doing crunches to lose belly fat?",
+    "You'll get strong abs.",
+    "Under the same fat."
    ],
    "gap": 1.2
   },
   {
    "say": [
-    "Working a muscle doesn't burn the fat that sits on top of it."
+    "A muscle doesn't burn the fat sitting on top of it."
    ],
    "src": [
     "hm2022"
@@ -39,7 +41,8 @@
   {
    "say": [
     "In another, people trained only one arm for twelve weeks.",
-    "On the scans, there was no difference between the two arms."
+    "On the scans, no difference between the two arms.",
+    "Spot reduction is a myth with excellent marketing."
    ],
    "src": [
     "kostek2007"
@@ -58,7 +61,8 @@
   {
    "say": [
     "And to lose fat anywhere, eat and drink a little less than you use.",
-    "Your body then burns its stored fat for energy."
+    "Your body burns its stored fat.",
+    "It picks where. You don't."
    ],
    "src": [
     "nhscal"

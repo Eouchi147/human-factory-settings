@@ -654,12 +654,13 @@ function aimCam(cam, k, t, shake = 1) {
 
 // ------------------------------------------------------------------ one moment of the film
 const TOD = (h, m = 0, s = 0) => h * 3600 + m * 60 + s;
-function clockTime(t) {
-  if (t < 8) return TOD(6, 59, 59.4) + t;
-  if (t < T.dawn0) return TOD(23, 47, 10) + (t - 33);
-  const a = TOD(23, 47, 10) + (T.dawn0 - 33), b = TOD(24 + 7, 0, 0);
+function clockTime(t) { // the second hand keeps real seconds, even when the film is re-timed to a new voice
+  const rt = W.realT ?? t, inv = W.tinv || ((x) => x);
+  if (t < 8) return TOD(6, 59, 59.4) + rt;
+  if (t < T.dawn0) return TOD(23, 47, 10) + (rt - inv(33));
+  const a = TOD(23, 47, 10) + (inv(T.dawn0) - inv(33)), b = TOD(24 + 7, 0, 0);
   if (t < T.seven) return lerp(a, b, s5(T.dawn0, T.seven, t));
-  return b + (t - T.seven);
+  return b + (rt - inv(T.seven));
 }
 function brainDay(t) { // the time of day in the brain's day, for the read-out
   if (t < T.night) return lerp(TOD(7), TOD(25), s5(T.fill0, T.night - 0.15, t));
@@ -1017,4 +1018,36 @@ function debugPose(t, pt) { // where a world point lands on screen with the main
   const a = v.clone().project(W.cam); aimCam(W.camM0, poseAt(t), t); const b = v.clone().project(W.camM0);
   return [a.x, a.y, b.x, b.y];
 }
-H.film = { init, render, info, motion, T, debugPose };
+// a smooth, monotone time map through anchor pairs [[tNew, tOld], ...] (Fritsch-Carlson cubic), so a finished film
+// can follow a new voice: every frame at new time t shows the film at tOld = map(t). Mirrors retime.py exactly.
+function timeMap(R) {
+  const n = R.length, x = R.map((r) => r[0]), y = R.map((r) => r[1]), d = [], m = new Array(n);
+  for (let i = 0; i < n - 1; i++) d.push((y[i + 1] - y[i]) / (x[i + 1] - x[i]));
+  m[0] = d[0]; m[n - 1] = d[n - 2];
+  for (let i = 1; i < n - 1; i++) m[i] = d[i - 1] * d[i] <= 0 ? 0 : (d[i - 1] + d[i]) / 2;
+  for (let i = 0; i < n - 1; i++) {
+    if (d[i] === 0) { m[i] = 0; m[i + 1] = 0; continue; }
+    const a = m[i] / d[i], b = m[i + 1] / d[i], s = a * a + b * b;
+    if (s > 9) { const k = 3 / Math.sqrt(s); m[i] = k * a * d[i]; m[i + 1] = k * b * d[i]; }
+  }
+  return (t) => {
+    if (t <= x[0]) return y[0] + (t - x[0]) * m[0];
+    if (t >= x[n - 1]) return y[n - 1] + (t - x[n - 1]) * m[n - 1];
+    let i = 0; while (t > x[i + 1]) i++;
+    const h = x[i + 1] - x[i], s = (t - x[i]) / h, s2 = s * s, s3 = s2 * s;
+    return (2 * s3 - 3 * s2 + 1) * y[i] + (s3 - 2 * s2 + s) * h * m[i] + (-2 * s3 + 3 * s2) * y[i + 1] + (s3 - s2) * h * m[i + 1];
+  };
+}
+let TMAP = (x) => x;
+async function initR(cfg) {
+  TMAP = cfg.retime ? timeMap(cfg.retime) : (x) => x;
+  const info = await init(cfg);
+  W.tinv = (u) => { let a = -5, b = 400; for (let i = 0; i < 60; i++) { const c = (a + b) / 2; if (TMAP(c) < u) a = c; else b = c; } return (a + b) / 2; };
+  return info;
+}
+function renderR(t, opts = {}) { // the shutter is open for the same real time; in film time it is longer or shorter
+  W.realT = t;
+  const fps = opts.fps ?? 24, sh = opts.shutter ?? 0.5, a = TMAP(t - sh / fps / 2), b = TMAP(t + sh / fps / 2);
+  return render(TMAP(t), { ...opts, shutter: Math.max(0.05, (b - a) * fps) });
+}
+H.film = { init: initR, render: renderR, info, motion: (t, f, sh) => motion(TMAP(t), f, sh), T, debugPose };

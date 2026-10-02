@@ -1,0 +1,141 @@
+{
+ "n": 1,
+ "slug": "tired",
+ "question": "Why am I always tired?",
+ "area": "sleep-energy",
+ "page": "/sleep-energy/why-am-i-always-tired",
+ "posts": "2026-10-20",
+ "lines": [
+  {
+   "say": [
+    "Always tired?",
+    "Before you blame life, check the three things you control."
+   ]
+  },
+  {
+   "say": [
+    "One: short sleep.",
+    "All day, a chemical called adenosine builds up in your brain and makes you sleepy."
+   ],
+   "src": [
+    "reichert2022",
+    "porkka1997"
+   ]
+  },
+  {
+   "say": [
+    "Sleep clears it.",
+    "Cut sleep short, and you start the day with yesterday's leftovers."
+   ],
+   "src": [
+    "reichert2022"
+   ]
+  },
+  {
+   "say": [
+    "Two: late coffee.",
+    "Coffee doesn't clear that chemical.",
+    "It hides it, and then it eats into your sleep."
+   ],
+   "src": [
+    "reichert2022",
+    "gardiner2023"
+   ]
+  },
+  {
+   "say": [
+    "A coffee at six p.m.?",
+    "About half of it is still in you at eleven.",
+    "You're not a light sleeper.",
+    "You're caffeinated."
+   ],
+   "src": [
+    "iom2001",
+    "drake2013"
+   ]
+  },
+  {
+   "say": [
+    "Three: late light.",
+    "Bright light at night, even room light, tells your body clock it's still day,"
+   ],
+   "src": [
+    "gooley2011",
+    "chang2015"
+   ],
+   "gap": 0.3
+  },
+  {
+   "say": [
+    "so your sleep signal comes later.",
+    "Your alarm doesn't."
+   ],
+   "src": [
+    "gooley2011"
+   ]
+  },
+  {
+   "say": [
+    "For a seven a.m. alarm: in bed by eleven, last coffee by two, lights low from eight."
+   ],
+   "src": [
+    "drake2013",
+    "gardiner2023",
+    "brown2022"
+   ]
+  },
+  {
+   "say": [
+    "Still tired after all that?",
+    "See a doctor.",
+    "Low iron or your thyroid can cause it, and coffee fixes neither."
+   ],
+   "src": [
+    "medlineplus"
+   ]
+  },
+  {
+   "say": [
+    "Back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "reichert2022": [
+   "Reichert CF, Deboer T, Landolt HP. Adenosine, caffeine, and sleep-wake regulation: state of the science and perspectives. J Sleep Res 2022",
+   "https://doi.org/10.1111/jsr.13597"
+  ],
+  "porkka1997": [
+   "Porkka-Heiskanen T et al. Adenosine: a mediator of the sleep-inducing effects of prolonged wakefulness. Science 1997 (in cats)",
+   "https://doi.org/10.1126/science.276.5316.1265"
+  ],
+  "iom2001": [
+   "Institute of Medicine 2001. Caffeine for the Sustainment of Mental Task Performance: how the body handles caffeine",
+   "https://www.ncbi.nlm.nih.gov/books/NBK223808/"
+  ],
+  "gardiner2023": [
+   "Gardiner C et al. The effect of caffeine on subsequent sleep: a systematic review and meta-analysis (24 studies). Sleep Med Rev 2023",
+   "https://doi.org/10.1016/j.smrv.2023.101764"
+  ],
+  "drake2013": [
+   "Drake C et al. Caffeine effects on sleep taken 0, 3, or 6 hours before going to bed. J Clin Sleep Med 2013",
+   "https://doi.org/10.5664/jcsm.3170"
+  ],
+  "gooley2011": [
+   "Gooley JJ et al. Exposure to room light before bedtime suppresses melatonin onset and shortens melatonin duration in humans. J Clin Endocrinol Metab 2011",
+   "https://pmc.ncbi.nlm.nih.gov/articles/PMC3047226/"
+  ],
+  "chang2015": [
+   "Chang AM et al. Evening use of light-emitting eReaders negatively affects sleep, circadian timing, and next-morning alertness. PNAS 2015",
+   "https://www.psu.edu/news/research/story/light-emitting-e-readers-detrimentally-shift-circadian-clock"
+  ],
+  "brown2022": [
+   "Brown TM et al. Recommendations for daytime, evening, and nighttime indoor light exposure to best support physiology, sleep, and wakefulness in healthy adults. PLoS Biol 2022",
+   "https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.3001571"
+  ],
+  "medlineplus": [
+   "MedlinePlus. Fatigue: causes, and when to contact a provider",
+   "https://medlineplus.gov/ency/article/003088.htm"
+  ]
+ }
+}
