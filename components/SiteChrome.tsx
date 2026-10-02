@@ -48,7 +48,12 @@ export function SiteHeader() {
               </Link>
             ))}
           </nav>
-          <Link href="/how-we-check" className={`nav-link ${path.startsWith("/how-we-check") ? "on" : ""}`} style={{ display: "inline-flex", alignItems: "center", gap: 7 }}>
+          <Link
+            href="/how-we-check"
+            className={`nav-link ${path.startsWith("/how-we-check") ? "on" : ""}`}
+            aria-current={path.startsWith("/how-we-check") ? "page" : undefined}
+            style={{ display: "inline-flex", alignItems: "center", gap: 7 }}
+          >
             <Icon name="check" size={15} />
             How we check facts
           </Link>

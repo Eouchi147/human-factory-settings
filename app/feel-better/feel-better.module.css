@@ -7,7 +7,7 @@
 .links { display: flex; flex-direction: column; gap: 8px; margin-top: auto; }
 .links a { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--edge); color: var(--ink); text-decoration: none; font-size: 14px; font-weight: 600; background: rgba(18, 21, 26, 0.5); }
 .links a:hover { border-color: rgba(255, 122, 61, 0.45); }
-.dim { opacity: 0.72; }
+.dim { opacity: 0.88; } /* lowest that keeps the grey small print inside at 4.5:1 or more */
 
 .plan { display: grid; gap: 28px; grid-template-columns: 1fr; align-items: start; }
 @media (min-width: 980px) { .plan { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 56px; } }

@@ -27,9 +27,9 @@ export default function ExplorePage() {
 
         <header className={s.head}>
           <div className="kick a-in">Your body</div>
-          <p className="h1 a-in a-d1" style={{ margin: 0 }}>
+          <h2 className="h1 a-in a-d1" style={{ margin: 0 }}>
             How your body works, <span className="serif">one part at a time.</span>
-          </p>
+          </h2>
           <p className="lede a-in a-d2">
             Pick a part. Each page explains what it does in plain words, with real 3D pictures. Every picture comes from the same 3D body, so the sizes fit together: the
             13.2 cm heart sits in the chest of a body 1.83 m tall.
@@ -51,7 +51,7 @@ export default function ExplorePage() {
                     <div className="kick">{x.group}</div>
                     <Measured text="Real sizes" />
                   </div>
-                  <div className="h3">{x.name}</div>
+                  <h3 className="h3">{x.name}</h3>
                   <p style={{ margin: 0, fontSize: 14.5, lineHeight: 1.5, color: "var(--ink2)" }}>{x.card}</p>
                   <div>
                     {x.cardRows.map(([k, v]) => (
@@ -78,9 +78,9 @@ export default function ExplorePage() {
                   <Image src={x.img} alt={x.alt} fill sizes="120px" placeholder="blur" blurDataURL={BLUR[x.img]} style={{ objectFit: "cover" }} />
                 </div>
                 <div className="stack gap-6">
-                  <span className="h3">
+                  <h3 className="h3">
                     {x.name} <span className="serif" style={{ color: "var(--signal-ink)", fontSize: 20 }}>{x.tagline}</span>
-                  </span>
+                  </h3>
                   <span style={{ fontSize: 14, color: "var(--ink3)" }}>{x.card}</span>
                   <span className="mono" style={{ fontSize: 12, color: "var(--ink2)" }}>
                     {x.cardRows[0][0]} · <span style={{ color: "var(--ink)" }}>{x.cardRows[0][1]}</span>

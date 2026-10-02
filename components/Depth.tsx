@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useId, useState, type ReactNode } from "react";
-import { motion } from "motion/react";
+import { MotionConfig, motion } from "motion/react";
 
 export type Depth = 0 | 1 | 2;
 const NAMES = ["Simple", "Detailed", "Expert"] as const;
@@ -29,7 +29,12 @@ export function DepthProvider({ children }: { children: ReactNode }) {
       /* ignore */
     }
   }, []);
-  return <DepthCtx.Provider value={{ depth, setDepth }}>{children}</DepthCtx.Provider>;
+  // This provider wraps every page, so it also tells Motion to honour "reduce motion": movement stops, fades stay.
+  return (
+    <DepthCtx.Provider value={{ depth, setDepth }}>
+      <MotionConfig reducedMotion="user">{children}</MotionConfig>
+    </DepthCtx.Provider>
+  );
 }
 
 export function useDepth() {

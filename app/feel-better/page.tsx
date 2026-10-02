@@ -74,7 +74,7 @@ export default function RestorePage() {
                     {STATUS[x.status]}
                   </span>
                 </div>
-                <div className="h3">{x.name}</div>
+                <h2 className="h3">{x.name}</h2>
                 <p style={{ margin: 0, fontSize: 14.5, color: "var(--ink2)", lineHeight: 1.5 }}>{x.line}</p>
                 {x.links.length ? (
                   <div className={s.links}>

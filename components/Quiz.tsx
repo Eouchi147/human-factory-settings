@@ -22,6 +22,11 @@ import { Icon } from "./Icons";
 const TOTAL = TRAIT_ITEMS.length + STYLE_ITEMS.length;
 const ease = [0.16, 1, 0.3, 1] as const;
 
+/** The button you pressed leaves the page, so focus moves to what replaced it: keyboard and screen reader users keep their place. */
+function focusIfLost(el: HTMLElement | null) {
+  if (el && (!document.activeElement || document.activeElement === document.body)) el.focus({ preventScroll: true });
+}
+
 export function Quiz() {
   const [started, setStarted] = useState(false);
   const [answers, setAnswers] = useState<number[]>([]);
@@ -91,8 +96,9 @@ export function Quiz() {
 
   return (
     <div className="quiz-run">
+      <h1 className="visually-hidden">Personality quiz</h1>
       <div className="quiz-top">
-        <button type="button" className="icon-btn" aria-label="Back" onClick={back} style={{ width: 40, height: 40 }}>
+        <button type="button" className="icon-btn" aria-label="Back" onClick={back}>
           <Icon name="back" size={18} />
         </button>
         <div style={{ flex: 1 }}>
@@ -121,7 +127,7 @@ export function Quiz() {
           style={{ marginTop: 36 }}
         >
           <div className="kick">{isStyle ? "Which sounds most like you?" : "How well does this describe you?"}</div>
-          <h2 className="h1 balance" style={{ fontSize: "clamp(28px, 4vw, 44px)" }}>
+          <h2 ref={focusIfLost} tabIndex={-1} className="h1 balance" style={{ fontSize: "clamp(28px, 4vw, 44px)" }}>
             {q}
           </h2>
           <div role="group" aria-label="Answer" className="stack gap-10">
@@ -169,19 +175,20 @@ function Result({ r, restart }: { r: { e: number; n: number; t: keyof typeof TEM
   };
   return (
     <motion.div className="quiz-result" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.7, ease }}>
+      <h1 className="visually-hidden">Personality quiz</h1>
       <div className="quiz-result-grid">
         <div className="stack gap-20">
           <div style={{ display: "flex", gap: 18, alignItems: "center" }}>
             <Dial size={132} active={r.index} />
             <div className="stack gap-6">
               <div className="kick">Your type</div>
-              <div className="x108" style={{ fontSize: 34, fontWeight: 650, letterSpacing: "-.02em", lineHeight: 1.02 }}>
+              <h2 ref={focusIfLost} tabIndex={-1} className="x108" style={{ margin: 0, fontSize: 34, fontWeight: 650, letterSpacing: "-.02em", lineHeight: 1.02 }}>
                 {T.name}
                 <br />
                 <span className="serif" style={{ fontSize: 36, color: "var(--signal-ink)" }}>
                   {S.name}
                 </span>
-              </div>
+              </h2>
             </div>
           </div>
           <p className="lede" style={{ margin: 0 }}>

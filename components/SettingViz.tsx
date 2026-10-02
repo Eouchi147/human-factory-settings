@@ -6,7 +6,7 @@ const KINDS: ("fire" | "air" | "water" | "earth")[] = ["fire", "air", "water", "
 /** The Default Dial at large size: twelve positions (four temperaments × three styles), the pointer on yours. */
 export function Dial({ size = 140, active }: { size?: number; active: number }) {
   const c = 70, r = 64;
-  const P = (deg: number, rad: number) => [c + rad * Math.cos((deg * Math.PI) / 180), c + rad * Math.sin((deg * Math.PI) / 180)];
+  const P = (deg: number, rad: number) => [+(c + rad * Math.cos((deg * Math.PI) / 180)).toFixed(2), +(c + rad * Math.sin((deg * Math.PI) / 180)).toFixed(2)];
   const ang = (k: number) => k * 30 - 90 + 15;
   const ticks = [];
   for (let k = 0; k < 12; k++) {
@@ -84,7 +84,7 @@ export function TraitMap({ e, n }: { e: number; n: number }) {
           <g transform={`translate(${x - 38} ${y - 11})`}>
             <ElementGlyph kind={kind} size={14} color="rgba(236,238,241,.55)" stroke={1.4} />
           </g>
-          <text x={x - 20} y={y} fontFamily={MONO} fontSize="9.5" letterSpacing="1" fill="rgba(236,238,241,.55)">
+          <text x={x - 20} y={y} fontFamily={MONO} fontSize="9.5" letterSpacing="1" fill="rgba(236,238,241,.7)">
             {name}
           </text>
         </g>

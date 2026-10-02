@@ -323,6 +323,9 @@ a.card:hover { border-color: rgba(255, 122, 61, 0.45); transform: translateY(-2p
 .brand { display: inline-flex; align-items: center; gap: 10px; text-decoration: none; color: var(--ink); }
 .brand .word { font-variation-settings: "wdth" 108; font-size: 15px; font-weight: 650; letter-spacing: -0.01em; white-space: nowrap; }
 .brand:hover { color: var(--ink); }
+.site-header .brand { min-height: 44px; } /* a full-size tap target; the bars centre it, so nothing moves */
+/* breadcrumb links are small text: a taller tap target that takes no extra room */
+nav[aria-label="Breadcrumb"] a { padding-block: 8px; margin-block: -8px; }
 .nav-link {
   color: var(--ink3); text-decoration: none; font-size: 14px; font-weight: 600; padding: 8px 12px; border-radius: 999px;
   transition: color 0.25s var(--ease), background 0.25s var(--ease);
@@ -346,6 +349,7 @@ a.card:hover { border-color: rgba(255, 122, 61, 0.45); transform: translateY(-2p
 
 .footer { border-top: 1px solid var(--line); padding: 48px 0 40px; margin-top: 40px; color: var(--ink3); font-size: 13.5px; }
 .footer a { color: var(--ink2); text-decoration: none; }
+.footer nav a { padding-block: 4px; margin-block: -4px; } /* taps reach 29 px tall without moving the links */
 .footer a:hover { color: var(--ink); }
 
 /* motion helpers */
@@ -489,7 +493,8 @@ a.card:hover { border-color: rgba(255, 122, 61, 0.45); transform: translateY(-2p
 .tool-scale { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 10.5px; color: var(--ink3); }
 .tool-drinks { display: flex; flex-wrap: wrap; gap: 8px; }
 @media (max-width: 600px) {
-  .tool-drinks { flex-wrap: nowrap; overflow-x: auto; margin: 0 -20px; padding: 2px 20px 6px; scroll-snap-type: x proximity; scrollbar-width: none; }
+  /* room around the chips, and snapping that respects it, so a focused chip's ring is never cut off by the scroller */
+  .tool-drinks { flex-wrap: nowrap; overflow-x: auto; margin: -4px -20px 0; padding: 6px 20px 6px; scroll-padding-inline: 20px; scroll-snap-type: x proximity; scrollbar-width: none; }
   .tool-drinks::-webkit-scrollbar { display: none; }
   .tool-drinks .chip { scroll-snap-align: start; flex: none; }
 }

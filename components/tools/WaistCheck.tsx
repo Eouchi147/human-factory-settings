@@ -27,7 +27,7 @@ export function WaistCheck() {
         <span className="kick" style={{ fontSize: 10.5 }}>
           Try it
         </span>
-        <h3 className="tool-title">Is your waist less than half your height?</h3>
+        <h2 className="tool-title">Is your waist less than half your height?</h2>
         <p className="tool-text">
           Wrap a tape around your middle, halfway between your lowest rib and the top of your hip (just above your belly button). Breathe out normally, then measure.
           Use the same unit for both numbers.

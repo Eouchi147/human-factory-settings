@@ -131,7 +131,7 @@ export function PulseCheck() {
         <span className="kick" style={{ fontSize: 10.5 }}>
           Try it
         </span>
-        <h3 className="tool-title">Check your pulse</h3>
+        <h2 className="tool-title">Check your pulse</h2>
         <p className="tool-text">
           Sit still for a minute. Put your index and middle fingers on the inside of your wrist, just below your thumb, until you feel the beat.
         </p>

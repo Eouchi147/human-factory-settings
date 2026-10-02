@@ -32,7 +32,7 @@ export function ProteinCheck() {
         <span className="kick" style={{ fontSize: 10.5 }}>
           Try it
         </span>
-        <h3 className="tool-title">How much protein do you need a day?</h3>
+        <h2 className="tool-title">How much protein do you need a day?</h2>
         <div className="row-wrap gap-8">
           {WHO.map((x) => (
             <button key={x.k} type="button" className={`chip ${who === x.k ? "on" : ""}`} aria-pressed={who === x.k} onClick={() => setWho(x.k)}>

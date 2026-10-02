@@ -11,7 +11,8 @@ export function ClockRing({ from, to, size = 220, center, sub = "CAFFEINE-FREE",
   const rr = r * 1.1;
   const pt = (h: number, rad: number) => {
     const a = ((h * 15 - 90) * Math.PI) / 180;
-    return [cx + rad * Math.cos(a), cy + rad * Math.sin(a)];
+    // rounded, so the server and the browser print the same numbers (no hydration mismatch)
+    return [+(cx + rad * Math.cos(a)).toFixed(2), +(cy + rad * Math.sin(a)).toFixed(2)];
   };
   const ticks = [];
   for (let k = 0; k < 24; k++) {
@@ -159,7 +160,7 @@ export function PressureSketch() {
       <text x={X(20)} y={T + 2} textAnchor="middle" fontFamily={MONO} fontSize="9.5" fill="#C9B6F5">
         ASLEEP
       </text>
-      <text x={L} y={H - 8} fontFamily={MONO} fontSize="9" fill="rgba(236,238,241,.45)">
+      <text x={L} y={H - 8} fontFamily={MONO} fontSize="9" fill="rgba(236,238,241,.55)">
         A SIMPLE DRAWING, NOT REAL DATA
       </text>
     </svg>

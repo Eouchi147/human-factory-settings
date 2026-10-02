@@ -95,7 +95,7 @@ export function CaffeineCurve({ bed: bedProp }: { bed?: number }) {
         <span className="kick" style={{ fontSize: 10.5 }}>
           Try it
         </span>
-        <h3 className="tool-title">How much caffeine is still in you at bedtime?</h3>
+        <h2 className="tool-title">How much caffeine is still in you at bedtime?</h2>
         <p className="tool-text">Add what you drink in a normal day and when. The curve shows how much caffeine is in your body, hour by hour.</p>
       </div>
 

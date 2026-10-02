@@ -40,14 +40,15 @@ export function HeartbeatCounter() {
         <span className="kick" style={{ fontSize: 10.5 }}>
           Try it
         </span>
-        <h3 className="tool-title">How many times has your heart beaten?</h3>
+        <h2 className="tool-title">How many times has your heart beaten?</h2>
         <label className="tool-text" htmlFor="hb-age">
           Your age: <b style={{ color: "var(--ink)" }}>{age}</b>
         </label>
         <input id="hb-age" className="tool-slider" type="range" min={1} max={100} value={age} onChange={(e) => setAge(Number(e.target.value))} />
       </div>
-      <div className="stack gap-8" aria-live="polite">
-        <div className="tool-big">
+      {/* only the total is announced; the running count below changes every beat */}
+      <div className="stack gap-8">
+        <div className="tool-big" aria-live="polite">
           about {words(base)} <span>times</span>
         </div>
         <div className="row-wrap gap-10" style={{ color: "var(--ink2)" }}>

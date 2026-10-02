@@ -86,7 +86,7 @@ export default function LibraryPage() {
             Every claim on this site is checked against its source and labelled with how sure science is about it. Here&apos;s how that works, what the words mean, who
             checks the work and who pays for it.
           </p>
-          <nav className="row-wrap gap-8 a-in a-d3" aria-label="Library sections">
+          <nav className="row-wrap gap-8 a-in a-d3" aria-label="On this page">
             {[
               ["#evidence", "How sure is it?"],
               ["#words", "Words explained"],

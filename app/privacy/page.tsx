@@ -5,7 +5,7 @@ export const metadata: Metadata = { title: "Privacy", description: "What this si
 const ROWS: [string, string][] = [
   ["Accounts, cookies, ads, trackers", "None. This site has no sign-up, sets no cookies, shows no ads and runs no analytics or tracking scripts."],
   ["The quiz", "Scored in your browser. Your answers and your result are never stored or sent anywhere, and leaving the page clears them."],
-  ["Settings kept on your device", "Your reading depth (Simple, Clear or Expert) and the ticks on a Restore plan are saved in your browser's local storage, on your device only. Clearing this site's data in your browser removes them."],
+  ["Settings kept on your device", "Your reading depth (Simple, Detailed or Expert) and the ticks on a 7-day plan are saved in your browser's local storage, on your device only. Clearing this site's data in your browser removes them."],
   ["Fonts and media", "Fonts, images and films are served from this site. Nothing is loaded from font services or video platforms."],
   ["Hosting", "The site is hosted by Vercel. Like any web host, it processes technical data such as IP addresses in its logs to deliver and protect the site."],
   ["Links to sources", "Source links open other websites, whose own privacy policies apply."],

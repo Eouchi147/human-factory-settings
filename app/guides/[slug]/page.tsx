@@ -93,7 +93,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
                   <span className="cap">In the full guide · {g.toc.length} sections</span>
                   <Icon name="menu" size={18} />
                 </summary>
-                <nav>
+                <nav aria-label="In the full guide">
                   {g.toc.map((t) => (
                     <a key={t.id} href={`#${t.id}`}>
                       {t.text}
