@@ -24,9 +24,9 @@
 .hint {
   position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); z-index: 2; display: inline-flex; align-items: center; gap: 8px; white-space: nowrap;
   font-size: 12.5px; font-weight: 600; color: var(--ink2); padding: 5px 6px 5px 12px; border-radius: 999px; background: rgba(9, 11, 14, 0.6); border: 1px solid var(--edge);
-  opacity: 0; transition: opacity 0.8s var(--ease);
+  opacity: 0; visibility: hidden; transition: opacity 0.8s var(--ease), visibility 0s linear 0.8s; /* hidden, it cannot take focus */
 }
-.hintOn { opacity: 1; }
+.hintOn { opacity: 1; visibility: visible; transition: opacity 0.8s var(--ease), visibility 0s; }
 .hintText { display: inline-flex; align-items: center; gap: 7px; padding-left: 4px; }
 .explore {
   display: inline-flex; align-items: center; gap: 7px; min-height: 34px; padding: 0 13px; border-radius: 999px; border: 0; cursor: pointer;
@@ -40,7 +40,7 @@
 .copy { position: relative; z-index: 2; min-width: 0; display: flex; flex-direction: column; gap: 14px; padding: 0 var(--gutter) 28px; margin-top: -1svh; }
 .slot { min-height: 104px; display: flex; flex-direction: column; justify-content: flex-start; }
 .sub { margin: 0; font-size: 16.5px; line-height: 1.5; color: var(--ink2); max-width: 34em; text-wrap: pretty; }
-.chips { display: flex; gap: 8px; overflow-x: auto; margin: 0 calc(-1 * var(--gutter)); padding: 2px var(--gutter) 4px; scrollbar-width: none; }
+.chips { display: flex; gap: 8px; overflow-x: auto; margin: -6px calc(-1 * var(--gutter)) -4px; padding: 8px var(--gutter) 8px; scroll-padding-inline: var(--gutter); scrollbar-width: none; } /* room for focus rings, which a scrolling row would clip */
 .chips::-webkit-scrollbar { display: none; }
 .chip {
   flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 44px; padding: 0 16px; border-radius: 999px; cursor: pointer;

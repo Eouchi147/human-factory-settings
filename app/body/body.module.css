@@ -28,6 +28,3 @@
 .depthText { margin: 0; font-size: 17px; line-height: 1.6; color: var(--ink2); min-height: 6.4em; text-wrap: pretty; }
 .related { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 14px 16px; border-radius: 16px; text-decoration: none; color: var(--ink); }
 .related:hover { color: var(--ink); border-color: rgba(255, 122, 61, 0.45); }
-.crumb { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.crumb a { color: var(--ink3); text-decoration: none; }
-.crumb a:hover { color: var(--ink); }

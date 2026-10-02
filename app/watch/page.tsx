@@ -29,7 +29,7 @@ export default function WatchPage() {
               Why am I always <span className="serif">tired?</span>
             </h2>
             <p className="lede" style={{ margin: 0 }}>
-              Three things to check first: short sleep, late coffee and late light. About one minute, in ten calm shots.
+              Three things to check first: short sleep, late coffee and late light. About one minute, in one continuous shot with no cuts.
             </p>
             <div className="row-wrap gap-10">
               <Link className="btn btn-signal" href="/sleep-energy/why-am-i-always-tired">
@@ -39,7 +39,7 @@ export default function WatchPage() {
             </div>
           </div>
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img className={s.board} src="/img/film1_storyboard.jpg" alt="Film 1 in eight preview stills: an alarm clock at 7 a.m., the brain filling with the sleepy chemical, the caffeine curve from a coffee cup, a lamp and phone at 11:47 p.m., the sleep signal arriving later, three dials, the clock in warm morning light, the logo dial" width={2000} height={2207} loading="lazy" />
+          <img className={s.board} src="/img/film1_storyboard.jpg" alt="Film 1 in eight preview stills: an alarm clock at 7 a.m. under the words Always tired?, the brain filling with the sleepy chemical, the caffeine curve at 11 p.m. with half still there, the lamp and the phone at night, the sleep signal sliding later on the clock, three dials set for a 7 a.m. alarm, the clock in morning light with the doctor line, the logo dial" width={2000} height={2207} loading="lazy" />
         </section>
 
         <section className="card card-pad stack gap-10" aria-labelledby="doc1" style={{ maxWidth: 820 }}>

@@ -241,6 +241,7 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
             <button
               key={`tag-${l.key}`}
               type="button"
+              tabIndex={-1} // the same choices are in the buttons below, in order; these fade in and out with the view
               data-tag={l.key}
               data-anchor={l.anchor}
               data-at={l.at}

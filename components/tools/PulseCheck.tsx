@@ -204,13 +204,17 @@ export function PulseCheck() {
         </div>
       ) : (
         <div className="stack gap-16">
+          {/* read aloud only when the timer starts and when it ends, not every second while people count */}
+          <p className="visually-hidden" aria-live="polite">
+            {countDone ? "Time is up. How many beats did you count?" : left !== null ? "Timer started: count every beat for 15 seconds." : ""}
+          </p>
           {left === null ? (
             <button type="button" className="btn btn-signal" style={{ alignSelf: "flex-start" }} onClick={startCount}>
               <Icon name="clock" size={16} />
               Start the 15-second timer
             </button>
           ) : !countDone ? (
-            <div className="tool-big" aria-live="polite">
+            <div className="tool-big">
               {Math.ceil(left)} <span>seconds left: count every beat</span>
             </div>
           ) : (

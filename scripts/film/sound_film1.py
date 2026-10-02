@@ -15,7 +15,7 @@ tt = np.arange(N) / SR
 T = dict(alarm=0.6, ring1=2.1, portal0=4.5, portal1=6.05, fill0=6.1, fill1=11.5, night=12.35, woke=15.05,
          drop0=15.9, dropFall=17.3, splash=18.42, hide0=20.2, hide1=23.6, steam0=23.85, six=26.35, eleven=30.95,
          lamp=33.45, phone=35.05, shift0=40.45, shift1=42.45, dialsUp=44.35, dial1=47.5, dial2=49.5, dial3=51.28,
-         dawn0=52.35, seven=54.45, final=59.35, click=60.5, logo=61.15)
+         lampOff=52.0, dawn0=52.35, seven=54.45, final=59.35, click=60.5, logo=61.15)
 
 M = [np.zeros(N), np.zeros(N)]   # music
 X = [np.zeros(N), np.zeros(N)]   # effects
@@ -153,10 +153,12 @@ add(X, (np.sin(2 * np.pi * note(81) * x) + 0.2 * np.sin(2 * np.pi * note(81) * 2
 n = int(0.12 * SR); x = np.arange(n) / SR
 clk = bp(rng.normal(0, 1, n), 1200, 9000) * env(n, 0.0004, 0.006) + np.sin(2 * np.pi * 380 * x) * env(n, 0.0005, 0.02) * 0.4
 add(X, clk * 0.32, T["lamp"] - 0.012, 0.4); add(X, clk * 0.12, T["lamp"] + 0.05, 0.4)
-a, b = T["lamp"], T["dawn0"] + 0.9
+a, b = T["lamp"], T["lampOff"] + 0.1
 i0, i1 = int(a * SR), int(b * SR); x = np.arange(i1 - i0) / SR + a
-hum = (np.sin(2 * np.pi * 120 * x) + 0.4 * np.sin(2 * np.pi * 240 * x)) * ss(a, a + 0.08, x) * (1 - ss(T["dial3"], T["dial3"] + 0.5, x) * 0.6) * (1 - ss(T["dawn0"], b, x))
+hum = (np.sin(2 * np.pi * 120 * x) + 0.4 * np.sin(2 * np.pi * 240 * x)) * ss(a, a + 0.08, x) * (1 - ss(T["dial3"], T["dial3"] + 0.5, x) * 0.6) * (1 - ss(T["lampOff"], b, x))
 add(X, hum * 0.008, a, 0.4)
+# lights out: the same switch, off
+add(X, clk * 0.26, T["lampOff"] - 0.012, 0.4); add(X, clk * 0.1, T["lampOff"] + 0.045, 0.4)
 # the phone lights up: a cold glassy shimmer
 n = int(1.8 * SR); x = np.arange(n) / SR
 gl = sum(np.sin(2 * np.pi * note(nn) * x + rng.uniform(0, 6)) * w for nn, w in [(88, 1), (95, 0.6), (100, 0.3)]) * env(n, 0.02, 0.45)

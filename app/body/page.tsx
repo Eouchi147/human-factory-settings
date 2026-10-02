@@ -92,7 +92,7 @@ export default function ExplorePage() {
         </section>
 
         <section className="stack gap-16" style={{ marginTop: 8 }}>
-          <div className="kick">Stories</div>
+          <div className="kick">The science</div>
           <Link href="/stories/why-you-wake-up-tired" className="card card-pad" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
             <span className="stack gap-6">
               <span className="h3">Why you wake up tired</span>

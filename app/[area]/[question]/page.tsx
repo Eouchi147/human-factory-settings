@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { notFound } from "next/navigation";
 import s from "@/components/topic/topic.module.css";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { byArea } from "@/lib/areas";
 import { QUESTIONS, questionFor } from "@/lib/questions";
 
@@ -27,9 +27,7 @@ export default async function QuestionPage({ params }: { params: Promise<{ area:
   return (
     <article className={s.page}>
       <div className={s.col}>
-        <nav className={s.crumb} aria-label="Breadcrumb">
-          <Link href={`/${a.slug}`}>{a.name}</Link>
-        </nav>
+        <Breadcrumb items={[{ label: "Topics", href: "/#fix" }, { label: a.name, href: `/${a.slug}` }]} />
         <h1 className={s.h1}>{q.meta.title}</h1>
         <Body />
       </div>

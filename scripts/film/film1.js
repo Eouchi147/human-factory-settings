@@ -31,6 +31,7 @@ export const T = {
   lamp: 33.45, phone: 35.05, roomLight: 36.5, body: 37.7, // "Three: late light. Bright light at night, even room light, tells your body clock it's still day,"
   shift0: 40.45, shift1: 42.45, // "so your sleep signal comes later."
   dialsUp: 44.35, dial1: 47.5, dial2: 49.5, dial3: 51.28, // "For a seven a.m. alarm: in bed by eleven, last coffee by two, lights low from eight."
+  lampOff: 52.0, // lights out: the lamp clicks off before the night passes
   dawn0: 52.35, seven: 54.45, doctor: 54.62, // "Still tired with enough sleep? See a doctor. Low iron, or your thyroid, can cause it."
   final: 59.35, click: 60.5, logo: 61.15, // "Back to factory settings."
 };
@@ -322,7 +323,7 @@ function makeDial() {
   return { g, knobG, set, setMat, angle: (v) => -Math.PI * 0.75 + v * Math.PI * 1.5 };
 }
 
-function makePhone() {
+function makePhone(glassOpts = {}) {
   const g = new THREE.Group();
   const W = 0.0716, L = 0.1476, Th = 0.0078;
   const body = new THREE.Mesh(new RoundedBoxGeometry(W, Th, L, 6, 0.0085), phys({ color: 0x1a1c20, roughness: 0.3, metalness: 0.6, clearcoat: 0.8, clearcoatRoughness: 0.2 }));
@@ -336,7 +337,7 @@ function makePhone() {
   const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
   const screenMat = new THREE.MeshBasicMaterial({ map: tex, color: new THREE.Color(0, 0, 0) });
   const screen = new THREE.Mesh(new THREE.PlaneGeometry(W - 0.004, L - 0.004), screenMat); screen.rotation.x = -Math.PI / 2; screen.position.y = Th + 0.0002; g.add(screen);
-  const glass = new THREE.Mesh(new THREE.PlaneGeometry(W - 0.003, L - 0.003), phys({ color: 0x000000, roughness: 0.05, clearcoat: 1, transparent: true, opacity: 0.35, depthWrite: false }));
+  const glass = new THREE.Mesh(new THREE.PlaneGeometry(W - 0.003, L - 0.003), phys({ color: 0x000000, roughness: 0.3, specularIntensity: 0.25, transparent: true, opacity: 0.35, depthWrite: false, ...glassOpts }));
   glass.rotation.x = -Math.PI / 2; glass.position.y = Th + 0.0004; g.add(glass);
   shadows(g);
   return { g, screenMat };
@@ -535,7 +536,7 @@ export async function init(cfg) {
 
   // the nightstand: clock, phone, lamp, and the three settings under the table
   W.clock = makeClock(); W.clock.g.position.copy(CLOCK); W.clock.g.rotation.y = CLOCK_RY; scene.add(W.clock.g);
-  W.phone = makePhone(); W.phone.g.position.copy(PHONE); W.phone.g.rotation.y = PHONE_RY; scene.add(W.phone.g);
+  W.phone = makePhone(cfg.glass); W.phone.g.position.copy(PHONE); W.phone.g.rotation.y = PHONE_RY; scene.add(W.phone.g);
   W.lamp = makeLamp(); W.lamp.g.position.copy(LAMP); scene.add(W.lamp.g);
   W.dials = DIALS.map((p) => { const d = makeDial(); d.g.position.copy(p); scene.add(d.g); return d; });
 
@@ -740,7 +741,7 @@ function update(t) {
   W.cupRim.intensity = cupOn * 1.8;
   // the lamp clicks on, the phone lights up; later, lights low, then off
   const lampK = (t > T.lamp ? (1 - Math.exp(-(t - T.lamp) * 30)) * (1 + 0.25 * Math.exp(-(t - T.lamp) * 9) * Math.sin((t - T.lamp) * 70)) : 0);
-  const lampLevel = lampK * lerp(1, 0.28, ss(T.dial3, T.dial3 + 0.5, t)) * (1 - ss(T.dawn0 + 0.1, T.dawn0 + 0.9, t));
+  const lampLevel = lampK * lerp(1, 0.28, ss(T.dial3, T.dial3 + 0.5, t)) * (1 - ss(T.lampOff, T.lampOff + 0.1, t));
   W.lampSpot.intensity = lampLevel * 1.25; W.lampSpot.shadow.autoUpdate = W.lampSpot.intensity > 0.01;
   W.bulb.intensity = lampLevel * 0.3;
   W.lamp.shadeMat.emissiveIntensity = lampLevel * 0.6; W.lamp.bulbMat.color.setRGB(1.6, 1.2, 0.8).multiplyScalar(lampLevel);
@@ -869,6 +870,7 @@ export function render(t, opts = {}) {
   for (let k = 0; k < sub; k++) {
     const tk = sub > 1 ? t + ((k + 0.5) / sub - 0.5) * (shutter / fps) : t;
     update(tk); placeCameras(tk); r.shadowMap.needsUpdate = true;
+    if (W.cfg.lightScale) for (const [k, v] of Object.entries(W.cfg.lightScale)) if (W[k]) W[k].intensity *= v; // debugging: scale named lights
     { const half = (shutter / fps) / sub / 2, m = W.motion.uniforms;
       aimCam(W.camM0, poseAt(tk - half), tk - half); aimCam(W.camM1, poseAt(tk + half), tk + half);
       m.uVP0.value.multiplyMatrices(W.camM0.projectionMatrix, W.camM0.matrixWorldInverse);

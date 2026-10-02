@@ -203,7 +203,7 @@ export const SYSTEMS: SystemPage[] = [
       { label: "Raichle and Gusnard 2002, appraising the brain's energy budget", href: "https://doi.org/10.1073/pnas.172399499" },
     ],
     dims: [{ a: [240.6, 483.7], b: [579.7, 450.5], label: "18.4 cm", sub: "Front to back", off: [0, -64] }],
-    related: [{ href: "/stories/why-you-wake-up-tired", kicker: "Story", title: "Why you wake up tired" }],
+    related: [{ href: "/stories/why-you-wake-up-tired", kicker: "The science", title: "Why you wake up tired" }],
     inExplore: true,
   },
   {

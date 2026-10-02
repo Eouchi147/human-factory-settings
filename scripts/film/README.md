@@ -28,3 +28,6 @@ python3 film_render.py frames --w 1080 --h 1920 --rw 720 --rh 1280 --fps 24 --t0
 python3 sound_film1.py voice-guide.wav voice/film1-report.json snd
 python3 assemble_final.py
 ```
+To repair a stretch, render only those frames into a separate folder and copy them over, for example
+`python3 film_render.py fix --w 1080 --h 1920 --rw 720 --rh 1280 --fps 24 --blur --start 1030 --end 1111` (frames are numbered from 0 s at 24 a second).
+

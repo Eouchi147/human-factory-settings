@@ -7,7 +7,7 @@ ap.add_argument('out'); ap.add_argument('--w', type=int, default=540); ap.add_ar
 ap.add_argument('--fps', type=float, default=12); ap.add_argument('--t0', type=float, default=0); ap.add_argument('--t1', type=float, default=63)
 ap.add_argument('--times', default=''); ap.add_argument('--guide', action='store_true'); ap.add_argument('--blur', action='store_true')
 ap.add_argument('--port', type=int, default=8771); ap.add_argument('--shadow', type=int, default=1024); ap.add_argument('--png', action='store_true')
-ap.add_argument('--extra', default='{}'); ap.add_argument('--rw', type=int, default=0); ap.add_argument('--rh', type=int, default=0); ap.add_argument('--start', type=int, default=0); ap.add_argument('--step', type=int, default=1)
+ap.add_argument('--extra', default='{}'); ap.add_argument('--rw', type=int, default=0); ap.add_argument('--rh', type=int, default=0); ap.add_argument('--start', type=int, default=0); ap.add_argument('--step', type=int, default=1); ap.add_argument('--end', type=int, default=0)
 a = ap.parse_args()
 # motion blur: sub-frames where the picture moves (from the camera's own motion, measured in the page),
 # plus a floor where things move on their own: the time-lapse hands, the dials' clicks, the hands swinging home
@@ -40,15 +40,15 @@ async def main():
             else:
                 n = int(round((a.t1 - a.t0) * a.fps))
                 times = [a.t0 + i / a.fps for i in range(n)]
-            for i in range(a.start, len(times), a.step):
+            for i in range(a.start, a.end or len(times), a.step):
                 tt = times[i]
                 name = os.path.join(a.out, (f't{tt:06.2f}' if a.times else f'f{i:05d}') + ('.png' if a.png else '.jpg'))
                 if os.path.exists(name) and not a.times: continue
                 t = time.time()
                 n = floor_subs(tt) if a.blur else 1   # the camera's own motion is blurred in the page, every frame
                 await pg.evaluate('([t, s, f]) => window.HFS.film.render(t, { sub: s, fps: f })', [tt, n, a.fps])
-                if a.png: await pg.screenshot(path=name)
-                else: await pg.screenshot(path=name, type='jpeg', quality=93)
+                if a.png: await pg.screenshot(path=name, timeout=600000)
+                else: await pg.screenshot(path=name, type='jpeg', quality=93, timeout=600000)  # heavy sub-frame work can take minutes
                 if i % 10 == 0 or a.times: print(f'{i} t={tt:.2f} sub={n} {time.time() - t:.2f}s', logs[-3:] if logs else '', flush=True)
             await b.close()
     finally:

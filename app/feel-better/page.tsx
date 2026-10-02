@@ -19,7 +19,7 @@ const SETTINGS: Setting[] = [
     status: "ready",
     links: [
       { href: "/feel-better/sleep-and-caffeine", label: "Protect your sleep from caffeine: a 7-day plan" },
-      { href: "/stories/why-you-wake-up-tired", label: "Why you wake up tired: the story" },
+      { href: "/stories/why-you-wake-up-tired", label: "The science: why you wake up tired" },
     ],
   },
   {

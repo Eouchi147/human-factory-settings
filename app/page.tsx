@@ -101,7 +101,7 @@ export default function Home() {
                 <div className="row-wrap gap-10">
                   <Link className="btn" href="/watch">
                     <Icon name="play" size={16} />
-                    See film 1
+                    Film 1 · out 20 October
                   </Link>
                   <Link className="btn btn-ghost" href="/sleep-energy/why-am-i-always-tired">
                     Read the answer now

@@ -5,7 +5,7 @@ import { STATIONS } from "@/lib/story";
 import { Icon } from "@/components/Icons";
 
 export const metadata: Metadata = {
-  title: "Why you wake up tired",
+  title: "The science: why you wake up tired",
   description: "Six short steps, from the chemical that makes you sleepy all day to the coffee that hides it. Plain words, with the science and sources underneath.",
 };
 
@@ -14,7 +14,7 @@ export default function StoryPage() {
     <div className="page-top">
       <div className="wrap">
         <header className="stack gap-12" style={{ maxWidth: 820, marginBottom: 28 }}>
-          <div className="kick a-in">Story · Sleep</div>
+          <div className="kick a-in">The science · Sleep</div>
           <h1 className="h1 a-in a-d1">
             Why you wake up <span className="serif">tired.</span>
           </h1>

@@ -38,7 +38,7 @@ export const AREAS: Area[] = [
     ],
     start: [
       { label: "Your 7-day sleep and caffeine plan", href: "/feel-better/sleep-and-caffeine" },
-      { label: "The story: why you wake up tired", href: "/stories/why-you-wake-up-tired" },
+      { label: "The science: why you wake up tired", href: "/stories/why-you-wake-up-tired" },
     ],
   },
   {

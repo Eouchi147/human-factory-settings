@@ -324,6 +324,15 @@ a.card:hover { border-color: rgba(255, 122, 61, 0.45); transform: translateY(-2p
 .brand .word { font-variation-settings: "wdth" 108; font-size: 15px; font-weight: 650; letter-spacing: -0.01em; white-space: nowrap; }
 .brand:hover { color: var(--ink); }
 .site-header .brand { min-height: 44px; } /* a full-size tap target; the bars centre it, so nothing moves */
+/* the breadcrumb (components/Breadcrumb.tsx): the pages above this one, in small mono capitals */
+.crumbs {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; padding: 0; list-style: none;
+  font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink3);
+}
+.crumbs li { display: inline-flex; align-items: center; gap: 8px; }
+.crumbs li + li::before { content: "/"; content: "/" / ""; color: var(--ink3); } /* the second, where supported, keeps the slash out of screen readers */
+.crumbs a { color: var(--ink3); text-decoration: none; }
+.crumbs a:hover { color: var(--ink); }
 /* breadcrumb links are small text: a taller tap target that takes no extra room */
 nav[aria-label="Breadcrumb"] a { padding-block: 8px; margin-block: -8px; }
 .nav-link {

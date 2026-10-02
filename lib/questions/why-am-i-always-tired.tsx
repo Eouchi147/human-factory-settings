@@ -140,10 +140,14 @@ export function Body() {
           <span className={s.nextK}>Try it</span>
           <span className={s.nextT}>How much caffeine is still in you at bedtime?</span>
         </Link>
+        <Link href="/feel-better/sleep-and-caffeine" className={`card ${s.nextCard}`}>
+          <span className={s.nextK}>Do it this week</span>
+          <span className={s.nextT}>Protect your sleep from caffeine: a 7-day plan</span>
+        </Link>
         <Link href="/stories/why-you-wake-up-tired" className={`card ${s.nextCard}`}>
           <span className={s.nextK}>Go deeper</span>
           <span className={s.nextT}>
-            The full story, step by step <Icon name="arrow" size={15} style={{ display: "inline", verticalAlign: "-2px" }} />
+            The science, step by step <Icon name="arrow" size={15} style={{ display: "inline", verticalAlign: "-2px" }} />
           </span>
         </Link>
       </div>

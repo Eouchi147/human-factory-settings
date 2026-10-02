@@ -7,6 +7,7 @@ import { Ev, Measured } from "@/components/Evidence";
 import { DepthSwitch, DepthText } from "@/components/Depth";
 import { SpecFigure } from "@/components/SpecFigure";
 import { Icon } from "@/components/Icons";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { PulseCheck } from "@/components/tools/PulseCheck";
 import { HeartbeatCounter } from "@/components/tools/HeartbeatCounter";
 
@@ -47,13 +48,7 @@ export default async function SystemPage({ params }: { params: Promise<{ slug: s
           </div>
 
           <section className={s.side} aria-labelledby="sys-name">
-            <nav className={`cap ${s.crumb}`} aria-label="Breadcrumb">
-              <Link href="/body">Your body in 3D</Link>
-              <span aria-hidden="true">/</span>
-              <span>{x.group}</span>
-              <span aria-hidden="true">/</span>
-              <span style={{ color: "var(--ink2)" }}>{x.name}</span>
-            </nav>
+            <Breadcrumb items={[{ label: "Your body in 3D", href: "/body" }]} />
             <div className={s.titleRow}>
               <div className="kick">{x.group}</div>
               <DepthSwitch />

@@ -4,6 +4,7 @@ import s from "../feel-better.module.css";
 import { SleepTools } from "@/components/tools/SleepTools";
 import { Ev } from "@/components/Evidence";
 import { Icon } from "@/components/Icons";
+import { Breadcrumb } from "@/components/Breadcrumb";
 
 export const metadata: Metadata = {
   title: "Protect your sleep from caffeine",
@@ -15,13 +16,7 @@ export default function CaffeinePlanPage() {
     <div className="page-top">
       <div className="wrap">
         <header className="stack gap-12" style={{ maxWidth: 820, marginBottom: 32 }}>
-          <nav className="cap" aria-label="Breadcrumb" style={{ display: "flex", gap: 8 }}>
-            <Link href="/feel-better" style={{ color: "var(--ink3)", textDecoration: "none" }}>
-              Feel better
-            </Link>
-            <span aria-hidden="true">/</span>
-            <span>Sleep</span>
-          </nav>
+          <Breadcrumb items={[{ label: "Feel better", href: "/feel-better" }]} />
           <h1 className="h1 a-in">
             Protect your sleep <span className="serif">from caffeine.</span>
           </h1>

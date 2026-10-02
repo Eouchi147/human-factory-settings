@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import s from "../guides.module.css";
 import { GUIDES, loadGuide } from "@/lib/guides";
 import { Icon } from "@/components/Icons";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { WaistCheck } from "@/components/tools/WaistCheck";
 import { ProteinCheck } from "@/components/tools/ProteinCheck";
 
@@ -42,13 +43,7 @@ export default async function GuidePage({ params }: { params: Promise<{ slug: st
           </aside>
           <article>
             <header className={s.head}>
-              <nav className="cap" aria-label="Breadcrumb" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <Link href="/feel-better" style={{ color: "var(--ink3)", textDecoration: "none" }}>
-                  Feel better
-                </Link>
-                <span aria-hidden="true">/</span>
-                <span>Guide</span>
-              </nav>
+              <Breadcrumb items={[{ label: "Feel better", href: "/feel-better" }]} />
               <h1 className="h1">
                 {g.h1[0]} <span className="serif">{g.h1[1]}</span>
               </h1>

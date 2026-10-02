@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import s from "@/components/topic/topic.module.css";
+import { Breadcrumb } from "@/components/Breadcrumb";
 import { AREAS, byArea } from "@/lib/areas";
 import { Icon } from "@/components/Icons";
 
@@ -25,11 +26,7 @@ export default async function AreaPage({ params }: { params: Promise<{ area: str
   return (
     <div className={s.page}>
       <div className={s.col}>
-        <nav className={s.crumb} aria-label="Breadcrumb">
-          <Link href="/#fix">Topics</Link>
-          <span aria-hidden="true">/</span>
-          <span>{a.name}</span>
-        </nav>
+        <Breadcrumb items={[{ label: "Topics", href: "/#fix" }]} />
         <h1 className={s.h1}>{a.name}</h1>
         <p className={s.answer}>{a.intro}</p>
         <div className={`glass ${s.fact}`}>
