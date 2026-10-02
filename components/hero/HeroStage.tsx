@@ -121,7 +121,7 @@ export function HeroStage() {
               </motion.div>
             ) : (
               <motion.p key="sub" className={s.sub} initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
-                Your body runs on a few settings: sleep, food, movement, stress, focus and people. Pick one to see what it does inside you.
+                Your body runs on a few settings: sleep, food, movement, posture, stress, focus and people. Pick one to see what it does inside you.
               </motion.p>
             )}
           </AnimatePresence>

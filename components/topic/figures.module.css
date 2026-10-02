@@ -1,0 +1,14 @@
+.fig { margin: 0; width: 100%; max-width: 340px; display: flex; flex-direction: column; gap: 14px; padding: 10px 6px 4px; }
+.stats { display: flex; flex-direction: column; }
+.stat { display: flex; flex-direction: column; gap: 4px; padding: 12px 0; border-top: 1px solid var(--line); }
+.stat:first-child { border-top: 0; padding-top: 2px; }
+.value { font-variation-settings: "wdth" 108; font-size: 40px; font-weight: 680; letter-spacing: -0.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+.signal { color: var(--signal-ink); }
+.ink { color: var(--ink); }
+.dim { color: var(--ink2); }
+.label { font-size: 14px; line-height: 1.35; color: var(--ink2); text-wrap: pretty; }
+.title { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ink3); }
+.svg { width: 100%; height: auto; overflow: visible; }
+.barValue { font-family: var(--font-archivo), system-ui, sans-serif; font-size: 15px; font-weight: 650; fill: var(--ink); font-variant-numeric: tabular-nums; }
+.barName { font-family: var(--font-geist-mono), ui-monospace, monospace; font-size: 9.5px; letter-spacing: 0.04em; fill: var(--ink3); }
+.source { font-family: var(--font-mono); font-size: 10px; line-height: 1.45; letter-spacing: 0.04em; color: var(--ink3); }

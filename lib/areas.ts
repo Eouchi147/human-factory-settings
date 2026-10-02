@@ -1,4 +1,4 @@
-/* The seven things people come to fix, in the order search demand and prevalence put them
+/* The eight things people come to fix, in the order search demand and prevalence put them
    (research/search-demand.md in the Health project). Each area lights up its parts on the 3D body. */
 import type { IconName } from "@/components/Icons";
 import type { Mood } from "@/lib/hero3d";
@@ -69,6 +69,23 @@ export const AREAS: Area[] = [
       { q: "What does creatine do, and is it safe?" },
       { q: "How do I start running?" },
       { q: "What's the best workout for a complete beginner?" },
+    ],
+  },
+  {
+    slug: "posture-looks",
+    name: "Posture & looks",
+    chip: "Look better",
+    icon: "spine",
+    focus: ["spine", "skull", "legs"],
+    fact: "41 reviews of the evidence found no proof that posture causes back pain. Moving often is what helps.",
+    source: { label: "Swain et al. 2020, Journal of Biomechanics", href: "https://research.monash.edu/en/publications/no-consensus-on-causality-of-spine-postures-or-physical-exposure-/" },
+    intro: "How you were built to stand, walk, breathe and rest your mouth, and the plain habits that make you look and feel better.",
+    questions: [
+      { q: "How do I fix my posture?", slug: "how-to-fix-my-posture", hook: "There is no perfect posture. Move often and get stronger." },
+      { q: "How can I look better, naturally?", slug: "how-to-look-better-naturally", hook: "Sleep, sunscreen, no smoking, more plants." },
+      { q: "Does mewing work?", slug: "does-mewing-work", hook: "No trial shows it reshapes your face. What does help." },
+      { q: "Are barefoot shoes good for your feet?", slug: "are-barefoot-shoes-good-for-your-feet", hook: "They can build strength, if you switch slowly." },
+      { q: "What is fascia, and does foam rolling work?", slug: "what-is-fascia", hook: "A small, short boost. It doesn't break anything up." },
     ],
   },
   {

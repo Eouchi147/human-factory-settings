@@ -17,6 +17,23 @@ export default function Home() {
     <>
       <HeroStage />
 
+      <section className="section" aria-labelledby="mission-h">
+        <div className="wrap">
+          <Reveal>
+            <div className={s.mission}>
+              <h2 id="mission-h" className="h2">
+                One body. <span className="serif">A short time.</span>
+              </h2>
+              <p className="lede">
+                You were handed one body, and not much time with it. It came with factory settings: how you sleep, eat, move, stand, breathe and connect. Modern
+                life moves them. We show you how each one works, what moved it, and the plain change that sets it back. No miracle fixes: only what the evidence
+                supports.
+              </p>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
       <section id="fix" className="section" style={{ scrollMarginTop: 70 }} aria-labelledby="fix-h">
         <div className="wrap stack gap-32">
           <Reveal>
