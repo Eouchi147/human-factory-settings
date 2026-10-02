@@ -7,7 +7,7 @@ import { Measured } from "@/components/Evidence";
 import { Reveal } from "@/components/Reveal";
 import { Icon } from "@/components/Icons";
 import { BLUR } from "@/lib/blur";
-import { BodyExplorerLazy } from "@/components/explorer/BodyExplorerLazy";
+import { BodyModes } from "@/components/motion/BodyModes";
 
 export const metadata: Metadata = {
   title: "Your body in 3D",
@@ -22,7 +22,7 @@ export default function ExplorePage() {
       <div className="wrap stack gap-32">
         <h1 className="visually-hidden">Your body in 3D, one system at a time</h1>
         <section id="explore" style={{ scrollMarginTop: 72 }} aria-label="Your body in 3D">
-          <BodyExplorerLazy />
+          <BodyModes />
         </section>
 
         <header className={s.head}>
