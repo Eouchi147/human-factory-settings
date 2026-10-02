@@ -1,0 +1,21 @@
+<!doctype html><html><head><meta charset="utf-8">
+<style>
+@font-face { font-family: 'Archivo'; src: url('fontmods/@fontsource-variable/archivo/files/archivo-latin-standard-normal.woff2') format('woff2'); font-weight: 100 900; font-stretch: 62% 125%; }
+@font-face { font-family: 'Geist Mono'; src: url('fontmods/@fontsource/geist-mono/files/geist-mono-latin-500-normal.woff2') format('woff2'); font-weight: 500; }
+@font-face { font-family: 'Instrument Serif'; src: url('fontmods/@fontsource/instrument-serif/files/instrument-serif-latin-400-italic.woff2') format('woff2'); font-style: italic; }
+html,body{margin:0;height:100%;overflow:hidden;background:#000}
+#c{position:fixed;left:0;top:0;visibility:hidden}
+#out{position:fixed;inset:0;display:block;width:100%;height:100%}
+#ov{position:fixed;inset:0;pointer-events:none;font-family:'Archivo',sans-serif;color:#eceef1;-webkit-font-smoothing:antialiased}
+.cap{position:absolute;left:0;right:0;margin:0 auto;width:fit-content;max-width:86%;text-align:center;font-weight:620;letter-spacing:-0.025em;line-height:1.04;text-shadow:0 2px 30px rgba(0,0,0,.72),0 0 3px rgba(0,0,0,.35);font-stretch:106%}
+.cap em{font-family:'Instrument Serif',serif;font-style:italic;font-weight:400;color:#f3e6d4;letter-spacing:-0.01em;font-size:1.12em}
+.w{display:inline-block;will-change:transform,filter,opacity}
+.num{position:absolute;left:0;right:0;text-align:center;font-family:'Geist Mono',monospace;font-weight:500;letter-spacing:.2em;color:#aeb2b9}
+.tag{position:absolute;font-family:'Geist Mono',monospace;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:#c3c6cc;white-space:nowrap;text-shadow:0 1px 14px rgba(0,0,0,.7)}
+.tag b{display:block;font-family:'Archivo',sans-serif;font-weight:640;letter-spacing:-0.01em;color:#eceef1;text-transform:none;margin-top:6px}
+.tag.o{color:#ff8a50}
+.mark{position:absolute;font-family:'Geist Mono',monospace;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:rgba(236,238,241,.6)}
+</style>
+<script type="importmap">{"imports":{"three":"./node_modules/three/build/three.module.js","three/addons/":"./node_modules/three/examples/jsm/"}}</script>
+</head><body><canvas id="c"></canvas><canvas id="out"></canvas><div id="ov"></div>
+<script type="module">import './scene.js'; import './film1.js'; window.HFS.filmReady = true;</script></body></html>

@@ -1,0 +1,122 @@
+[
+ {
+  "line": 1,
+  "start": 0.35,
+  "end": 3.73,
+  "next_cut": 4,
+  "speed": 0.88,
+  "seconds": 3.38,
+  "words": 7,
+  "wpm": 124,
+  "fits": true,
+  "phonemes": "ˈɔːlweɪz tˈaɪɚd? | tʃˈɛk ðiːz θɹˈiː θˈɪŋz fˈɜːst."
+ },
+ {
+  "line": 2,
+  "start": 4.35,
+  "end": 11.51,
+  "next_cut": 12,
+  "speed": 0.88,
+  "seconds": 7.16,
+  "words": 18,
+  "wpm": 151,
+  "fits": true,
+  "phonemes": "wˌʌn: ʃˈɔːɹt slˈiːp. | ˈɔːl dˈeɪ, ɐ kˈɛmɪkəl kˈɔːld ɐdˈɛnəsˌiːn bˈɪldz ˌʌp ɪn jʊɹ bɹˈeɪn, ænd mˌeɪks juː slˈiːpi."
+ },
+ {
+  "line": 3,
+  "start": 12.35,
+  "end": 17.14,
+  "next_cut": 18,
+  "speed": 0.82,
+  "seconds": 4.79,
+  "words": 13,
+  "wpm": 163,
+  "fits": true,
+  "phonemes": "slˈiːp klˈɪɹz ɪt. | kˈʌt slˈiːp ʃˈɔːɹt, ænd sˌʌm ɪz lˈɛft wɛn juː wˈeɪk."
+ },
+ {
+  "line": 4,
+  "start": 18.35,
+  "end": 25.56,
+  "next_cut": 26,
+  "speed": 0.82,
+  "seconds": 7.21,
+  "words": 17,
+  "wpm": 141,
+  "fits": true,
+  "phonemes": "tˈuː: lˈeɪt kˈɔfi. | kˈɔfi dˈʌzənt klˈɪɹ ðæt kˈɛmɪkəl. | ɪt hˈaɪdz ɪt, ænd ðæt kˈʌts ˌɪntʊ jʊɹ slˈiːp."
+ },
+ {
+  "line": 5,
+  "start": 26.35,
+  "end": 31.63,
+  "next_cut": 33,
+  "speed": 0.82,
+  "seconds": 5.28,
+  "words": 15,
+  "wpm": 170,
+  "fits": true,
+  "phonemes": "ɐ kˈɔfi æt sˈɪks pˌiːˈɛm? | ɐbˌaʊt hˈæf ʌv ɪɾ ɪz stˈɪl ɪn juː æɾ ᵻlˈɛvən."
+ },
+ {
+  "line": 6,
+  "start": 33.35,
+  "end": 39.66,
+  "next_cut": 40,
+  "speed": 0.91,
+  "seconds": 6.31,
+  "words": 17,
+  "wpm": 162,
+  "fits": true,
+  "phonemes": "θɹˈiː: lˈeɪt lˈaɪt. | bɹˈaɪt lˈaɪt æt nˈaɪt, ˈiːvən ɹˈuːm lˈaɪt, tˈɛlz jʊɹ bˈɑːdi klˈɑːk ɪts stˈɪl dˈeɪ,"
+ },
+ {
+  "line": 7,
+  "start": 40.35,
+  "end": 42.51,
+  "next_cut": 44,
+  "speed": 0.82,
+  "seconds": 2.16,
+  "words": 6,
+  "wpm": 166,
+  "fits": true,
+  "phonemes": "sˌoʊ jʊɹ slˈiːp sˈɪɡnəl kˈʌmz lˈeɪɾɚ."
+ },
+ {
+  "line": 8,
+  "start": 44.35,
+  "end": 51.71,
+  "next_cut": 52,
+  "speed": 0.82,
+  "seconds": 7.36,
+  "words": 17,
+  "wpm": 139,
+  "fits": true,
+  "phonemes": "fɚɹə sˈɛvən ˌeɪˈɛm ɐlˈɑːɹm: | ɪn bˈɛd baɪ ᵻlˈɛvən, | lˈæst kˈɔfi baɪ tˈuː, | lˈaɪts lˈoʊ fɹʌm ˈeɪt."
+ },
+ {
+  "line": 9,
+  "start": 52.35,
+  "end": 58.63,
+  "next_cut": 59,
+  "speed": 0.91,
+  "seconds": 6.28,
+  "words": 16,
+  "wpm": 153,
+  "fits": true,
+  "phonemes": "stˈɪl tˈaɪɚd wɪð ɪnˈʌf slˈiːp? | sˈiː ɐ dˈɑːktɚ. | lˈoʊ ˈaɪɚn, ɔːɹ jʊɹ θˈaɪɹɔɪd, kæn kˈɔːz ɪt."
+ },
+ {
+  "line": 10,
+  "start": 59.35,
+  "end": 61.13,
+  "next_cut": 63,
+  "speed": 0.82,
+  "seconds": 1.78,
+  "words": 4,
+  "wpm": 135,
+  "fits": true,
+  "phonemes": "bˈæk tə fˈæktɚɹi sˈɛɾɪŋz."
+ }
+]
