@@ -76,6 +76,7 @@ flick = np.where((tt < t0 + 0.6) & (np.sin(tt * 190) > 0.3), 0.2, 1.0)
 m.add('X', lp(hum * flick, 1800) * 0.025, t0, 0.3)
 for k in range(5): m.snip(t0 + 0.03 + k * 0.11, 0.05, 0.3)
 m.thud(t1 - 0.45, 120, 0.06, 0.3, 0.05)
+for k in range(3): m.snip(T['slogan2'] + 0.43 + k * 0.1, 0.035, 0.35)   # the sign's own ® ticks on last
 # the settings: 7,000 in orange, then the stairs, one thousand at a time
 m.bell(T['aim'] + 1.35, 81, 0.045, 0.0, 1.0)
 for i, nn in enumerate([69, 72, 74, 76, 79]): m.pluck(T['add'] + i * 0.28 + 0.02, nn, 0.045, -0.3 + 0.15 * i, 0.5)

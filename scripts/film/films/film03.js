@@ -2,7 +2,7 @@
 // A skeleton walks with a 1965 pedometer clipped to its hip bone. Science turns the walk into a hill: steep to 7,000,
 // then flat. The skeleton stops where the benefit stops; the 10,000 sign is just a slogan.
 import { THREE, ORANGE, ss, s5, lerp, clamp01, hash, camTrack, phys, glowMat, shadows, spot, glowSprite,
-  loadAnatomy, tissueMat, V3, vadd, place, logoEnd, makeFilm, outBack } from '../kit.js';
+  loadAnatomy, tissueMat, V3, vadd, place, logoEnd, makeFilm, outBack, stamp, labelCanvas, stampLine } from '../kit.js';
 import { buildRig, skeletonKind, walkAt, legIK, bendSpine, poseArm, ARM0, worldVerts } from '../rig.js';
 
 // ------------------------------------------------------------------ timing, from the voice guide (word starts)
@@ -125,6 +125,11 @@ async function build(S, cfg) {
   const clip = new THREE.Mesh(new THREE.BoxGeometry(0.012, 0.04, 0.003), chrome); clip.position.set(0, 0.012, -0.0095); W.ped.add(clip);
   shadows(W.ped); W.ped.traverse((o) => o.layers.enable(1));
   W.pedRest = W.ped.position.clone();
+  // ---- the factory stamp: printed along the outer face of the right thigh bone, like a part number on a tube (in
+  // every shot of the walker, readable on pause in the side views)
+  const femR = W.rig.byName.get('Right femur');
+  W.stampSpot = stampLine(femR, { a: [-0.3, 0.13, 0.0], b: [-0.3, -0.03, 0.018], dir: [1, 0, 0], top: [0, 0, 1] });
+  if (W.stampSpot) W.stamp = stamp(femR, { canvas: labelCanvas('HUMAN FACTORY SETTINGS'), center: W.stampSpot.center, normal: W.stampSpot.normal, up: W.stampSpot.up, width: 0.15, depth: 0.04, opacity: 0.6 });
   // ---- the hill: a dark slab whose top is the curve, a white line along its edge, ticks every thousand steps
   const N = 300, zs = [], slab = new THREE.Shape();
   for (let i = 0; i <= N; i++) zs.push(-0.3 + (Z_END + 0.3) * (i / N));
@@ -171,6 +176,14 @@ async function build(S, cfg) {
     W.neonMat = new THREE.MeshBasicMaterial({ map: tex, color: new THREE.Color(0, 0, 0), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, fog: false });
     W.neon = new THREE.Mesh(new THREE.PlaneGeometry(0.74, 0.29), W.neonMat); W.neon.position.set(0.25, hill(zOf(10)) + 1.12, zOf(10)); W.neon.rotation.y = -Math.PI / 2; scene.add(W.neon);
     W.neonLight = new THREE.PointLight(0xff3a5c, 0, 3, 2); W.neonLight.position.copy(W.neon.position).add(new THREE.Vector3(-0.2, 0, 0)); scene.add(W.neonLight); }
+  // the gag: the sign's own registered mark buzzes on last, on "slogan" (万歩計 is a registered trademark: Yamasa, No. 1728037)
+  { const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
+    x.fillStyle = '#000'; x.fillRect(0, 0, 256, 256);
+    x.font = '600 200px Archivo'; x.textAlign = 'center'; x.textBaseline = 'middle';
+    x.shadowColor = '#ff3a5c'; x.shadowBlur = 30; x.fillStyle = '#ffd6de'; x.fillText('\u00ae', 128, 140);
+    const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+    W.regMat = new THREE.MeshBasicMaterial({ map: tex, color: new THREE.Color(0, 0, 0), blending: THREE.AdditiveBlending, transparent: true, depthWrite: false, fog: false });
+    W.reg = new THREE.Mesh(new THREE.PlaneGeometry(0.13, 0.13), W.regMat); W.reg.position.set(0.385, 0.085, 0.002); W.neon.add(W.reg); }
   // ---- light: a museum spot that walks with the skeleton, a cold rim, the hill's own soft light
   W.key = spot(scene, { color: 0xffe9d2, pos: new THREE.Vector3(-1.8, 3.6, 0), target: new THREE.Vector3(0, 1, 0), angle: 0.5, penumbra: 0.85, shadow: true, size: cfg.shadow ?? 1024 });
   W.key.shadow.camera.far = 9;
@@ -181,7 +194,7 @@ async function build(S, cfg) {
   W.brainLight = new THREE.PointLight(0xffb27a, 0, 0.6, 2); W.rig.seg.Atlas.g.add(W.brainLight); W.brainLight.position.set(0, 0.08, 0.02);
   Z0 = HS_STOP1 - 0.27 - W.rig.P0.z;
   buildTracks();
-  return { stride: STRIDE, P0: W.rig.P0.toArray(), asis: asis.toArray() };
+  return { stride: STRIDE, P0: W.rig.P0.toArray(), asis: asis.toArray(), stamp: W.stampSpot };
 }
 
 // ------------------------------------------------------------------ the walk: walk, stop at the foot of the hill, climb, stop at 7,000
@@ -356,6 +369,8 @@ function update(S, t) {
   const neon = ss(T.slogan1 - 0.6, T.slogan1 - 0.35, t) * (1 - ss(T.slogan2 + 1.2, T.slogan2 + 1.7, t));   // buzzes on just before "Ten", dies as the camera turns away
   const flick = t < T.slogan1 + 0.1 ? (hash(Math.floor(t * 30)) > 0.35 ? 1 : 0.15) : 1;
   W.neonMat.color.setScalar(neon * flick * 1.4); W.neonLight.intensity = neon * flick * 1.5; W.neon.visible = neon > 0.002;
+  const reg = ss(T.slogan2 + 0.42, T.slogan2 + 0.5, t), rflick = t < T.slogan2 + 0.8 ? (hash(Math.floor(t * 30) + 17) > 0.45 ? 1 : 0.12) : 1;
+  W.regMat.color.setScalar(neon * reg * rflick * 1.4);
   // ---- the settings: 7,000 in orange; the slope as stairs of a thousand, lit one by one
   W.markMat.opacity = ss(T.aim + 1.3, T.aim + 1.8, t) * (1 - endDark);
   W.stairs.forEach((m, i) => { m.opacity = ss(T.add + i * 0.28, T.add + 0.2 + i * 0.28, t) * (1 - endDark); });

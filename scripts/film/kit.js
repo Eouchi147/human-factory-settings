@@ -221,6 +221,82 @@ export function tissueMat(key, extra = {}) {
     emissive: new THREE.Color(0xffe2c4), emissiveIntensity: 0, ...extra,
   });
 }
+// ------------------------------------------------------------------ the factory stamp: a discreet mark inked into one part
+// Every film carries one, on a 3D part that stays on screen, so the mark cannot be cropped off a reposted copy. It is
+// projected in the part's own space inside its shader: no extra geometry, nothing to z-fight, and it rides with the part
+// through every move. (Museums write catalogue numbers on bones in ink; this is ours.)
+export function stampCanvas(lines = ['HUMAN FACTORY', 'SETTINGS'], small = '', { w = 1024, h = 512, frame = true } = {}) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
+  x.clearRect(0, 0, w, h); x.fillStyle = '#000'; x.strokeStyle = '#000'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  const pad = h * 0.07, inner = w - 4 * pad;
+  if (frame) { x.lineWidth = h * 0.022; x.beginPath(); x.roundRect(pad, pad, w - 2 * pad, h - 2 * pad, h * 0.08); x.stroke(); }
+  const n = lines.length + (small ? 0.75 : 0), lh = (h - 4 * pad) / n;
+  const fontOf = (face, s) => (face === 'mono' ? `500 ${s}px "Geist Mono"` : `${face} ${s}px Archivo`);
+  const fit = (txt, size, face, track) => {   // the largest size up to `size` at which the line fits inside the frame
+    x.font = fontOf(face, size); x.letterSpacing = `${size * track}px`;
+    const s = size * Math.min(1, inner / x.measureText(txt).width);
+    x.font = fontOf(face, s); x.letterSpacing = `${s * track}px`;
+  };
+  lines.forEach((s, i) => { fit(s, lh * 0.8, '700', 0.06); x.fillText(s, w / 2, 2 * pad + lh * (i + 0.52)); });
+  if (small) { fit(small, lh * 0.46, 'mono', 0.14); x.fillText(small, w / 2, 2 * pad + lh * (lines.length + 0.36)); }
+  return c;
+}
+// one line of text that fills the canvas's width (for a long label): the canvas is as tall as the text needs
+export function labelCanvas(text, { w = 2048, track = 0.08, weight = 700, fill = 0.94 } = {}) {
+  const c = document.createElement('canvas'), x = c.getContext('2d');
+  x.font = `${weight} 100px Archivo`; x.letterSpacing = `${100 * track}px`;
+  const s = (100 * fill * w) / x.measureText(text).width;
+  c.width = w; c.height = Math.round(s * 1.3);
+  x.font = `${weight} ${s}px Archivo`; x.letterSpacing = `${s * track}px`; x.fillStyle = '#000'; x.textAlign = 'center'; x.textBaseline = 'middle';
+  x.fillText(text, w / 2 + (s * track) / 2, c.height / 2 + s * 0.04);
+  return c;
+}
+// center, normal and up in the mesh's own geometry space (metres). Returns the uniforms, so a film can fade the mark.
+export function stamp(mesh, { canvas, center, normal, up = [0, 1, 0], width = 0.08, height, depth = 0.03, ink = 0x2e2a24, opacity = 0.5, rough = 0.85 }) {
+  const n = new THREE.Vector3(...normal).normalize(), u0 = new THREE.Vector3(...up);
+  const u = u0.sub(n.clone().multiplyScalar(u0.dot(n))).normalize(), r = new THREE.Vector3().crossVectors(u, n).normalize();
+  const hh = height ?? (width * canvas.height) / canvas.width;
+  const box = new THREE.Matrix4().makeBasis(r.multiplyScalar(width), u.multiplyScalar(hh), n.clone().multiplyScalar(depth)).setPosition(new THREE.Vector3(...center));
+  const tex = new THREE.CanvasTexture(canvas); tex.anisotropy = 8;
+  const U = { uStampM: { value: box.clone().invert() }, uStampTex: { value: tex }, uStampInk: { value: new THREE.Color(ink) }, uStampO: { value: opacity }, uStampDir: { value: n }, uStampRough: { value: rough } };
+  const m = mesh.material; m.userData.stamp = U;
+  m.onBeforeCompile = (sh) => {
+    Object.assign(sh.uniforms, U);
+    sh.vertexShader = 'varying vec3 vStampP;\nvarying vec3 vStampN;\n' + sh.vertexShader.replace('#include <begin_vertex>', '#include <begin_vertex>\nvStampP = position; vStampN = objectNormal;');
+    sh.fragmentShader = 'uniform mat4 uStampM; uniform sampler2D uStampTex; uniform vec3 uStampInk; uniform float uStampO; uniform vec3 uStampDir; uniform float uStampRough;\nvarying vec3 vStampP;\nvarying vec3 vStampN;\n' +
+      sh.fragmentShader
+        .replace('#include <color_fragment>', '#include <color_fragment>\nfloat stampA = 0.0;\n{ vec4 q = uStampM * vec4(vStampP, 1.0); if (abs(q.x) < 0.5 && abs(q.y) < 0.5 && abs(q.z) < 0.5) stampA = texture2D(uStampTex, q.xy + 0.5).a * uStampO * smoothstep(0.1, 0.35, dot(normalize(vStampN), uStampDir)); }\ndiffuseColor.rgb = mix(diffuseColor.rgb, uStampInk, stampA);')
+        .replace('#include <roughnessmap_fragment>', '#include <roughnessmap_fragment>\nroughnessFactor = mix(roughnessFactor, uStampRough, stampA);');
+  };
+  m.customProgramCacheKey = () => 'hfs-stamp';
+  m.needsUpdate = true;
+  return U;
+}
+// where to put the stamp: shoot a ray at the part (geometry space) and take the surface it hits, its normal averaged
+// over a small cross of rays so one coarse triangle does not tilt the mark
+export function stampSpot(mesh, { from, dir, spread = 0.012 }) {
+  const tmp = new THREE.Mesh(mesh.geometry, new THREE.MeshBasicMaterial({ side: THREE.DoubleSide })); tmp.updateMatrixWorld(true);
+  const rc = new THREE.Raycaster(), d = new THREE.Vector3(...dir).normalize(), a = Math.abs(d.y) > 0.9 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(0, 1, 0);
+  const u = new THREE.Vector3().crossVectors(d, a).normalize(), v = new THREE.Vector3().crossVectors(d, u), hits = [];
+  for (const [i, j] of [[0, 0], [1, 0], [-1, 0], [0, 1], [0, -1]]) {
+    rc.set(new THREE.Vector3(...from).addScaledVector(u, i * spread).addScaledVector(v, j * spread), d);
+    const h = rc.intersectObject(tmp, false)[0]; if (h) hits.push(h);
+  }
+  if (!hits.length) return null;
+  const n = new THREE.Vector3(); for (const h of hits) { const f = h.face.normal.clone(); n.add(f.dot(d) > 0 ? f.negate() : f); }
+  return { center: hits[0].point.toArray(), normal: n.normalize().toArray(), hits: hits.length };
+}
+// a label that runs along a long bone, like a part number printed on a tube: two rays at its two ends give the line of
+// the surface; the text runs along that line with its top toward `top`
+export function stampLine(mesh, { a, b, dir, top }) {
+  const A = stampSpot(mesh, { from: a, dir, spread: 0.004 }), B = stampSpot(mesh, { from: b, dir, spread: 0.004 });
+  if (!A || !B) return null;
+  const pa = new THREE.Vector3(...A.center), pb = new THREE.Vector3(...B.center), r = pb.clone().sub(pa), len = r.length(); r.normalize();
+  const n = new THREE.Vector3(...A.normal).add(new THREE.Vector3(...B.normal)); n.sub(r.clone().multiplyScalar(n.dot(r))).normalize();
+  let u = new THREE.Vector3().crossVectors(n, r).normalize(); if (top && u.dot(new THREE.Vector3(...top)) < 0) { u.negate(); r.negate(); }
+  return { center: pa.add(pb).multiplyScalar(0.5).toArray(), normal: n.toArray(), up: u.toArray(), length: len };
+}
+
 export const BODY_SCALE = 1.83 / 1.73; // BodyParts3D is 1.73 m; we show an adult 1.83 m tall
 let ATLAS = null; const CHUNKS = new Map();
 export async function loadAtlas(base = 'models') { if (!ATLAS) ATLAS = await (await fetch(base + '/atlas.json')).json(); return ATLAS; }

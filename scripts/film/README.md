@@ -53,3 +53,14 @@ python3 assemble_film.py 2 frames2 snd02
 - `films/film03.js` (10,000 steps), `sound_film03.py`: the footsteps and the pedometer's clicks come from the same
   walk the picture uses.
 - `render_film.sh <film> <outdir> <t1> <port> [retime json]`: a full render in two halves; resumable.
+
+## Every new film, from film 3 on
+- **One factory stamp.** "HUMAN FACTORY SETTINGS" is inked into one 3D part that stays on screen, so the mark cannot
+  be cropped off a reposted copy (`stamp`, `stampSpot`, `stampLine`, `labelCanvas`, `stampCanvas` in `kit.js`). It is
+  projected inside the part's own shader: no extra geometry, and it moves with the part. Keep it discreet (ink at about
+  60%, letters well under a centimetre on a bone) but readable on pause in at least one close or side view. Film 3:
+  along the outer face of the right thigh bone.
+- **One dry visual gag.** True, quiet, and never near a warning line. Film 3: the 万歩計 neon sign's own ® buzzes on
+  last, on "slogan" (万歩計 is a registered trademark of Yamasa Tokei Keiki, Japanese registration No. 1728037,
+  per Yamasa's press release of 9 October 2025).
+
