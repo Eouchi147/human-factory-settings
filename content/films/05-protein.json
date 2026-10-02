@@ -1,0 +1,114 @@
+{
+ "n": 5,
+ "slug": "protein",
+ "question": "How much protein do you need?",
+ "area": "weight-food",
+ "page": "/weight-food/how-much-protein-do-i-need",
+ "posts": "2026-10-29",
+ "lines": [
+  {
+   "say": [
+    "How much protein do you actually need?"
+   ],
+   "gap": 1.3
+  },
+  {
+   "say": [
+    "Europe's food safety experts set it at about point eight grams for every kilo you weigh, each day."
+   ],
+   "src": [
+    "efsa"
+   ]
+  },
+  {
+   "say": [
+    "For someone who weighs seventy kilos, that's about fifty-eight grams."
+   ],
+   "src": [
+    "efsa"
+   ]
+  },
+  {
+   "say": [
+    "The new American guidelines go higher: one point two to one point six."
+   ],
+   "src": [
+    "dga2025"
+   ],
+   "gap": 1.2
+  },
+  {
+   "say": [
+    "If you lift weights, extra protein does help, a little.",
+    "In forty-nine trials, it added about three hundred grams of lean mass."
+   ],
+   "src": [
+    "morton2018"
+   ]
+  },
+  {
+   "say": [
+    "But above one point six grams per kilo, it stopped adding anything."
+   ],
+   "src": [
+    "morton2018"
+   ]
+  },
+  {
+   "say": [
+    "Spread it over your meals: twenty-five to thirty grams each."
+   ],
+   "src": [
+    "leidy2015"
+   ]
+  },
+  {
+   "say": [
+    "So: at least point eight a day.",
+    "Training? Up to one point six.",
+    "Past that, more isn't better."
+   ],
+   "src": [
+    "efsa",
+    "morton2018"
+   ]
+  },
+  {
+   "say": [
+    "Kidney disease?",
+    "Ask your doctor or dietitian what's right for you."
+   ],
+   "src": [
+    "niddk"
+   ],
+   "gap": 1.4
+  },
+  {
+   "say": [
+    "Back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "efsa": [
+   "EFSA. Dietary reference values for nutrients, summary report 2017: protein population reference intake 0.83 g per kg body weight per day for adults",
+   "https://www.efsa.europa.eu/sites/default/files/2017_09_DRVs_summary_report.pdf"
+  ],
+  "dga2025": [
+   "Dietary Guidelines for Americans 2025 to 2030: 1.2 to 1.6 g of protein per kg per day",
+   "https://cdn.realfood.gov/DGA.pdf"
+  ],
+  "morton2018": [
+   "Morton RW et al. Protein supplementation and resistance training gains in muscle mass and strength. Br J Sports Med 2018;52:376-384 (49 studies, 1,863 people; no further gains beyond 1.62 g/kg/day)",
+   "https://openrepository.aut.ac.nz/items/8dea98a4-4e37-4c60-be43-4b6ece0bd9a5"
+  ],
+  "leidy2015": [
+   "Leidy HJ et al. The role of protein in weight loss and maintenance. Am J Clin Nutr 2015: at least about 25 to 30 g of protein per meal",
+   "https://doi.org/10.3945/ajcn.114.084038"
+  ],
+  "niddk": [
+   "NIDDK. Healthy eating for adults with chronic kidney disease (reviewed January 2025): work with a dietitian or health care professional to find the right balance of protein",
+   "https://www.niddk.nih.gov/health-information/kidney-disease/chronic-kidney-disease-ckd/eating-nutrition"
+  ]
+ }
+}

@@ -1,0 +1,113 @@
+{
+ "n": 6,
+ "slug": "barefoot",
+ "question": "Are barefoot shoes good for your feet?",
+ "area": "posture-looks",
+ "page": "/posture-looks/are-barefoot-shoes-good-for-your-feet",
+ "posts": "2026-10-31",
+ "lines": [
+  {
+   "say": [
+    "Are barefoot shoes good for your feet?"
+   ],
+   "gap": 1.3
+  },
+  {
+   "say": [
+    "Each foot has twenty-six bones and three arches.",
+    "Small muscles inside the foot help hold them up."
+   ],
+   "src": [
+    "statpearls",
+    "mckeon2015"
+   ]
+  },
+  {
+   "say": [
+    "Like any muscle, they get stronger when they work."
+   ]
+  },
+  {
+   "say": [
+    "In one trial, eight weeks of walking in flat, flexible shoes made foot muscles forty-one percent stronger."
+   ],
+   "src": [
+    "ridge2019"
+   ]
+  },
+  {
+   "say": [
+    "Foot exercises did even more: fifty-eight percent."
+   ],
+   "src": [
+    "ridge2019"
+   ]
+  },
+  {
+   "say": [
+    "In another, runners given eight weeks of foot training got fewer running injuries over the next year."
+   ],
+   "src": [
+    "taddei2020"
+   ]
+  },
+  {
+   "say": [
+    "But don't switch overnight.",
+    "When runners moved to toe shoes over ten weeks, ten of nineteen showed bone stress on MRI."
+   ],
+   "src": [
+    "ridge2013"
+   ]
+  },
+  {
+   "say": [
+    "The trial that worked built up slowly: two and a half thousand steps a day, then five thousand, then seven."
+   ],
+   "src": [
+    "ridge2019"
+   ]
+  },
+  {
+   "say": [
+    "Feet painful, stiff, weak or numb?",
+    "See a doctor."
+   ],
+   "src": [
+    "nhsflat"
+   ],
+   "gap": 1.3
+  },
+  {
+   "say": [
+    "Back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "statpearls": [
+   "StatPearls. Foot joints (26 bones) and Arches of the foot (three arches)",
+   "https://www.ncbi.nlm.nih.gov/books/NBK536941/"
+  ],
+  "mckeon2015": [
+   "McKeon PO et al. The foot core system. Br J Sports Med 2015;49:290",
+   "https://bjsm.bmj.com/content/49/5/290"
+  ],
+  "ridge2019": [
+   "Ridge ST et al. Walking in minimalist shoes is effective for strengthening foot muscles. Med Sci Sports Exerc 2019;51:104-113 (57 runners, 8 weeks)",
+   "https://scholarsarchive.byu.edu/cgi/viewcontent.cgi?article=4119&context=facpub"
+  ],
+  "taddei2020": [
+   "Taddei UT et al. Foot core training to prevent running-related injuries. Am J Sports Med 2020;48:3610-3619 (118 runners, 12 months)",
+   "https://search.pedro.org.au/search-results/record-detail/62997"
+  ],
+  "ridge2013": [
+   "Ridge ST et al. Foot bone marrow edema after a 10-wk transition to minimalist running shoes. Med Sci Sports Exerc 2013;45:1363-1368",
+   "https://search.pedro.org.au/search-results/record-detail/53028"
+  ],
+  "nhsflat": [
+   "NHS. Flat feet: see a GP if your feet are painful, stiff, weak or numb",
+   "https://www.nhs.uk/conditions/flat-feet/"
+  ]
+ }
+}

@@ -1,0 +1,102 @@
+{
+ "n": 3,
+ "slug": "steps",
+ "question": "Do you really need 10,000 steps?",
+ "area": "fitness-strength",
+ "page": "/fitness-strength/how-many-steps-a-day",
+ "posts": "2026-10-24",
+ "lines": [
+  {
+   "say": [
+    "Do you really need ten thousand steps a day?"
+   ],
+   "gap": 1.0
+  },
+  {
+   "say": [
+    "That number may come from a Japanese pedometer sold in nineteen sixty-five.",
+    "Its name meant ten-thousand-steps meter."
+   ],
+   "src": [
+    "harvard2019"
+   ]
+  },
+  {
+   "say": [
+    "So scientists measured.",
+    "Fifty-seven studies, with steps counted by devices."
+   ],
+   "src": [
+    "ding2025"
+   ]
+  },
+  {
+   "say": [
+    "Compared with two thousand steps a day, seven thousand went with a forty-seven percent lower risk of dying early."
+   ],
+   "src": [
+    "ding2025"
+   ]
+  },
+  {
+   "say": [
+    "Dementia, thirty-eight percent lower.",
+    "Depression symptoms, twenty-two.",
+    "Falls, twenty-eight."
+   ],
+   "src": [
+    "ding2025"
+   ]
+  },
+  {
+   "say": [
+    "Above seven thousand, the extra benefit was small for most outcomes."
+   ],
+   "src": [
+    "sydney2025"
+   ]
+  },
+  {
+   "say": [
+    "In a study of older women, the benefit leveled off around seven and a half thousand."
+   ],
+   "src": [
+    "harvard2019"
+   ]
+  },
+  {
+   "say": [
+    "These studies show a link, not proof."
+   ],
+   "src": [
+    "ding2025"
+   ]
+  },
+  {
+   "say": [
+    "So aim for about seven thousand a day.",
+    "Far below that?",
+    "Add a thousand at a time."
+   ]
+  },
+  {
+   "say": [
+    "Back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "harvard2019": [
+   "Harvard Gazette, 2019: the 10,000 figure may trace back to a 1965 Japanese pedometer, the manpo-kei; Lee IM et al., JAMA Internal Medicine 2019 (16,741 women, average age 72)",
+   "https://news.harvard.edu/gazette/story/2019/06/for-older-women-just-7500-steps-a-day-lowers-mortality"
+  ],
+  "ding2025": [
+   "Ding D et al. Daily steps and health outcomes in adults: a systematic review and dose-response meta-analysis. Lancet Public Health 2025;10(8):e668-e681 (57 studies; 7,000 vs 2,000 steps: all-cause mortality HR 0.53, dementia 0.62, depressive symptoms 0.78, falls 0.72)",
+   "https://www.cancer.fr/professionnels-de-sante/veille/nota-bene-cancer/bulletin-n-654-du-28-juillet-2025/daily-steps-and-health-outcomes-in-adults-a-systematic-review-and-dose-response-meta-analysis"
+  ],
+  "sydney2025": [
+   "University of Sydney, 2025, quoting lead author Melody Ding: beyond 7,000 steps the extra benefits for most outcomes were modest",
+   "https://sydney.edu.au/content/corporate/news-opinion/news/2025/07/24/rethink-the-10000-a-day-step-goal-study-suggests.html"
+  ]
+ }
+}

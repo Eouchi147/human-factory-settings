@@ -1,0 +1,136 @@
+{
+ "n": 2,
+ "slug": "posture",
+ "question": "How do I fix my posture?",
+ "area": "posture-looks",
+ "page": "/posture-looks/how-to-fix-my-posture",
+ "posts": "2026-10-22",
+ "lines": [
+  {
+   "say": [
+    "Trying to fix your posture?",
+    "Here's what the science says."
+   ]
+  },
+  {
+   "say": [
+    "One: there's no perfect posture.",
+    "The straight line in textbooks comes from a nineteenth-century model of a body standing still without using its muscles."
+   ],
+   "src": [
+    "barra2024"
+   ]
+  },
+  {
+   "say": [
+    "Forty-one reviews of the evidence found no proof that posture causes back pain."
+   ],
+   "src": [
+    "swain2020"
+   ]
+  },
+  {
+   "say": [
+    "Two: your spine is built to move.",
+    "People with back pain don't have a different curve.",
+    "They move less."
+   ],
+   "src": [
+    "laird2014"
+   ]
+  },
+  {
+   "say": [
+    "Three: text neck.",
+    "The famous sixty pounds on your neck came from a computer model."
+   ],
+   "src": [
+    "hansraj2014"
+   ]
+  },
+  {
+   "say": [
+    "When scientists measured more than seven hundred people, the angle of their neck didn't predict neck pain."
+   ],
+   "src": [
+    "damasceno2018",
+    "correia2021"
+   ]
+  },
+  {
+   "say": [
+    "So change position often.",
+    "Get up once an hour."
+   ],
+   "src": [
+    "mayo2019",
+    "hse"
+   ]
+  },
+  {
+   "say": [
+    "And train your neck and upper back.",
+    "In trials, exercise moved the head back and eased neck pain."
+   ],
+   "src": [
+    "xing2026"
+   ]
+  },
+  {
+   "say": [
+    "Back pain with numbness or weakness in both legs, or changes in your bladder?",
+    "Get help right away."
+   ],
+   "src": [
+    "nhsback"
+   ]
+  },
+  {
+   "say": [
+    "Back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "barra2024": [
+   "Barra-López ME. The standard posture is a myth: a scoping review. J Rehabil Med 2024;56:jrm41899",
+   "https://medicaljournalssweden.se/jrm/article/view/41899"
+  ],
+  "swain2020": [
+   "Swain CTV et al. No consensus on causality of spine postures or physical exposure and low back pain: a systematic review of systematic reviews. J Biomech 2020;102:109312",
+   "https://research.monash.edu/en/publications/no-consensus-on-causality-of-spine-postures-or-physical-exposure-/"
+  ],
+  "laird2014": [
+   "Laird RA et al. Comparing lumbo-pelvic kinematics in people with and without back pain. BMC Musculoskelet Disord 2014;15:229",
+   "https://link.springer.com/article/10.1186/1471-2474-15-229"
+  ],
+  "hansraj2014": [
+   "Hansraj KK. Assessment of stresses in the cervical spine caused by posture and position of the head. Surg Technol Int 2014 (a computer model), reported by NPR",
+   "https://www.npr.org/sections/thetwo-way/2014/11/20/365473750/keep-your-head-up-text-neck-can-take-a-toll-on-the-spine"
+  ],
+  "damasceno2018": [
+   "Damasceno GM et al. Text neck and neck pain in 18 to 21-year-old young adults (150 people). Eur Spine J 2018;27:1249-1254",
+   "https://link.springer.com/article/10.1007/s00586-017-5444-5"
+  ],
+  "correia2021": [
+   "Correia IMT et al. Association between text neck and neck pain in adults (582 people). Spine 2021;46:571-578",
+   "https://www.unisuam.edu.br/wp-content/uploads/2021/11/artigo_prova_de_conhecimentos_2022-1.pdf"
+  ],
+  "mayo2019": [
+   "Mayo Clinic Health System. Do you have good posture? (2019): get up at least once an hour",
+   "https://www.mayoclinichealthsystem.org/hometown-health/speaking-of-health/do-you-have-good-posture"
+  ],
+  "hse": [
+   "UK Health and Safety Executive. Work routine and breaks",
+   "https://www.hse.gov.uk/msd/dse/work-routine.htm"
+  ],
+  "xing2026": [
+   "Xing Y et al. Therapeutic exercise for forward head posture in neck pain patients: a meta-analysis (10 trials, 550 people). J Pain Res 2026;19:1-18",
+   "https://www.dovepress.com/therapeutic-exercise-for-forward-head-posture-in-neck-pain-patients-a--peer-reviewed-fulltext-article-JPR"
+  ],
+  "nhsback": [
+   "NHS. Back pain: when to get help",
+   "https://www.nhs.uk/conditions/back-pain/"
+  ]
+ }
+}

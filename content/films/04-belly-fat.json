@@ -1,0 +1,111 @@
+{
+ "n": 4,
+ "slug": "belly-fat",
+ "question": "Can crunches burn belly fat?",
+ "area": "weight-food",
+ "page": "/weight-food/how-to-lose-belly-fat",
+ "posts": "2026-10-27",
+ "lines": [
+  {
+   "say": [
+    "Doing crunches to lose belly fat?"
+   ],
+   "gap": 1.2
+  },
+  {
+   "say": [
+    "Working a muscle doesn't burn the fat that sits on top of it."
+   ],
+   "src": [
+    "hm2022"
+   ]
+  },
+  {
+   "say": [
+    "In a six-week trial, ab exercises alone didn't shrink the waist or the belly fat."
+   ],
+   "src": [
+    "vispute2011"
+   ]
+  },
+  {
+   "say": [
+    "Across thirteen studies and more than eleven hundred people, training one body part didn't shrink the fat in that spot."
+   ],
+   "src": [
+    "hm2022"
+   ]
+  },
+  {
+   "say": [
+    "In another, people trained only one arm for twelve weeks.",
+    "On the scans, there was no difference between the two arms."
+   ],
+   "src": [
+    "kostek2007"
+   ]
+  },
+  {
+   "say": [
+    "What does work?",
+    "Strength training.",
+    "In fifty-eight studies, it cut body fat, including the deep fat around your organs."
+   ],
+   "src": [
+    "wewege2022"
+   ]
+  },
+  {
+   "say": [
+    "And to lose fat anywhere, eat and drink a little less than you use.",
+    "Your body then burns its stored fat for energy."
+   ],
+   "src": [
+    "nhscal"
+   ]
+  },
+  {
+   "say": [
+    "So lift twice a week.",
+    "Move at least a hundred and fifty minutes a week.",
+    "And eat a little less."
+   ],
+   "src": [
+    "who2020",
+    "nhscal"
+   ],
+   "gap": 1.4
+  },
+  {
+   "say": [
+    "Back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "hm2022": [
+   "A proposed model to test the hypothesis of exercise-induced localized fat reduction (spot reduction), including a systematic review with meta-analysis. Human Movement 2022 (13 studies, 1,158 people aged 14 to 71: no spot reduction)",
+   "https://doi.org/10.5114/HM.2022.110373"
+  ],
+  "vispute2011": [
+   "Vispute SS et al. The effect of abdominal exercise on abdominal fat. J Strength Cond Res 2011 (24 adults, 6 weeks)",
+   "https://doi.org/10.1519/JSC.0b013e3181fb4a46"
+  ],
+  "wewege2022": [
+   "Wewege MA et al. The effect of resistance training in healthy adults on body fat percentage, fat mass and visceral fat. Sports Medicine 2022;52:287-300 (58 studies)",
+   "https://digital.library.adelaide.edu.au/items/630d3501-d4b8-48a6-bd74-32d8cc5124f0"
+  ],
+  "nhscal": [
+   "NHS. Understanding calories: you're likely to lose weight if you eat and drink fewer calories than you use, because your body uses its stored fat for energy",
+   "https://www.nhs.uk/live-well/healthy-weight/managing-your-weight/understanding-calories/"
+  ],
+  "who2020": [
+   "WHO guidelines on physical activity and sedentary behaviour, 2020: adults 150 to 300 minutes of moderate activity a week, and muscle strengthening on 2 or more days",
+   "https://www.ncbi.nlm.nih.gov/books/NBK566048/"
+  ],
+  "kostek2007": [
+   "Kostek MA et al. Subcutaneous fat alterations resulting from an upper-body resistance training program. Med Sci Sports Exerc 2007 (104 people, 12 weeks; MRI showed no difference between the trained and untrained arm)",
+   "https://stars.library.ucf.edu/scopus2000/6502"
+  ]
+ }
+}
