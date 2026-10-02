@@ -56,18 +56,22 @@ export default function Home() {
                     <Icon name="arrow" size={16} />
                   </Link>
                   <ul className={s.areaQs}>
-                    {a.questions.slice(0, 3).map((q) => (
-                      <li key={q.q}>
-                        {q.slug ? (
-                          <Link href={`/${a.slug}/${q.slug}`}>{q.q}</Link>
-                        ) : (
-                          <Link href={`/${a.slug}`} className={s.soon}>
-                            {q.q}
-                          </Link>
-                        )}
-                      </li>
-                    ))}
+                    {[
+                      ...a.questions.filter((q) => q.slug).map((q) => ({ t: q.q, href: `/${a.slug}/${q.slug}` })),
+                      ...(a.start ?? []).map((x) => ({ t: x.label, href: x.href })),
+                    ]
+                      .slice(0, 3)
+                      .map((x) => (
+                        <li key={x.href}>
+                          <Link href={x.href}>{x.t}</Link>
+                        </li>
+                      ))}
                   </ul>
+                  {a.questions.some((q) => !q.slug) ? (
+                    <p className={s.coming}>
+                      {a.questions.filter((q) => !q.slug).length} more answers coming
+                    </p>
+                  ) : null}
                 </div>
               </Reveal>
             ))}

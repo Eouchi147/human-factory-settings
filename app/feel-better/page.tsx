@@ -6,7 +6,7 @@ import { Reveal } from "@/components/Reveal";
 
 export const metadata: Metadata = {
   title: "Feel better",
-  description: "Small plans and clear guides built on the best evidence we have, with how sure the science is and when to see a doctor instead.",
+  description: "Small plans and clear guides built on the best evidence we have, with their sources and when to see a doctor instead.",
 };
 
 type Setting = { icon: IconName; name: string; line: string; status: "ready" | "guide" | "soon"; links: { href: string; label: string }[] };
@@ -59,7 +59,7 @@ export default function RestorePage() {
             Feel better, <span className="serif">one small step at a time.</span>
           </h1>
           <p className="lede a-in a-d2">
-            Plans and guides built on the best evidence we have. Each one shows how sure the science is, and tells you when it&apos;s time to see a doctor instead.
+            Plans and guides built on the best evidence we have. Each one lists its sources, and tells you when it&apos;s time to see a doctor instead.
           </p>
         </header>
         <div className={s.grid}>

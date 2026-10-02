@@ -59,7 +59,8 @@ export function ClockRing({ from, to, size = 220, center, sub = "CAFFEINE-FREE",
 
 /** Share of a caffeine dose left in the blood over the next 14 hours, for half-lives of 1.5, 5 and 9.5 hours. */
 export function HalfLifeChart({ start = 17, bed = 23 }: { start?: number; bed?: number }) {
-  const W = 520, H = 300, L = 46, R = 18, T = 26, B = 42;
+  // drawn small on purpose: at the width it is shown (about 300 px), one unit is about one pixel, so the labels stay readable on phones
+  const W = 320, H = 250, L = 36, R = 12, T = 30, B = 36;
   const hours = 14;
   const X = (t: number) => L + (t / hours) * (W - L - R);
   const Y = (p: number) => T + (1 - p / 100) * (H - T - B);
@@ -85,16 +86,16 @@ export function HalfLifeChart({ start = 17, bed = 23 }: { start?: number; bed?: 
   const hh = (t: number) => clock12(start + t);
   return (
     <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={`Caffeine left in the blood after a ${hh(0)} dose: about ${at(5)} percent at ${hh(tb)} for the average half-life of 5 hours, between ${at(1.5)} and ${at(9.5)} percent across the normal range`}>
-      {[0, 25, 50, 75, 100].map((p) => (
+      {[0, 50, 100].map((p) => (
         <g key={p}>
           <line x1={L} x2={W - R} y1={Y(p)} y2={Y(p)} stroke="rgba(236,238,241,.08)" />
-          <text x={L - 8} y={Y(p) + 3.5} textAnchor="end" fontFamily={MONO} fontSize="10" fill="rgba(236,238,241,.5)">
+          <text x={L - 6} y={Y(p) + 4} textAnchor="end" fontFamily={MONO} fontSize="11" fill="rgba(236,238,241,.6)">
             {p}%
           </text>
         </g>
       ))}
-      {[0, 2, 4, 6, 8, 10, 12, 14].map((t) => (
-        <text key={t} x={X(t)} y={H - B + 18} textAnchor="middle" fontFamily={MONO} fontSize="10" fill="rgba(236,238,241,.5)">
+      {[0, 4, 8, 12].map((t) => (
+        <text key={t} x={X(t)} y={H - B + 18} textAnchor="middle" fontFamily={MONO} fontSize="11" fill="rgba(236,238,241,.6)">
           {hh(t)}
         </text>
       ))}
@@ -103,20 +104,20 @@ export function HalfLifeChart({ start = 17, bed = 23 }: { start?: number; bed?: 
       <polyline points={curve(9.5)} fill="none" stroke="rgba(255,122,61,.45)" strokeWidth="1.2" strokeDasharray="3 4" />
       <polyline points={curve(5)} fill="none" stroke="#FF6A2B" strokeWidth="2.4" strokeLinejoin="round" />
       <line x1={X(tb)} x2={X(tb)} y1={T - 6} y2={H - B} stroke="#ECEEF1" strokeWidth="1.2" strokeDasharray="2 4" />
-      <text x={X(tb) + 6} y={T + 4} fontFamily={MONO} fontSize="10.5" fontWeight="600" fill="#ECEEF1">
+      <text x={X(tb) + 5} y={T + 6} fontFamily={MONO} fontSize="11" fontWeight="600" fill="#ECEEF1">
         BED {hh(tb)}
       </text>
       <circle cx={X(tb)} cy={Y(at(5))} r="4.5" fill="#FF6A2B" />
-      <text x={X(tb) + 10} y={Y(at(5)) + 4} fontFamily={SANS} fontSize="14" fontWeight="650" fill="#ECEEF1">
-        {at(5)}% still there
+      <text x={X(tb) + 9} y={Y(at(5)) + 5} fontFamily={SANS} fontSize="14" fontWeight="650" fill="#ECEEF1">
+        {at(5)}% left
       </text>
-      <text x={X(9.6)} y={Y(100 * Math.pow(0.5, 9.6 / 9.5)) - 8} fontFamily={MONO} fontSize="9.5" fill="rgba(255,122,61,.8)">
+      <text x={X(10.2)} y={Y(100 * Math.pow(0.5, 10.2 / 9.5)) - 8} textAnchor="middle" fontFamily={MONO} fontSize="10.5" fill="rgba(255,122,61,.85)">
         slow body
       </text>
-      <text x={X(2.4) + 4} y={Y(100 * Math.pow(0.5, 2.4 / 1.5)) + 14} fontFamily={MONO} fontSize="9.5" fill="rgba(255,122,61,.8)">
+      <text x={X(2.2) + 4} y={Y(100 * Math.pow(0.5, 2.2 / 1.5)) + 16} fontFamily={MONO} fontSize="10.5" fill="rgba(255,122,61,.85)">
         fast body
       </text>
-      <text x={X(0.3)} y={T - 8} fontFamily={MONO} fontSize="9.5" fill="rgba(236,238,241,.6)">
+      <text x={L} y={T - 12} fontFamily={MONO} fontSize="10.5" fill="rgba(236,238,241,.65)">
         CAFFEINE STILL IN YOU
       </text>
     </svg>
@@ -125,7 +126,7 @@ export function HalfLifeChart({ start = 17, bed = 23 }: { start?: number; bed?: 
 
 /** Schematic of the two processes: sleep pressure builds while awake and drains in sleep. Not data. */
 export function PressureSketch() {
-  const W = 520, H = 250, L = 20, R = 20, T = 30, B = 44;
+  const W = 320, H = 200, L = 12, R = 12, T = 30, B = 40;
   const X = (h: number) => L + (h / 48) * (W - L - R);
   const Y = (p: number) => T + (1 - p) * (H - T - B);
   const pts: string[] = [];
@@ -150,17 +151,17 @@ export function PressureSketch() {
       <line x1={L} x2={W - R} y1={H - B} y2={H - B} stroke="rgba(236,238,241,.18)" />
       <polyline points={pts.join(" ")} fill="none" stroke="#B59CF0" strokeWidth="2.4" strokeLinejoin="round" />
       {[0, 16, 24, 40, 48].map((h) => (
-        <text key={h} x={X(h)} y={H - B + 18} textAnchor="middle" fontFamily={MONO} fontSize="10" fill="rgba(236,238,241,.5)">
+        <text key={h} x={Math.min(W - 20, Math.max(20, X(h)))} y={H - B + 17} textAnchor="middle" fontFamily={MONO} fontSize="10.5" fill="rgba(236,238,241,.6)">
           {clock12((h + 7) % 24)}
         </text>
       ))}
-      <text x={X(8)} y={T + 2} textAnchor="middle" fontFamily={MONO} fontSize="9.5" fill="rgba(236,238,241,.6)">
-        AWAKE · SLEEPINESS BUILDS
+      <text x={L} y={T - 14} fontFamily={MONO} fontSize="10.5" fill="rgba(236,238,241,.65)">
+        AWAKE: SLEEPINESS BUILDS
       </text>
-      <text x={X(20)} y={T + 2} textAnchor="middle" fontFamily={MONO} fontSize="9.5" fill="#C9B6F5">
+      <text x={X(20)} y={T + 4} textAnchor="middle" fontFamily={MONO} fontSize="10.5" fill="#C9B6F5">
         ASLEEP
       </text>
-      <text x={L} y={H - 8} fontFamily={MONO} fontSize="9" fill="rgba(236,238,241,.55)">
+      <text x={L} y={H - 6} fontFamily={MONO} fontSize="10" fill="rgba(236,238,241,.6)">
         A SIMPLE DRAWING, NOT REAL DATA
       </text>
     </svg>

@@ -6,11 +6,12 @@ import { useEffect, useState } from "react";
 import { Glass, GlassShadow } from "./Glass";
 import { Icon, Logo } from "./Icons";
 
-const AREA_PATHS = ["/sleep-energy", "/weight-food", "/fitness-strength", "/posture-looks", "/stress-mood", "/habits-focus", "/connection-purpose", "/your-body", "/body", "/stories", "/guides", "/feel-better"];
+const AREA_PATHS = ["/sleep-energy", "/weight-food", "/fitness-strength", "/posture-looks", "/stress-mood", "/habits-focus", "/connection-purpose", "/aches-health", "/stories", "/guides", "/feel-better"];
 
 const NAV = [
   { href: "/", label: "Home", short: "Home", icon: "you" as const },
   { href: "/#fix", label: "Topics", short: "Topics", icon: "layers" as const },
+  { href: "/body", label: "Body in 3D", short: "Body", icon: "explore" as const },
   { href: "/tools", label: "Tools", short: "Tools", icon: "dial" as const },
   { href: "/watch", label: "Watch", short: "Watch", icon: "play" as const },
 ];

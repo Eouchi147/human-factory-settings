@@ -336,7 +336,7 @@ nav[aria-label="Breadcrumb"] a { padding-block: 8px; margin-block: -8px; }
 .tabbar { position: fixed; z-index: 50; left: 12px; right: 12px; bottom: max(12px, env(safe-area-inset-bottom)); height: 66px; }
 .tabbar nav {
   position: relative; height: 66px; padding: 6px; border-radius: 24px;
-  display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 4px;
+  display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); gap: 2px;
 }
 .tabbar a {
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px;
@@ -555,3 +555,5 @@ nav[aria-label="Breadcrumb"] a { padding-block: 8px; margin-block: -8px; }
 /* Simplicity pass (30 Sep 2026): no evidence chips, measured badges or reading-level switch on the surface.
    Sources stay on every page, at the bottom. */
 .ev, .ms, .depth-switch, .story-depth { display: none !important; }
+/* except where a table or a key needs them: the guides' evidence column, the evidence key, the quiz's science check */
+.prose .ev, #evidence .ev, .quiz-result .ev { display: inline-flex !important; }

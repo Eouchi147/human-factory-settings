@@ -42,6 +42,23 @@ export default async function AreaPage({ params }: { params: Promise<{ area: str
             </a>
           </span>
         </div>
+        {a.start?.length ? (
+          <div className={s.start}>
+            <span className={s.startK}>Start here</span>
+            <ul className={s.hubList}>
+              {a.start.map((x) => (
+                <li key={x.href}>
+                  <Link href={x.href} className={s.hubItem}>
+                    <span className={s.hubQ}>{x.label}</span>
+                    <span className={s.hubGo}>
+                      <Icon name="arrow" size={20} />
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
         <ul className={s.hubList}>
           {a.questions.map((q) =>
             q.slug ? (

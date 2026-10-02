@@ -19,8 +19,7 @@ export default function StoryPage() {
             Why you wake up <span className="serif">tired.</span>
           </h1>
           <p className="lede a-in a-d2">
-            Six short steps, from the chemical that makes you sleepy all day to the coffee that hides it. Each step shows how sure the science is, and where it comes
-            from.
+            Six short steps, from the chemical that makes you sleepy all day to the coffee that hides it. Each step shows where the science comes from.
           </p>
         </header>
         <StoryScroller stations={STATIONS} />

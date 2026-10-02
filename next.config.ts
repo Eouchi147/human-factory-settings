@@ -18,6 +18,9 @@ const nextConfig: NextConfig = {
       { source: "/restore", destination: "/feel-better", permanent: true },
       { source: "/restore/:path*", destination: "/feel-better/:path*", permanent: true },
       { source: "/library", destination: "/how-we-check", permanent: true },
+      // the "Your body" topic became "Aches & health" on 1 Oct 2026, so "Your body" means the 3D body only
+      { source: "/your-body", destination: "/aches-health", permanent: true },
+      { source: "/your-body/:path*", destination: "/aches-health/:path*", permanent: true },
     ];
   },
   async headers() {

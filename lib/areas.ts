@@ -15,6 +15,7 @@ export type Area = {
   source: { label: string; href: string };
   intro: string;
   questions: Question[];
+  start?: { label: string; href: string }[]; // pages that already exist for this area
 };
 
 export const AREAS: Area[] = [
@@ -35,6 +36,10 @@ export const AREAS: Area[] = [
       { q: "Is mouth taping safe?" },
       { q: "Why do I wake up at 3 a.m.?" },
     ],
+    start: [
+      { label: "Your 7-day sleep and caffeine plan", href: "/feel-better/sleep-and-caffeine" },
+      { label: "The story: why you wake up tired", href: "/stories/why-you-wake-up-tired" },
+    ],
   },
   {
     slug: "weight-food",
@@ -51,6 +56,11 @@ export const AREAS: Area[] = [
       { q: "Do weight-loss injections work, and what happens when you stop?" },
       { q: "How much protein do I need a day?", hook: "The number, and how to spread it out." },
       { q: "How can I improve my gut health?" },
+    ],
+    start: [
+      { label: "Weight: the full guide", href: "/guides/weight" },
+      { label: "Supplements: the full guide", href: "/guides/supplements" },
+      { label: "Is your waist under half your height?", href: "/tools#waist" },
     ],
   },
   {
@@ -69,6 +79,10 @@ export const AREAS: Area[] = [
       { q: "What does creatine do, and is it safe?" },
       { q: "How do I start running?" },
       { q: "What's the best workout for a complete beginner?" },
+    ],
+    start: [
+      { label: "Moving more: from the weight guide", href: "/guides/weight#moving" },
+      { label: "Check your pulse", href: "/tools#pulse" },
     ],
   },
   {
@@ -143,9 +157,9 @@ export const AREAS: Area[] = [
     ],
   },
   {
-    slug: "your-body",
-    name: "Your body",
-    chip: "Aches & body",
+    slug: "aches-health",
+    name: "Aches & health",
+    chip: "Ease aches",
     icon: "you",
     focus: ["spine"],
     fact: "Low back pain is the world's leading cause of disability.",
@@ -157,6 +171,11 @@ export const AREAS: Area[] = [
       { q: "How can I lower my cholesterol?" },
       { q: "What causes high blood pressure?" },
       { q: "What happens in perimenopause?" },
+    ],
+    start: [
+      { label: "Your body in 3D", href: "/body" },
+      { label: "Your heart", href: "/body/heart" },
+      { label: "Your liver", href: "/body/liver" },
     ],
   },
 ];

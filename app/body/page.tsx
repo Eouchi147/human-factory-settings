@@ -10,7 +10,7 @@ import { BLUR } from "@/lib/blur";
 import { BodyExplorerLazy } from "@/components/explorer/BodyExplorerLazy";
 
 export const metadata: Metadata = {
-  title: "How your body works",
+  title: "Your body in 3D",
   description: "Every system of your body in 3D and in colour: pick one and watch it come apart, part by part, in plain words.",
 };
 
@@ -20,13 +20,13 @@ export default function ExplorePage() {
   return (
     <div className="page-top" style={{ paddingTop: "calc(var(--header-h) + 8px)" }}>
       <div className="wrap stack gap-32">
-        <h1 className="visually-hidden">How your body works, one system at a time</h1>
+        <h1 className="visually-hidden">Your body in 3D, one system at a time</h1>
         <section id="explore" style={{ scrollMarginTop: 72 }} aria-label="Your body in 3D">
           <BodyExplorerLazy />
         </section>
 
         <header className={s.head}>
-          <div className="kick a-in">Your body</div>
+          <div className="kick a-in">Your body in 3D</div>
           <h2 className="h1 a-in a-d1" style={{ margin: 0 }}>
             How your body works, <span className="serif">one part at a time.</span>
           </h2>

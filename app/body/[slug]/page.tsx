@@ -48,7 +48,7 @@ export default async function SystemPage({ params }: { params: Promise<{ slug: s
 
           <section className={s.side} aria-labelledby="sys-name">
             <nav className={`cap ${s.crumb}`} aria-label="Breadcrumb">
-              <Link href="/body">Your body</Link>
+              <Link href="/body">Your body in 3D</Link>
               <span aria-hidden="true">/</span>
               <span>{x.group}</span>
               <span aria-hidden="true">/</span>

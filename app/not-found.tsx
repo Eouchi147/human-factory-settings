@@ -14,7 +14,7 @@ export default function NotFound() {
             Back to the start
           </Link>
           <Link className="btn btn-ghost" href="/body">
-            Explore the body
+            Your body in 3D
           </Link>
         </div>
       </div>

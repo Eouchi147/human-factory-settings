@@ -42,7 +42,7 @@ export function ExplorerOverlay({ system, onClose }: { system: SystemId | null; 
     <motion.div
       role="dialog"
       aria-modal="true"
-      aria-label="The body in 3D"
+      aria-label="Your body in 3D"
       initial={{ opacity: 0, scale: 0.985 }}
       animate={{ opacity: 1, scale: 1 }}
       exit={{ opacity: 0 }}

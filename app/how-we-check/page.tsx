@@ -83,8 +83,8 @@ export default function LibraryPage() {
             Simple words, <span className="serif">checked science.</span>
           </h1>
           <p className="lede a-in a-d2">
-            Every claim on this site is checked against its source and labelled with how sure science is about it. Here&apos;s how that works, what the words mean, who
-            checks the work and who pays for it.
+            Every claim on this site is checked against its source, and every page lists its sources. Here&apos;s how that works, what the words mean, who checks the
+            work and who pays for it.
           </p>
           <nav className="row-wrap gap-8 a-in a-d3" aria-label="On this page">
             {[
@@ -106,7 +106,7 @@ export default function LibraryPage() {
             How sure is <span className="serif">the science?</span>
           </h2>
           <p className="body-l" style={{ margin: 0 }}>
-            Every claim on the site carries one label. The four levels are based on{" "}
+            Our full guides rate each claim with one of four levels, based on{" "}
             <a href="https://gdt.gradepro.org/app/handbook/handbook.html" target="_blank" rel="noopener noreferrer">
               GRADE
             </a>
@@ -123,10 +123,6 @@ export default function LibraryPage() {
               </div>
             ))}
           </div>
-          <p style={{ margin: 0, fontSize: 14.5, color: "var(--ink3)" }}>
-            Every page also reads at three levels: Simple (a 12-year-old follows it), Detailed, and Expert (for doctors and researchers). The facts and the labels stay
-            the same at every level.
-          </p>
         </section>
 
         <section id="words" className="stack gap-16" style={{ scrollMarginTop: 110 }}>

@@ -5,7 +5,7 @@ const COLS = [
   {
     title: "Your body",
     links: [
-      ["How your body works", "/body"],
+      ["Your body in 3D", "/body"],
       ["Your heart", "/body/heart"],
       ["Your liver", "/body/liver"],
       ["Why you wake up tired", "/stories/why-you-wake-up-tired"],
@@ -14,7 +14,7 @@ const COLS = [
   {
     title: "Feel better",
     links: [
-      ["All topics", "/feel-better"],
+      ["All topics", "/#fix"],
       ["Sleep and caffeine: 7-day plan", "/feel-better/sleep-and-caffeine"],
       ["Weight: the full guide", "/guides/weight"],
       ["Supplements: the full guide", "/guides/supplements"],

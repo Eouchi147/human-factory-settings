@@ -256,7 +256,7 @@ export function BodyExplorer({ variant, initial = null, onClose }: Props) {
 
         <header ref={top} className={s.top}>
           <div className={s.titles}>
-            <span className={s.kick}>The body in 3D</span>
+            <span className={s.kick}>Your body in 3D</span>
             <AnimatePresence mode="wait" initial={false}>
               <motion.h2
                 key={spec ? spec.name : "body"}
