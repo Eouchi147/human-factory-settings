@@ -108,6 +108,29 @@
    ]
   }
  ],
+ "screen": [
+  {
+   "show": "The wall board: 2023 12%, 2024 5%, 2025 7%",
+   "src": [
+    "aasm2023",
+    "aasm2024",
+    "aasm2025"
+   ]
+  },
+  {
+   "show": "Tags: 2015 study, 30 people; 2022 study, 20 people",
+   "src": [
+    "huang2015",
+    "lee2022"
+   ]
+  },
+  {
+   "show": "Tag: nose breathing in sleep, less airway resistance",
+   "src": [
+    "fitzpatrick2003"
+   ]
+  }
+ ],
  "sources": {
   "clevelandmt": [
    "Cleveland Clinic, Is mouth tape safe to use while sleeping? (25 Jul 2025, Brian Chen, MD): \"Mouth taping is the act of taping your mouth shut... so you’re forced to breathe through your nose\"; never use it with \"Nasal obstruction\", \"Nasal congestion\", \"Chronic allergies\", \"Sinus infections\", \"Enlarged tonsils\", \"Deviated septum\", \"Heart issues\"",

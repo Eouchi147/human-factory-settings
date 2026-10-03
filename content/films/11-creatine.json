@@ -110,6 +110,33 @@
    ]
   }
  ],
+ "screen": [
+  {
+   "show": "Tag: biggest effect in efforts under 30 seconds",
+   "src": [
+    "ioc2018"
+   ]
+  },
+  {
+   "show": "Tag on the balance: 35 studies, +1.1 kg",
+   "src": [
+    "delpino2022"
+   ]
+  },
+  {
+   "show": "The gummy tests: 5 of 9 brands, then 5 of 12",
+   "src": [
+    "gummies2025",
+    "gummies2024"
+   ]
+  },
+  {
+   "show": "The end dial: about 1 g a day",
+   "src": [
+    "odsconsumer"
+   ]
+  }
+ ],
  "sources": {
   "antonio2021": [
    "Antonio J et al. Common questions and misconceptions about creatine supplementation. J Int Soc Sports Nutr 2021;18:13: \"because creatine has a completely different chemical structure, it is not an anabolic steroid\"; in one review of studies, 12 showed no rise in serum creatinine, 8 a rise within the normal range, 2 a rise above normal limits",

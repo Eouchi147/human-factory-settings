@@ -127,6 +127,12 @@ lines=[
  dict(say=['It can raise creatinine on blood tests, so tell your doctor you take it.', 'Kidney problems, diabetes or high blood pressure? Ask your doctor first.'], src=['akf2026', 'royaldevon2025', 'antonio2021'], gap=1.0),
  dict(say=['Back to factory settings.']),
 ],
+screen=[
+ dict(show='Tag: biggest effect in efforts under 30 seconds', src=['ioc2018']),
+ dict(show='Tag on the balance: 35 studies, +1.1 kg', src=['delpino2022']),
+ dict(show='The gummy tests: 5 of 9 brands, then 5 of 12', src=['gummies2025', 'gummies2024']),
+ dict(show='The end dial: about 1 g a day', src=['odsconsumer']),
+],
 sources={
  'antonio2021': ['Antonio J et al. Common questions and misconceptions about creatine supplementation. J Int Soc Sports Nutr 2021;18:13: "because creatine has a completely different chemical structure, it is not an anabolic steroid"; in one review of studies, 12 showed no rise in serum creatinine, 8 a rise within the normal range, 2 a rise above normal limits', 'https://www.ebi.ac.uk/europepmc/webservices/rest/PMC7871530/fullTextXML'],
  'odsconsumer': ['NIH Office of Dietary Supplements, Dietary Supplements for Exercise and Athletic Performance (consumer): "Your body produces some creatine (about 1 gram a day)"; "In studies, people often took a loading dose of about 20 grams per day of creatine (in four equal portions) for 5 to 7 days and then 3 to 5 grams a day."', 'https://ods.od.nih.gov/factsheets/ExerciseAndAthleticPerformance-Consumer/'],
@@ -159,6 +165,11 @@ lines=[
  dict(say=['Jawline?', 'No scientific evidence.'], src=['sleepfoundation']),
  dict(say=["Snoring with pauses, gasping in your sleep, tired all day, or a nose that's often blocked?", "Don't tape. See a doctor."], src=['nhsosa', 'clevelandmt', 'sleepfoundation'], gap=1.0),
  dict(say=['Back to factory settings.']),
+],
+screen=[
+ dict(show='The wall board: 2023 12%, 2024 5%, 2025 7%', src=['aasm2023', 'aasm2024', 'aasm2025']),
+ dict(show='Tags: 2015 study, 30 people; 2022 study, 20 people', src=['huang2015', 'lee2022']),
+ dict(show='Tag: nose breathing in sleep, less airway resistance', src=['fitzpatrick2003']),
 ],
 sources={
  'clevelandmt': ['Cleveland Clinic, Is mouth tape safe to use while sleeping? (25 Jul 2025, Brian Chen, MD): "Mouth taping is the act of taping your mouth shut... so you’re forced to breathe through your nose"; never use it with "Nasal obstruction", "Nasal congestion", "Chronic allergies", "Sinus infections", "Enlarged tonsils", "Deviated septum", "Heart issues"', 'https://health.clevelandclinic.org/mouth-taping'],

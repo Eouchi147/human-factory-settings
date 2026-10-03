@@ -33,7 +33,7 @@ export const AREAS: Area[] = [
       { q: "Why am I always tired?", slug: "why-am-i-always-tired", hook: "Short sleep, late coffee, late light: check these first." },
       { q: "How can I fall asleep faster?", slug: "how-to-fall-asleep-faster", hook: "Normal is 10 to 20 minutes. What's been measured to help." },
       { q: "Does magnesium help you sleep?" },
-      { q: "Is mouth taping safe?" },
+      { q: "Is mouth taping safe?", slug: "is-mouth-taping-safe", hook: "Not with a blocked nose. And no evidence for the jawline." },
       { q: "Why do I wake up at 3 a.m.?" },
     ],
     start: [
@@ -76,7 +76,7 @@ export const AREAS: Area[] = [
     questions: [
       { q: "How do I build muscle?" },
       { q: "How many steps a day do you really need?", slug: "how-many-steps-a-day", hook: "About 7,000. 10,000 was a pedometer's name." },
-      { q: "What does creatine do, and is it safe?" },
+      { q: "What does creatine do?", slug: "what-does-creatine-do", hook: "With lifting, about a kilo more lean mass. Without it, 0.03 kg." },
       { q: "How do I start running?" },
       { q: "What's the best workout for a complete beginner?" },
     ],
