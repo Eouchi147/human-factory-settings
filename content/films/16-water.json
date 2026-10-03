@@ -109,6 +109,46 @@
    ]
   }
  ],
+ "screen": [
+  {
+   "show": "Card drawer labelled 8 GLASSES A DAY / THE STUDY, empty",
+   "src": [
+    "valtin2002"
+   ]
+  },
+  {
+   "show": "Jugs: 2.0 litres for women, 2.5 for men, every drink and the water in food",
+   "src": [
+    "efsa2010"
+   ]
+  },
+  {
+   "show": "Tag: Water from food, about 20%",
+   "src": [
+    "nasemnews2004",
+    "nasem2004"
+   ]
+  },
+  {
+   "show": "Tubes: WATER, COFFEE, COLA, MILK; milk keeps more in",
+   "src": [
+    "killer2014",
+    "maughan2016"
+   ]
+  },
+  {
+   "show": "Card: THE NHS CHECK, CLEAR PALE YELLOW",
+   "src": [
+    "nhswater"
+   ]
+  },
+  {
+   "show": "Finish banner, 13 of 100 bibs red; tag: Boston Marathon, 488 runners tested at the finish, 13% had low blood sodium",
+   "src": [
+    "almond2005"
+   ]
+  }
+ ],
  "sources": {
   "valtin2002": [
    "Valtin H. 'Drink at least eight glasses of water a day.' Really? Is there scientific evidence for '8 x 8'? Am J Physiol Regul Integr Comp Physiol 2002;283(5):R993 to 1004 (abstract, Europe PMC): \"Despite the seemingly ubiquitous admonition to 'drink at least eight 8-oz glasses of water a day' (with an accompanying reminder that beverages containing caffeine and alcohol do not count), rigorous proof for this counsel appears to be lacking.\" \"This review sought to find the origin of this advice\" \"No scientific studies were found in support of 8 x 8.\" \"large intakes of fluid, equal to and greater than 8 x 8, are advisable for the treatment or prevention of some diseases and certainly are called for under special circumstances, such as vigorous work and exercise, especially in hot climates.\"",

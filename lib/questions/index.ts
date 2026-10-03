@@ -16,6 +16,8 @@ import * as lowerBack from "./why-does-my-lower-back-hurt";
 import * as fasting from "./does-intermittent-fasting-work";
 import * as dopamine from "./does-a-dopamine-detox-work";
 import * as water from "./how-much-water-do-you-need";
+import * as muscle from "./how-do-i-build-muscle";
+import * as coldShowers from "./what-do-cold-showers-really-do";
 
-export const QUESTIONS = [tired, posture, looks, mewing, feet, fascia, steps, bellyfat, protein, fallAsleep, breathing, creatine, mouthTape, lowerBack, fasting, dopamine, water];
+export const QUESTIONS = [tired, posture, looks, mewing, feet, fascia, steps, bellyfat, protein, fallAsleep, breathing, creatine, mouthTape, lowerBack, fasting, dopamine, water, muscle, coldShowers];
 export const questionFor = (area: string, slug: string) => QUESTIONS.find((q) => q.meta.area === area && q.meta.slug === slug);

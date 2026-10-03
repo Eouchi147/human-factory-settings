@@ -75,7 +75,7 @@ export const AREAS: Area[] = [
     source: { label: "WHO, physical activity", href: "https://www.who.int/news-room/fact-sheets/detail/physical-activity" },
     intro: "How to start from zero, build muscle, and move more without living in a gym.",
     questions: [
-      { q: "How do I build muscle?" },
+      { q: "How do I build muscle?", slug: "how-do-i-build-muscle", hook: "Hard sets, twice a week. Light or heavy, the effort builds the size." },
       { q: "How many steps a day do you really need?", slug: "how-many-steps-a-day", hook: "About 7,000. 10,000 was a pedometer's name." },
       { q: "What does creatine do?", slug: "what-does-creatine-do", hook: "With lifting, about a kilo more lean mass. Without it, 0.03 kg." },
       { q: "How do I start running?" },
@@ -117,6 +117,7 @@ export const AREAS: Area[] = [
       { q: "What does anxiety feel like in your body?" },
       { q: "How do I stop overthinking?" },
       { q: "Can breathing calm you down?", slug: "breathing-to-calm-down", hook: "A little. Five minutes a day lifted mood in one trial." },
+      { q: "What do cold showers really do?", slug: "what-do-cold-showers-really-do", hook: "Fewer days off sick, not fewer days ill. No proof of a boost." },
       { q: "What does cortisol actually do?" },
       { q: "Am I burnt out?" },
     ],

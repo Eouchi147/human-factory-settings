@@ -63,7 +63,7 @@
    "say": [
     "Fat loss?",
     "One small trial: zero point seven kilos of fat in six weeks.",
-    "With two hours in a cold room.",
+    "With two hours in the cold.",
     "A day."
    ],
    "src": [
@@ -97,6 +97,51 @@
    ]
   }
  ],
+ "screen": [
+  {
+   "show": "Wall tiles: ONE SHOWER, five warm and the last cold, LAST 30 TO 90 S; EVERY DAY FOR A MONTH, thirty tiles turn blue; tag: 3,018 adults in the Netherlands, 30 days, cold at the end",
+   "src": [
+    "buijze2016"
+   ]
+  },
+  {
+   "show": "Tile bars: DAYS OFF SICK, the cold row 7.1 tiles against 10; DAYS FEELING ILL, both 10; tag: self-reported, sickness absence −29%",
+   "src": [
+    "buijze2016"
+   ]
+  },
+  {
+   "show": "OUT OF 100 WHO TRIED IT: 91 tiles, WANTED TO KEEP GOING; then 64, KEPT GOING",
+   "src": [
+    "buijze2016"
+   ]
+  },
+  {
+   "show": "Cards IMMUNE BOOST and BETTER MOOD stamped NO PROOF; eleven little tubs, 10 IN BATHS, 1 IN SHOWERS; tag: 11 trials, 3,177 people",
+   "src": [
+    "cain2025"
+   ]
+  },
+  {
+   "show": "Sections after training: REST grows more than ICE BATH; tag: 8 studies, quality fair to poor",
+   "src": [
+    "roberts2015",
+    "pinero2024"
+   ]
+  },
+  {
+   "show": "Scale 0.70 kg, 0.7 KG OF FAT; thermometer at 17 °C; the clock turns two hours; DAY 1 to DAY 42; tag: 12 young men, 17 °C, 2 h a day, body fat −0.7 kg in 6 weeks",
+   "src": [
+    "yoneshiro2013"
+   ]
+  },
+  {
+   "show": "Gauge BREATHING from ×1 to ×10; HEART trace speeding up",
+   "src": [
+    "rnli"
+   ]
+  }
+ ],
  "sources": {
   "buijze2016": [
    "Buijze GA, Sierevelt IN, van der Heijden BCJM, Dijkgraaf MG, Frings-Dresen MHW. The Effect of Cold Showering on Health and Work: A Randomized Controlled Trial. PLOS ONE 2016;11(9):e0161749: \"Between January and March 2015, 3018 participants between 18 and 65 years without severe comorbidity and no routine experience of cold showering were randomized (1:1:1:1) to a (hot-to-) cold shower for 30, 60, 90 seconds or a control group during 30 consecutive days followed by 60 days of showering cold at their own discretion for the intervention groups.\" \"Participants randomized to the intervention groups were instructed to shower as warm and as long as preferred but ending with respectively 30, 60 or 90 seconds showering at the coldest available water temperature.\" \"A negative binomial regression model showed a 29% reduction in sickness absence for the (hot-to-) cold shower regimen compared to the control group (Incidence Rate Ratio (IRR): 0.71, P = 0.003).\" \"For illness days at 90 days follow-up there was no significant group effect.\" \"91% of participants reported the will to continue such routine (and 64% actually did).\" Limits: \"First, all outcomes were self-reported based on our online survey design.\" \"Specifically, a placebo-effect of this intervention cannot be ruled out.\"",
@@ -115,7 +160,7 @@
    "https://rgu-repository.worktribe.com/output/2173897"
   ],
   "yoneshiro2013": [
-   "Yoneshiro T, Aita S, Matsushita M, Kayahara T, Kameya T, Kawai Y, Iwanaga T, Saito M. Recruited brown adipose tissue as an antiobesity agent in humans. J Clin Invest 2013;123(8):3404 to 3408: \"22 subjects showing low or undetectable activities of BAT were randomly divided into 2 groups: one was exposed to cold at 17°C for 2 hours every day for 6 weeks (cold group; n = 12); the other maintained their usual lifestyles without cold exposure during the same period (control group; n = 10).\" Body fat mass change \"-5.2% ± 1.9%\" and \"-0.70 ± 0.23 vs. 0.03 ± 0.21 kg\" (cold vs control). Healthy young men; whether the 17°C exposure was air or water is not stated in what was read.",
+   "Yoneshiro T, Aita S, Matsushita M, Kayahara T, Kameya T, Kawai Y, Iwanaga T, Saito M. Recruited brown adipose tissue as an antiobesity agent in humans. J Clin Invest 2013;123(8):3404 to 3408: \"22 subjects showing low or undetectable activities of BAT were randomly divided into 2 groups: one was exposed to cold at 17°C for 2 hours every day for 6 weeks (cold group; n = 12); the other maintained their usual lifestyles without cold exposure during the same period (control group; n = 10).\" Body fat mass change \"-5.2% ± 1.9%\" and \"-0.70 ± 0.23 vs. 0.03 ± 0.21 kg\" (cold vs control). Healthy young men. Supplemental methods (JCI67803sd.pdf): \"cold at 17˚C with light clothing for 2 h every day for 6 wk\"; the room or setting is not named, so the script says \"in the cold\".",
    "https://www.jci.org/articles/view/67803/files/pdf"
   ],
   "rnli": [

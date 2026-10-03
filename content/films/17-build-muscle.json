@@ -93,6 +93,54 @@
    ]
   }
  ],
+ "screen": [
+  {
+   "show": "Rack labels GROW and TONE: the claim the film tests",
+   "src": []
+  },
+  {
+   "show": "Sign: EVERY SET TO THE LAST POSSIBLE REP; light and heavy sections grow alike; the heavy MAXIMAL STRENGTH bar rises higher",
+   "src": [
+    "schoenfeld2017load"
+   ]
+  },
+  {
+   "show": "Calendar THIS WEEK with two days ticked",
+   "src": [
+    "whoeurope"
+   ]
+  },
+  {
+   "show": "Chalkboard: WEEKLY SETS PER MUSCLE, UNDER 5, 5 TO 9, 10 OR MORE, a bigger section for each",
+   "src": [
+    "schoenfeld2016vol"
+   ]
+  },
+  {
+   "show": "Two weeks of SAME SETS, 2 DAYS and 4 DAYS; the two sections equal",
+   "src": [
+    "schoenfeld2018freq"
+   ]
+  },
+  {
+   "show": "Brick towers AFTER A NORMAL NIGHT (10) and AFTER NO SLEEP (8.2); tag: 13 adults, one night without sleep, muscle protein building −18%",
+   "src": [
+    "lamon2021"
+   ]
+  },
+  {
+   "show": "Chart EXTRA MUSCLE against GRAMS OF PROTEIN PER KILO A DAY, flat after about 1.6; tag: 49 studies, 1,863 people, about +0.3 kg fat-free mass",
+   "src": [
+    "morton2018"
+   ]
+  },
+  {
+   "show": "Thigh section grows 9% past a dashed ring at its first size; tag: 10 frail volunteers, aged about 90, thigh muscle +9% in 8 weeks",
+   "src": [
+    "fiatarone1990"
+   ]
+  }
+ ],
  "sources": {
   "schoenfeld2017load": [
    "Schoenfeld BJ, Grgić J, Ogborn D, Krieger JW. Strength and hypertrophy adaptations between low- vs. high-load resistance training: a systematic review and meta-analysis. J Strength Cond Res 2017;31(12):3508 to 3523 (OpenAlex abstract rebuild): all sets \"performed to momentary muscular failure\"; \"the protocol lasted for a minimum of 6 weeks\"; \"21 studies\"; 1RM strength gains greater \"in favor of high-load training, whereas no significant differences were found for isometric strength\"; \"The findings indicate that maximal strength benefits are obtained from the use of heavy loads while muscle hypertrophy can be equally achieved across a spectrum of loading ranges.\"",

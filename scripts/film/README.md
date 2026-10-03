@@ -90,3 +90,29 @@ python3 assemble_film.py 8 frames8 snd08
 Stamps and gags since: film 7, the stamp on the cut face of the chin, the gag a placard whose byline ("by one
 orthodontist") is deleted for a trending hashtag; film 8, the stamp across the breastbone, the gag one foot keeping
 time to the march on the headphones while the skeleton tries hard to fall asleep.
+
+## Films 9 to 18: stamps and gags
+| Film | Gag | Stamp |
+| --- | --- | --- |
+| 9, the calming breath | the do-nothing group's place in the trial, empty | breastbone |
+| 10, foam rolling | the word RELEASE peels off the roller and falls on the mat | front of the breastbone |
+| 11, creatine | the hair-loss scare: the skeleton combs its bald skull | down the front of the left shin bone |
+| 12, mouth taping | before and after photo frames stand up: identical | left temple |
+| 13, lower back | a gold trophy: "No. 1 cause of disability, worldwide" | back of the sacrum |
+| 14, intermittent fasting | the plate clock's brand reads DIET | breastbone |
+| 15, dopamine detox | a plaque under the neon: TITLE NOT TO BE TAKEN LITERALLY | back of the skull |
+| 16, water | the water it drinks falls through it, into a bucket | the bucket |
+| 17, building muscle | a double-biceps flex where nothing bulges | cast into the weight plate |
+| 18, cold showers | the jaw chatters, with nothing to shiver | the stock tank |
+
+## Since film 16
+- `hands_block.js`: a wrist and a hand that can hold (wrist joint, finger curls, `solveHand` to put a grip on a point
+  with the forearm and palm turned toward given directions). Films 17 and 18 are written as `films/filmNN.src.js` with a
+  `//@HANDS@` line; `films/filmNN.js` is that file with the block pasted in (the page loads the `.js`):
+  `python3 -c "s=open('films/film18.src.js').read(); open('films/film18.js','w').write(s.replace('//@HANDS@', open('hands_block.js').read()))"`
+- Film 18 adds a jaw on its own hinge that chatters (`W.jawG`), and `solveHugArm`, a hand solver that keeps the upper
+  arm hanging, for arms crossed over the chest.
+- Portrait framing rule: keep the subject's top below about 33% of the frame height, under a four-line caption, and
+  lay out stations for 9:16 (stack things vertically; a 2 m wide layout needs the camera 3.5 m away).
+- `stills_clean.py FILM 't1,t2' OUTDIR`: full frames with no words on screen, for the site's pages (then
+  `page_images.py` crops the squares).
