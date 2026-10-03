@@ -64,3 +64,29 @@ python3 assemble_film.py 2 frames2 snd02
   last, on "slogan" (万歩計 is a registered trademark of Yamasa Tokei Keiki, Japanese registration No. 1728037,
   per Yamasa's press release of 9 October 2025).
 
+
+## Films 4 to 8, and what each added
+- **Film 4** (belly fat): `soft.js`, soft tissue skinned to the rig: muscle that spans a joint and a layer of fat, built
+  in the standing frame and bent with the bones every frame (`skinned`, `spineBinder`, `armBinder`, fat fields).
+- **Film 5** (protein): props built for one film (an end-cap of "PROTEIN" packs, cream cubes counted out, kitchen scales).
+- **Film 6** (barefoot shoes): shoes lofted from point slices (`loft` in `films/film06.js`) and skinned to the foot, with
+  the toes as their own group, so a walking skeleton wears them; a walking pad whose display counts the trial's weeks.
+- **Film 7** (mewing): a specimen that is not the whole skeleton. `head7/build_head7.py` cuts BodyParts3D's head and
+  neck down the midline, keeps the right half, closes the cut faces and writes `models/head7.glb` (one node per part,
+  named `group|material|name`) and `models/head7.json` (landmarks). Run it once before rendering film 7
+  (it needs `scripts/atlas` and the BodyParts3D source). The tongue and lips are bent on the CPU with morph targets.
+- **Film 8** (falling asleep): a skeleton in bed. The rig lies down, sits up on the bed's edge, reads and lies back
+  (`poseRig` and `placeBody` in `films/film08.js`); the mattress and pillow take the body's imprint, measured from the
+  bones in each pose. A sleep timer on the bedside table (0 to 45 minutes) carries the numbers and becomes the logo.
+
+## Rendering one film, from film 4 on
+```
+python3 film_render.py frames8 --film film08 --w 1080 --h 1920 --fps 24 --t0 0 --t1 81.3 --blur --shadow 2048
+python3 sound_film08.py guides/08-fall-asleep-voice-guide.wav guides/08-fall-asleep-report.json snd08
+python3 assemble_film.py 8 frames8 snd08
+```
+`render_film.sh film08 frames8 81.3 8895` does the first line in two halves at once (resumable).
+
+Stamps and gags since: film 7, the stamp on the cut face of the chin, the gag a placard whose byline ("by one
+orthodontist") is deleted for a trending hashtag; film 8, the stamp across the breastbone, the gag one foot keeping
+time to the march on the headphones while the skeleton tries hard to fall asleep.
