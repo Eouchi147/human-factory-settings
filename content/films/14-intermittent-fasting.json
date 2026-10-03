@@ -100,6 +100,46 @@
    ]
   }
  ],
+ "screen": [
+  {
+   "show": "The plate clock's eating window: noon to 8 pm, then 8 am to 4 pm",
+   "src": [
+    "lowe2020",
+    "liu2022"
+   ]
+  },
+  {
+   "show": "Tag: 12 weeks, 116 adults; difference 0.26 kg, not significant",
+   "src": [
+    "lowe2020"
+   ]
+  },
+  {
+   "show": "Tag: 12 months, 139 adults; difference 1.8 kg, not significant",
+   "src": [
+    "liu2022"
+   ]
+  },
+  {
+   "show": "Newspaper: eating in under 8 hours a day linked to 91% higher risk of cardiovascular death",
+   "src": [
+    "aha2024"
+   ]
+  },
+  {
+   "show": "Stamps: conference abstract; not peer reviewed; a link, not proof. Note: eating times, 2 days, from memory",
+   "src": [
+    "aha2024",
+    "smc2024"
+   ]
+  },
+  {
+   "show": "Tag: 99 trials, 6,582 adults",
+   "src": [
+    "bmj2025"
+   ]
+  }
+ ],
  "sources": {
   "lowe2020": [
    "Lowe DA et al. Effects of Time-Restricted Eating on Weight Loss and Other Metabolic Parameters in Women and Men With Overweight and Obesity: The TREAT Randomized Clinical Trial. JAMA Intern Med 2020;180(11): 12 weeks, 116 participants; the time-restricted group was \"instructed to eat ad libitum from 12:00 pm until 8:00 pm and completely abstain from caloric intake from 8:00 pm until 12:00 pm the following day\"; the comparison group \"was instructed to eat 3 structured meals per day\"; between groups -0.26 kg (95% CI -1.30 to 0.78; P = .63); \"There were no differences in estimated energy intake between groups.\"; \"Time-restricted eating, in the absence of other interventions, is not more effective in weight loss than eating throughout the day.\"",

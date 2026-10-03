@@ -96,6 +96,44 @@
    ]
   }
  ],
+ "screen": [
+  {
+   "show": "Trophy plate: No. 1, cause of disability, worldwide",
+   "src": [
+    "whofacts"
+   ]
+  },
+  {
+   "show": "Light box: ten case films, nine stamped NON-SPECIFIC",
+   "src": [
+    "whofacts"
+   ]
+  },
+  {
+   "show": "Scan grids of people with no back pain: 37% at age 20, 96% at age 80; note: 33 studies, 3,110 people; stamp: normal ageing, not disease",
+   "src": [
+    "brinjikji2015"
+   ]
+  },
+  {
+   "show": "Pain out of 100: 52 at the start, 23 at six weeks",
+   "src": [
+    "menezescosta2012"
+   ]
+  },
+  {
+   "show": "73% had it again within a year",
+   "src": [
+    "pengel2003"
+   ]
+  },
+  {
+   "show": "Tag: core stability exercise, the dead bug",
+   "src": [
+    "smith2014"
+   ]
+  }
+ ],
  "sources": {
   "whofacts": [
    "World Health Organization, Low back pain (fact sheet, 19 June 2023): \"LBP is the single leading cause of disability worldwide and the condition for which the greatest number of people may benefit from rehabilitation.\"; \"LBP can be experienced at any age, and most people experience LBP at least once in their life.\"; \"Non-specific LBP is the most common presentation of LBP (about 90% of cases).\"; \"Non-specific means that the experience of pain cannot be confidently accounted for by another diagnosis such as an underlying disease, pathology or tissue damage.\"",

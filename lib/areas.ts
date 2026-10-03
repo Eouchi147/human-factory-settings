@@ -52,7 +52,7 @@ export const AREAS: Area[] = [
     intro: "What really moves your weight, what to eat, and which trends are worth your time.",
     questions: [
       { q: "How do I lose belly fat?", slug: "how-to-lose-belly-fat", hook: "Not with crunches. What works instead." },
-      { q: "Does intermittent fasting work?" },
+      { q: "Does intermittent fasting work?", slug: "does-intermittent-fasting-work", hook: "About as well as a diet, because it is one." },
       { q: "Do weight-loss injections work, and what happens when you stop?" },
       { q: "How much protein do I need a day?", slug: "how-much-protein-do-i-need", hook: "The number, and how to spread it out." },
       { q: "How can I improve my gut health?" },
@@ -166,7 +166,7 @@ export const AREAS: Area[] = [
     source: { label: "World Health Organization", href: "https://www.who.int/news-room/fact-sheets/detail/low-back-pain" },
     intro: "Back pain, headaches, your gut, your heart and your hormones, explained simply.",
     questions: [
-      { q: "Why does my lower back hurt?" },
+      { q: "Why does my lower back hurt?", slug: "why-does-my-lower-back-hurt", hook: "In about 9 cases in 10, no single cause. It usually eases within weeks." },
       { q: "What type of headache do I have?" },
       { q: "How can I lower my cholesterol?" },
       { q: "What causes high blood pressure?" },

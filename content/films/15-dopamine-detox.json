@@ -106,6 +106,38 @@
    ]
   }
  ],
+ "screen": [
+  {
+   "show": "Gauges: wanting rises with dopamine, liking does not move; dopamine falls, liking holds",
+   "src": [
+    "berridge2015"
+   ]
+  },
+  {
+   "show": "Trace of a dopamine cell: a burst after a surprise reward; later, after the light that predicts it",
+   "src": [
+    "schultz1997"
+   ]
+  },
+  {
+   "show": "Label on the phone box: STIMULUS CONTROL",
+   "src": [
+    "sepah2019"
+   ]
+  },
+  {
+   "show": "Tag: 2,743 users, 4 weeks off; 60 minutes a day freed",
+   "src": [
+    "allcott2020"
+   ]
+  },
+  {
+   "show": "Tag: well-being up 0.09 standard deviations; the app use gauge falls",
+   "src": [
+    "allcott2020"
+   ]
+  }
+ ],
  "sources": {
   "harvard2020": [
    "Grinspoon P. Dopamine fasting: Misunderstanding science spawns a maladaptive fad. Harvard Health Blog, Harvard Health Publishing, 26 February 2020: \"The dopamine fast, created by California psychiatrist Dr. Cameron Sepah, has very little to do with either fasting or dopamine.\"; \"What Sepah intended with his dopamine fast was a method, based on cognitive behavioral therapy, by which we can become less dominated by the unhealthy stimuli\"; \"While dopamine does rise in response to rewards or pleasurable activities, it doesn't actually decrease when you avoid overstimulating activities, so a dopamine 'fast' doesn't actually lower your dopamine levels.\"; Sepah, as quoted from the New York Times: dopamine \"makes for a catchy title. The title's not to be taken literally.\"; \"In essence, the dopamine fasters are depriving themselves of healthy things, for no reason, based on faulty science and a misinterpretation of a catchy title.\"; \"Taking time out for mental rejuvenation is never a bad thing, but it's nothing new.\"",

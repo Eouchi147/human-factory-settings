@@ -12,6 +12,8 @@ import * as fallAsleep from "./how-to-fall-asleep-faster";
 import * as breathing from "./breathing-to-calm-down";
 import * as creatine from "./what-does-creatine-do";
 import * as mouthTape from "./is-mouth-taping-safe";
+import * as lowerBack from "./why-does-my-lower-back-hurt";
+import * as fasting from "./does-intermittent-fasting-work";
 
-export const QUESTIONS = [tired, posture, looks, mewing, feet, fascia, steps, bellyfat, protein, fallAsleep, breathing, creatine, mouthTape];
+export const QUESTIONS = [tired, posture, looks, mewing, feet, fascia, steps, bellyfat, protein, fallAsleep, breathing, creatine, mouthTape, lowerBack, fasting];
 export const questionFor = (area: string, slug: string) => QUESTIONS.find((q) => q.meta.area === area && q.meta.slug === slug);
