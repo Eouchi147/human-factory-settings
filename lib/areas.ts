@@ -31,7 +31,7 @@ export const AREAS: Area[] = [
     intro: "Why you're tired, how to fall asleep, and what actually changes how rested you feel.",
     questions: [
       { q: "Why am I always tired?", slug: "why-am-i-always-tired", hook: "Short sleep, late coffee, late light: check these first." },
-      { q: "How can I fall asleep fast?" },
+      { q: "How can I fall asleep faster?", slug: "how-to-fall-asleep-faster", hook: "Normal is 10 to 20 minutes. What's been measured to help." },
       { q: "Does magnesium help you sleep?" },
       { q: "Is mouth taping safe?" },
       { q: "Why do I wake up at 3 a.m.?" },
@@ -51,10 +51,10 @@ export const AREAS: Area[] = [
     source: { label: "Spot reduction review, Human Movement 2022", href: "https://doi.org/10.5114/HM.2022.110373" },
     intro: "What really moves your weight, what to eat, and which trends are worth your time.",
     questions: [
-      { q: "How do I lose belly fat?" },
+      { q: "How do I lose belly fat?", slug: "how-to-lose-belly-fat", hook: "Not with crunches. What works instead." },
       { q: "Does intermittent fasting work?" },
       { q: "Do weight-loss injections work, and what happens when you stop?" },
-      { q: "How much protein do I need a day?", hook: "The number, and how to spread it out." },
+      { q: "How much protein do I need a day?", slug: "how-much-protein-do-i-need", hook: "The number, and how to spread it out." },
       { q: "How can I improve my gut health?" },
     ],
     start: [
@@ -75,7 +75,7 @@ export const AREAS: Area[] = [
     intro: "How to start from zero, build muscle, and move more without living in a gym.",
     questions: [
       { q: "How do I build muscle?" },
-      { q: "How many steps a day do you really need?" },
+      { q: "How many steps a day do you really need?", slug: "how-many-steps-a-day", hook: "About 7,000. 10,000 was a pedometer's name." },
       { q: "What does creatine do, and is it safe?" },
       { q: "How do I start running?" },
       { q: "What's the best workout for a complete beginner?" },
