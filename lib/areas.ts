@@ -115,7 +115,7 @@ export const AREAS: Area[] = [
     questions: [
       { q: "What does anxiety feel like in your body?" },
       { q: "How do I stop overthinking?" },
-      { q: "How can I calm down fast?" },
+      { q: "Can breathing calm you down?", slug: "breathing-to-calm-down", hook: "A little. Five minutes a day lifted mood in one trial." },
       { q: "What does cortisol actually do?" },
       { q: "Am I burnt out?" },
     ],

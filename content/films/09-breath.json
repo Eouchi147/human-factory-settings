@@ -97,7 +97,19 @@
    ]
   }
  ],
+ "screen": [
+  {
+   "show": "The end dial: at rest, 12 to 18 breaths a minute",
+   "src": [
+    "ccvitals"
+   ]
+  }
+ ],
  "sources": {
+  "ccvitals": [
+   "Cleveland Clinic, Vital signs: \"The normal respiratory rate for an adult at rest is 12 to 18 breaths per minute.\"",
+   "https://my.clevelandclinic.org/health/articles/10881-vital-signs"
+  ],
   "lehrer2014": [
    "Lehrer PM, Gevirtz R. Heart rate variability biofeedback: how and why does it work? Front Psychol 2014;5:756: \"RSA is the heart pattern that occurs when heart rate increases during inhalation and decreases during exhalation.\"",
    "https://www.frontiersin.org/articles/10.3389/fpsyg.2014.00756/full"

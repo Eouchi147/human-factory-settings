@@ -9,6 +9,7 @@ import * as steps from "./how-many-steps-a-day";
 import * as bellyfat from "./how-to-lose-belly-fat";
 import * as protein from "./how-much-protein-do-i-need";
 import * as fallAsleep from "./how-to-fall-asleep-faster";
+import * as breathing from "./breathing-to-calm-down";
 
-export const QUESTIONS = [tired, posture, looks, mewing, feet, fascia, steps, bellyfat, protein, fallAsleep];
+export const QUESTIONS = [tired, posture, looks, mewing, feet, fascia, steps, bellyfat, protein, fallAsleep, breathing];
 export const questionFor = (area: string, slug: string) => QUESTIONS.find((q) => q.meta.area === area && q.meta.slug === slug);

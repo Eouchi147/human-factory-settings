@@ -70,7 +70,11 @@ lines=[
  dict(say=['Struggling to cope with stress, or nothing you try is helping?', 'See a doctor.'], src=['nhsstress'], gap=1.0),
  dict(say=['Back to factory settings.']),
 ],
+screen=[
+ dict(show='The end dial: at rest, 12 to 18 breaths a minute', src=['ccvitals']),
+],
 sources={
+ 'ccvitals': ['Cleveland Clinic, Vital signs: "The normal respiratory rate for an adult at rest is 12 to 18 breaths per minute."', 'https://my.clevelandclinic.org/health/articles/10881-vital-signs'],
  'lehrer2014': ['Lehrer PM, Gevirtz R. Heart rate variability biofeedback: how and why does it work? Front Psychol 2014;5:756: "RSA is the heart pattern that occurs when heart rate increases during inhalation and decreases during exhalation."', 'https://www.frontiersin.org/articles/10.3389/fpsyg.2014.00756/full'],
  'balban2023': ['Balban MY et al. Brief structured respiration practices enhance mood and reduce physiological arousal. Cell Rep Med 2023;4(1):100895: remote randomised trial, 108 participants (mostly Stanford undergraduates), 5 min a day for a month; cyclic sighing raised positive affect significantly more than mindfulness meditation; no differences in state anxiety or negative affect between groups; no non-practice control; "Inhales increase heart rate and exhales decrease heart rate via respiratory sinus arrhythmia"', 'https://www.ebi.ac.uk/europepmc/webservices/rest/PMC9873947/fullTextXML'],
  'li2016': ['Li P et al. The peptidergic control circuit for sighing. Nature 2016;530:293-297: "Sighs also occur spontaneously every few minutes to reinflate alveoli"', 'https://www.nature.com/articles/nature16964'],
@@ -176,8 +180,10 @@ for n, d in F.items():
     for L in d['lines']:
         for s in L.get('src', []): assert s in keys, (n, s)
         for t in L['say']: assert not DASH.search(t), (n, t)
+    for L in d.get('screen', []):
+        for s in L['src']: assert s in keys, (n, s)
     for k, (c, u) in d['sources'].items(): assert not DASH.search(c), (n, k)
-    used = {s for L in d['lines'] for s in L.get('src', [])}
+    used = {s for L in d['lines'] + d.get('screen', []) for s in L.get('src', [])}
     assert used == keys, (n, keys - used, used - keys)
     words = sum(len(' '.join(L['say']).split()) for L in d['lines'])
     path = f"{OUT}/{n:02d}-{d['slug']}.json"
