@@ -42,7 +42,7 @@ frames = sorted(f for f in os.listdir(a.frames) if f.endswith('.jpg'))
 dur = len(frames) / 24
 fx, gm = f'{a.snd}/film{a.n:02d}_fx.wav', f'{a.snd}/film{a.n:02d}_guide_mix.wav'
 base = ['ffmpeg', '-y', '-loglevel', 'error', '-framerate', '24', '-i', f'{a.frames}/f%05d.jpg']
-loud = 'loudnorm=I=-14:TP=-1.0:LRA=11,aresample=48000'
+loud = 'loudnorm=I=-14:TP=-1.5:LRA=11,alimiter=limit=0.66:level=false:latency=true,aresample=48000'   # the limiter keeps true peaks under -1 dBTP after AAC
 aud = ['-c:a', 'aac', '-b:a', '192k', '-ar', '48000']
 N = spec['n']
 # the high-quality master, kept here (for the final mix with Sam's voice)
