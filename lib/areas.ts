@@ -55,6 +55,7 @@ export const AREAS: Area[] = [
       { q: "Does intermittent fasting work?", slug: "does-intermittent-fasting-work", hook: "About as well as a diet, because it is one." },
       { q: "Do weight-loss injections work, and what happens when you stop?" },
       { q: "How much protein do I need a day?", slug: "how-much-protein-do-i-need", hook: "The number, and how to spread it out." },
+      { q: "How much water do you need?", slug: "how-much-water-do-you-need", hook: "About 2 to 2.5 litres, food and coffee included. Thirst is a good guide." },
       { q: "How can I improve my gut health?" },
     ],
     start: [
@@ -131,7 +132,7 @@ export const AREAS: Area[] = [
     source: { label: "PNAS Nexus 2025, via PsyPost", href: "https://www.psypost.org/want-better-focus-and-a-happier-mind-this-simple-smartphone-change-could-be-the-answer" },
     intro: "Why your phone wins, how habits really form, and how to get your attention back.",
     questions: [
-      { q: "Does a dopamine detox work?" },
+      { q: "Does a dopamine detox work?", slug: "does-a-dopamine-detox-work", hook: "A day off doesn't lower dopamine. The useful part: put the phone away." },
       { q: "How do I stop procrastinating?" },
       { q: "How do I stop checking my phone?" },
       { q: "How do I build a habit that sticks?" },

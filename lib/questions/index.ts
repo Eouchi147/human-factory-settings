@@ -14,6 +14,8 @@ import * as creatine from "./what-does-creatine-do";
 import * as mouthTape from "./is-mouth-taping-safe";
 import * as lowerBack from "./why-does-my-lower-back-hurt";
 import * as fasting from "./does-intermittent-fasting-work";
+import * as dopamine from "./does-a-dopamine-detox-work";
+import * as water from "./how-much-water-do-you-need";
 
-export const QUESTIONS = [tired, posture, looks, mewing, feet, fascia, steps, bellyfat, protein, fallAsleep, breathing, creatine, mouthTape, lowerBack, fasting];
+export const QUESTIONS = [tired, posture, looks, mewing, feet, fascia, steps, bellyfat, protein, fallAsleep, breathing, creatine, mouthTape, lowerBack, fasting, dopamine, water];
 export const questionFor = (area: string, slug: string) => QUESTIONS.find((q) => q.meta.area === area && q.meta.slug === slug);
