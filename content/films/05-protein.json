@@ -8,14 +8,13 @@
  "lines": [
   {
    "say": [
-    "How much protein do you need?",
-    "Less than the supplement aisle hopes."
+    "You're putting protein in your coffee, your cereal and your pancakes, so let's work out how much you actually need."
    ],
-   "gap": 1.3
+   "gap": 0.9
   },
   {
    "say": [
-    "Europe's food safety experts set it at about point eight grams for every kilo you weigh, each day."
+    "Your body rebuilds itself with protein every day, but it needs less than the supplement aisle wants you to think."
    ],
    "src": [
     "efsa"
@@ -23,7 +22,8 @@
   },
   {
    "say": [
-    "For someone who weighs seventy kilos, that's about fifty-eight grams."
+    "Europe's food safety experts say that about point eight grams a day for every kilo you weigh is enough for almost every adult.",
+    "If you weigh seventy kilos, that's about fifty-eight grams."
    ],
    "src": [
     "efsa"
@@ -31,19 +31,8 @@
   },
   {
    "say": [
-    "The new American guidelines go higher: one point two to one point six."
-   ],
-   "src": [
-    "dga2025"
-   ],
-   "gap": 1.2
-  },
-  {
-   "say": [
-    "If you lift weights, extra protein does help.",
-    "A little.",
-    "In forty-nine trials, it added about three hundred grams of lean mass.",
-    "Not quite the body on the label."
+    "If you lift weights, extra protein does help, but only a little: about three hundred grams of extra lean mass, on average.",
+    "That's not quite the body on the label."
    ],
    "src": [
     "morton2018"
@@ -51,7 +40,7 @@
   },
   {
    "say": [
-    "And above about one point six grams per kilo, the gains stopped."
+    "And above about one point six grams per kilo, the extra gains stopped."
    ],
    "src": [
     "morton2018"
@@ -59,37 +48,27 @@
   },
   {
    "say": [
-    "Spread it over your meals: twenty-five to thirty grams each."
+    "So eat at least point eight grams per kilo a day, up to one point six if you lift, and get it from real food, about twenty-five to thirty grams at each meal.",
+    "Past one point six, you're buying more protein, not more muscle."
    ],
    "src": [
+    "efsa",
+    "morton2018",
     "leidy2015"
    ]
   },
   {
    "say": [
-    "So: at least point eight a day.",
-    "Training? Up to one point six.",
-    "Past that, you're buying more protein, not more muscle."
-   ],
-   "src": [
-    "efsa",
-    "morton2018"
-   ]
-  },
-  {
-   "say": [
-    "Kidney disease?",
-    "Ask your doctor or dietitian.",
-    "Not a video. Including this one."
+    "If you have kidney disease, ask your doctor or a dietitian, not a video, and that includes this one."
    ],
    "src": [
     "niddk"
    ],
-   "gap": 1.4
+   "gap": 0.9
   },
   {
    "say": [
-    "Back to factory settings."
+    "Let's get you back to factory settings."
    ]
   }
  ],
@@ -114,5 +93,8 @@
    "NIDDK. Healthy eating for adults with chronic kidney disease (reviewed January 2025): work with a dietitian or health care professional to find the right balance of protein",
    "https://www.niddk.nih.gov/health-information/kidney-disease/chronic-kidney-disease-ckd/eating-nutrition"
   ]
- }
+ },
+ "speed": 1.0,
+ "voice_style": "savage",
+ "frame": "factory-settings"
 }

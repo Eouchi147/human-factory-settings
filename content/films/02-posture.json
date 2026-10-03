@@ -8,24 +8,24 @@
  "lines": [
   {
    "say": [
-    "Trying to fix your posture?",
-    "You may be fixing the wrong thing."
-   ]
+    "Your mum told you to sit up straight.",
+    "With all due respect, she was guessing."
+   ],
+   "gap": 0.9
   },
   {
    "say": [
-    "One: there's no perfect posture.",
-    "The textbook straight line comes from a nineteenth-century model of a body standing still without using its muscles.",
-    "That describes nobody alive."
+    "Your spine was built to move, bend and change position all day, not to freeze in one perfect pose."
    ],
    "src": [
+    "openstax",
+    "csp",
     "barra2024"
    ]
   },
   {
    "say": [
-    "Forty-one reviews of the evidence found no proof that posture causes back pain.",
-    "Forty-one."
+    "And there's no solid evidence that slouching causes back pain, so your slouch has an alibi."
    ],
    "src": [
     "swain2020"
@@ -33,9 +33,7 @@
   },
   {
    "say": [
-    "Two: your spine is built to move.",
-    "People with back pain don't have a different curve.",
-    "They move less."
+    "People with back pain don't even have a different lower-back curve."
    ],
    "src": [
     "laird2014"
@@ -43,55 +41,37 @@
   },
   {
    "say": [
-    "Three: text neck.",
-    "The famous sixty pounds on your neck came from a computer model, not from measuring people."
+    "And looking down at your phone isn't the neck killer it's made out to be, because when people were measured while using their phones, neck angle didn't predict neck pain."
    ],
    "src": [
-    "hansraj2014"
-   ]
-  },
-  {
-   "say": [
-    "When scientists did measure people, more than seven hundred of them, neck angle didn't predict neck pain."
-   ],
-   "src": [
+    "hansraj2014",
     "damasceno2018",
     "correia2021"
    ]
   },
   {
    "say": [
-    "So change position often.",
-    "Get up once an hour.",
-    "The best posture is the next one."
+    "If back pain comes with pain, numbness or weakness in both legs, numbness around your genitals or bottom, or changes in your bladder or bowels, that's not posture, so get emergency help.",
+    "The same goes for back pain with chest pain, or after a serious accident."
    ],
    "src": [
+    "nhsback"
+   ],
+   "gap": 0.9
+  },
+  {
+   "say": [
+    "For everyone else, strengthen your neck and upper back, get up at least once an hour, and keep moving, because the best posture is your next one."
+   ],
+   "src": [
+    "xing2026",
     "mayo2019",
     "hse"
    ]
   },
   {
    "say": [
-    "And train your neck and upper back.",
-    "In trials, exercise moved the head back and eased neck pain."
-   ],
-   "src": [
-    "xing2026"
-   ]
-  },
-  {
-   "say": [
-    "Back pain with numbness or weakness in both legs, or changes in your bladder?",
-    "That's not posture.",
-    "Get help right away."
-   ],
-   "src": [
-    "nhsback"
-   ]
-  },
-  {
-   "say": [
-    "Back to factory settings."
+    "Let's get you back to factory settings."
    ]
   }
  ],
@@ -135,6 +115,17 @@
   "nhsback": [
    "NHS. Back pain: when to get help",
    "https://www.nhs.uk/conditions/back-pain/"
+  ],
+  "openstax": [
+   "OpenStax Anatomy and Physiology 2e, 7.3 The vertebral column: a column of vertebrae and discs, curved, that bends and twists",
+   "https://openstax.org/books/anatomy-and-physiology-2e/pages/7-3-the-vertebral-column"
+  ],
+  "csp": [
+   "Chartered Society of Physiotherapy, 10 things you need to know about your back: your back is strong and made to move",
+   "https://www.csp.org.uk/publications/10-things-you-need-know-about-your-back"
   ]
- }
+ },
+ "speed": 1.0,
+ "voice_style": "savage",
+ "frame": "factory-settings"
 }

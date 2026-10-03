@@ -8,16 +8,14 @@
  "lines": [
   {
    "say": [
-    "Ten thousand steps a day.",
-    "Who decided that?"
+    "You've been chasing ten thousand steps a day without ever asking who picked that number."
    ],
-   "gap": 1.0
+   "gap": 0.9
   },
   {
    "say": [
-    "Probably a Japanese company, in nineteen sixty-five.",
-    "It sold a pedometer whose name meant ten-thousand-steps meter.",
-    "The scientist who traced it called the name a marketing tool."
+    "It was probably a Japanese company in nineteen sixty-five, selling a pedometer whose name meant ten-thousand-steps meter.",
+    "You've been doing cardio for a marketing slogan."
    ],
    "src": [
     "harvard2019",
@@ -26,8 +24,8 @@
   },
   {
    "say": [
-    "So scientists measured.",
-    "Fifty-seven studies, with steps counted by devices, not by memory."
+    "Your body was built to walk, and it doesn't need ten thousand steps to thank you.",
+    "People who walk about seven thousand steps a day have around half the risk of dying early compared with people who walk two thousand."
    ],
    "src": [
     "ding2025"
@@ -35,44 +33,17 @@
   },
   {
    "say": [
-    "Compared with two thousand steps a day, seven thousand went with a forty-seven percent lower risk of dying early."
+    "They also have a lower risk of dementia and falls, and above seven thousand, the extra benefit is small for most things.",
+    "Walk more if you enjoy it, but you don't owe the pedometer anything."
    ],
    "src": [
-    "ding2025"
-   ]
-  },
-  {
-   "say": [
-    "Dementia, thirty-eight percent lower.",
-    "Depression symptoms, twenty-two.",
-    "Falls, twenty-eight."
-   ],
-   "src": [
-    "ding2025"
-   ]
-  },
-  {
-   "say": [
-    "Above seven thousand, the extra benefit was small for most outcomes."
-   ],
-   "src": [
+    "ding2025",
     "sydney2025"
    ]
   },
   {
    "say": [
-    "In a study of older women, the benefit leveled off around seven and a half thousand.",
-    "Ten thousand was never the science.",
-    "It was the slogan."
-   ],
-   "src": [
-    "harvard2019"
-   ]
-  },
-  {
-   "say": [
-    "These studies show a link, not proof.",
-    "Sick people walk less, too."
+    "To be fair, that's a link, not proof, partly because people who are already sick walk less."
    ],
    "src": [
     "ding2025",
@@ -81,14 +52,14 @@
   },
   {
    "say": [
-    "So aim for about seven thousand a day.",
-    "Far below that?",
-    "Add a thousand at a time."
+    "So aim for about seven thousand steps a day, and if you're far below that, add a thousand at a time.",
+    "Walk to the shop, take the stairs, and take your phone calls on foot.",
+    "Your couch will survive."
    ]
   },
   {
    "say": [
-    "Back to factory settings."
+    "Let's get you back to factory settings."
    ]
   }
  ],
@@ -117,5 +88,8 @@
    "Visual detail, the ® on the neon sign: 万歩計 is a registered trademark of Yamasa Tokei Keiki (Japanese trademark registration No. 1728037), per Yamasa's press release of 9 October 2025",
    "https://newscast.jp/smart/news/7614085"
   ]
- }
+ },
+ "speed": 1.0,
+ "voice_style": "savage",
+ "frame": "factory-settings"
 }

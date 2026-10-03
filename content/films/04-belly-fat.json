@@ -8,51 +8,46 @@
  "lines": [
   {
    "say": [
-    "Doing crunches to lose belly fat?",
-    "You'll get strong abs.",
-    "Under the same fat."
-   ],
-   "gap": 1.2
-  },
-  {
-   "say": [
-    "A muscle doesn't burn the fat sitting on top of it."
+    "You're doing crunches to lose belly fat, and I hate to break it to you, but you'll just get strong abs under the same fat."
    ],
    "src": [
+    "vispute2011",
     "hm2022"
-   ]
+   ],
+   "gap": 1.0
   },
   {
    "say": [
-    "In a six-week trial, ab exercises alone didn't shrink the waist or the belly fat."
+    "A muscle doesn't burn the fat that sits on top of it.",
+    "When people trained only one arm for twelve weeks, scans showed that arm lost no more fat than the lazy one."
    ],
    "src": [
-    "vispute2011"
-   ]
-  },
-  {
-   "say": [
-    "Across thirteen studies and more than eleven hundred people, training one body part didn't shrink the fat in that spot."
-   ],
-   "src": [
-    "hm2022"
-   ]
-  },
-  {
-   "say": [
-    "In another, people trained only one arm for twelve weeks.",
-    "On the scans, no difference between the two arms.",
-    "Spot reduction is a myth with excellent marketing."
-   ],
-   "src": [
+    "hm2022",
     "kostek2007"
    ]
   },
   {
    "say": [
-    "What does work?",
-    "Strength training.",
-    "In fifty-eight studies, it cut body fat, including the deep fat around your organs."
+    "Burning fat from one chosen spot is a myth with excellent marketing."
+   ],
+   "src": [
+    "hm2022"
+   ]
+  },
+  {
+   "say": [
+    "Your body keeps fat as stored fuel, and those stores shrink when you eat and drink a little less than you use.",
+    "It also decides where that fat comes from, not you."
+   ],
+   "src": [
+    "nhscal",
+    "hm2022",
+    "kostek2007"
+   ]
+  },
+  {
+   "say": [
+    "What does help is full-body strength training, which trims body fat, including the deep fat packed around your organs."
    ],
    "src": [
     "wewege2022"
@@ -60,29 +55,18 @@
   },
   {
    "say": [
-    "And to lose fat anywhere, eat and drink a little less than you use.",
-    "Your body burns its stored fat.",
-    "It picks where. You don't."
-   ],
-   "src": [
-    "nhscal"
-   ]
-  },
-  {
-   "say": [
-    "So lift twice a week.",
-    "Move at least a hundred and fifty minutes a week.",
-    "And eat a little less."
+    "So lift weights twice a week, eat a little less, and do at least a hundred and fifty minutes of brisk walking or similar a week.",
+    "That's about twenty minutes a day, or one episode of a show you've already seen twice."
    ],
    "src": [
     "who2020",
     "nhscal"
    ],
-   "gap": 1.4
+   "gap": 0.9
   },
   {
    "say": [
-    "Back to factory settings."
+    "Let's get you back to factory settings."
    ]
   }
  ],
@@ -111,5 +95,8 @@
    "Kostek MA et al. Subcutaneous fat alterations resulting from an upper-body resistance training program. Med Sci Sports Exerc 2007 (104 people, 12 weeks; MRI showed no difference between the trained and untrained arm)",
    "https://stars.library.ucf.edu/scopus2000/6502"
   ]
- }
+ },
+ "speed": 1.0,
+ "voice_style": "savage",
+ "frame": "factory-settings"
 }

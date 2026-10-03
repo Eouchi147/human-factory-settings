@@ -8,15 +8,14 @@
  "lines": [
   {
    "say": [
-    "Barefoot shoes: shoes designed to feel like no shoes.",
-    "Do they work?"
+    "You're thinking about buying barefoot shoes, which means paying money to feel like you're wearing no shoes.",
+    "Let's see if your feet actually need them."
    ],
-   "gap": 1.3
+   "gap": 0.9
   },
   {
    "say": [
-    "Each foot has twenty-six bones and three arches.",
-    "Small muscles inside the foot help hold them up."
+    "Your feet were built with twenty-six bones each, three arches and small muscles that help hold those arches up."
    ],
    "src": [
     "statpearls",
@@ -25,12 +24,7 @@
   },
   {
    "say": [
-    "Like any muscle, they get stronger when they work."
-   ]
-  },
-  {
-   "say": [
-    "In one trial, eight weeks of walking in flat, flexible shoes made foot muscles forty-one percent stronger."
+    "Like any muscle, they get stronger when you make them work."
    ],
    "src": [
     "ridge2019"
@@ -38,8 +32,7 @@
   },
   {
    "say": [
-    "Foot exercises did even more: fifty-eight percent.",
-    "No new shoes required."
+    "When runners walked in flat, flexible shoes for eight weeks, their foot muscles got about forty percent stronger, and simple foot exercises worked just as well, for free."
    ],
    "src": [
     "ridge2019"
@@ -47,7 +40,7 @@
   },
   {
    "say": [
-    "In another, runners given eight weeks of foot training got fewer running injuries over the next year."
+    "Runners who did foot exercises for eight weeks, and kept them up, even got fewer running injuries over the next year."
    ],
    "src": [
     "taddei2020"
@@ -56,8 +49,7 @@
   {
    "say": [
     "But don't switch overnight.",
-    "When runners moved to toe shoes over ten weeks, ten of nineteen showed bone stress on MRI.",
-    "Ten weeks. Still too fast."
+    "When runners switched to running in toe shoes over ten weeks, more than half showed bone stress on their scans."
    ],
    "src": [
     "ridge2013"
@@ -65,7 +57,7 @@
   },
   {
    "say": [
-    "The trial that worked built up slowly: two and a half thousand steps a day, then five thousand, then seven."
+    "The plan that made feet stronger had people walk in flat, flexible shoes, not run, building up from two and a half thousand steps a day to five thousand, then seven."
    ],
    "src": [
     "ridge2019"
@@ -73,17 +65,16 @@
   },
   {
    "say": [
-    "Feet painful, stiff, weak or numb?",
-    "See a doctor, not a shoe shop."
+    "If your feet are painful, stiff, weak or numb, you keep injuring them or losing your balance, or one foot has gone flat, see a doctor, not a shoe shop."
    ],
    "src": [
     "nhsflat"
    ],
-   "gap": 1.3
+   "gap": 0.9
   },
   {
    "say": [
-    "Back to factory settings."
+    "Let's get you back to factory settings."
    ]
   }
  ],
@@ -112,5 +103,8 @@
    "NHS. Flat feet: see a GP if your feet are painful, stiff, weak or numb",
    "https://www.nhs.uk/conditions/flat-feet/"
   ]
- }
+ },
+ "speed": 1.0,
+ "voice_style": "savage",
+ "frame": "factory-settings"
 }

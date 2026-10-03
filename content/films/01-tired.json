@@ -8,14 +8,15 @@
  "lines": [
   {
    "say": [
-    "Always tired?",
-    "Before you blame life, check the three things you control."
-   ]
+    "You sleep six hours, drink coffee after dinner, scroll in bed until midnight, and then you wonder why you're always tired.",
+    "Let's fix that."
+   ],
+   "gap": 0.9
   },
   {
    "say": [
-    "One: short sleep.",
-    "All day, a chemical called adenosine builds up in your brain and makes you sleepy."
+    "All day, a chemical builds up in your brain and makes you sleepy, and sleep is the cleaning crew that clears it out.",
+    "Cut the night short, and some of yesterday's mess is still there in the morning."
    ],
    "src": [
     "reichert2022",
@@ -24,8 +25,8 @@
   },
   {
    "say": [
-    "Sleep clears it.",
-    "Cut sleep short, and you start the day with yesterday's leftovers."
+    "Coffee doesn't clean any of it.",
+    "It just hides the signal, like tape over a warning light."
    ],
    "src": [
     "reichert2022"
@@ -33,70 +34,49 @@
   },
   {
    "say": [
-    "Two: late coffee.",
-    "Coffee doesn't clear that chemical.",
-    "It hides it, and then it eats into your sleep."
-   ],
-   "src": [
-    "reichert2022",
-    "gardiner2023"
-   ]
-  },
-  {
-   "say": [
-    "A coffee at six p.m.?",
-    "About half of it is still in you at eleven.",
-    "You're not a light sleeper.",
-    "You're caffeinated."
+    "Drink it at six in the evening, and about half of it is still in you at eleven.",
+    "Maybe you're not a light sleeper. Maybe you're just caffeinated."
    ],
    "src": [
     "iom2001",
+    "gardiner2023",
     "drake2013"
    ]
   },
   {
    "say": [
-    "Three: late light.",
-    "Bright light at night, even room light, tells your body clock it's still day,"
+    "Your body was built to run on the sun, so even an ordinary lamp or a screen at night makes your body clock think it's still daytime, and your sleep hormone shows up late.",
+    "Your alarm, sadly, still shows up on time."
    ],
    "src": [
     "gooley2011",
     "chang2015"
-   ],
-   "gap": 0.3
-  },
-  {
-   "say": [
-    "so your sleep signal comes later.",
-    "Your alarm doesn't."
-   ],
-   "src": [
-    "gooley2011"
    ]
   },
   {
    "say": [
-    "For a seven a.m. alarm: in bed by eleven, last coffee by two, lights low from eight."
+    "So for a seven a.m. alarm, be in bed by eleven, stop coffee by two, and dim the lights from eight."
    ],
    "src": [
-    "drake2013",
+    "nsf2017",
+    "ahr",
     "gardiner2023",
     "brown2022"
    ]
   },
   {
    "say": [
-    "Still tired after all that?",
-    "See a doctor.",
-    "Low iron or your thyroid can cause it, and coffee fixes neither."
+    "If you're still exhausted after that, or it comes with fever, sweats or weight loss you can't explain, see a doctor.",
+    "If you feel confused or dizzy, or have thoughts of harming yourself, get help straight away."
    ],
    "src": [
     "medlineplus"
-   ]
+   ],
+   "gap": 0.9
   },
   {
    "say": [
-    "Back to factory settings."
+    "Let's get you back to factory settings."
    ]
   }
  ],
@@ -136,6 +116,17 @@
   "medlineplus": [
    "MedlinePlus. Fatigue: causes, and when to contact a provider",
    "https://medlineplus.gov/ency/article/003088.htm"
+  ],
+  "nsf2017": [
+   "National Sleep Foundation, signs of good sleep quality (Ohayon et al. 2017): falling asleep within 30 minutes and no more than 20 minutes awake in the night; with 7 hours of sleep, about 8 hours in bed",
+   "https://sleepreviewmag.com/sleep-health/prevailing-attitudes/good-quality-sleep-national-sleep-foundation-provides-guidance/"
+  ],
+  "ahr": [
+   "America's Health Rankings (CDC data): adults need 7 hours or more of sleep; about 1 in 3 get less",
+   "https://americashealthrankings.org/explore/measures/sleep"
   ]
- }
+ },
+ "speed": 1.0,
+ "voice_style": "savage",
+ "frame": "factory-settings"
 }
