@@ -388,7 +388,7 @@ function update(S, t) {
 const CAPS = [
   { t0: 0.35, t1: 2.35, top: 300, size: 104, html: '<em>10,000</em> steps a day.' },
   { t0: 2.48, t1: 4.6, top: 300, size: 104, html: 'Who decided <em>that?</em>' },
-  { t0: 4.85, t1: 9.1, top: 292, size: 84, html: 'A Japanese pedometer,<br><em>1965</em>' },
+  { t0: 4.85, t1: 9.1, top: 292, size: 84, html: 'A Japanese<br>pedometer, <em>1965</em>' },
   { t0: 9.36, t1: 13.95, top: 292, size: 84, html: '“<em>10,000</em>-steps meter”' },
   { t0: 14.15, t1: 18.3, top: 292, size: 92, html: '“A <em>marketing</em> tool.”' },
   { t0: 20.62, t1: 26.3, top: 292, size: 96, html: '57 studies.<br><em>Counted steps.</em>' },

@@ -751,7 +751,7 @@ function update(S, t, quiet) {
 
 // ------------------------------------------------------------------ the words on screen
 const CAPS = [
-  { t0: 0.35, t1: 2.75, top: 300, size: 100, html: 'Crunches for <em>belly fat?</em>' },
+  { t0: 0.35, t1: 2.75, top: 300, size: 100, html: 'Crunches for<br><em>belly fat?</em>' },
   { t0: 2.96, t1: 4.7, top: 300, size: 104, html: 'Strong <em>abs.</em>' },
   { t0: 4.86, t1: 6.9, top: 300, size: 104, html: 'Same <em>fat.</em>' },
   { t0: 7.39, t1: 10.8, top: 292, size: 84, html: 'Muscle doesn’t burn<br>the fat <em>on top of it</em>' },
