@@ -8,15 +8,14 @@
  "lines": [
   {
    "say": [
-    "Can't fall asleep?",
-    "Here's what's been measured."
+    "You lie in bed for an hour, staring at the ceiling and ordering yourself to fall asleep, as if sleep takes orders.",
+    "Let's fix that."
    ],
-   "gap": 0.8
+   "gap": 0.9
   },
   {
    "say": [
-    "Normal is about ten to twenty minutes.",
-    "Out within a minute can mean you're short on sleep. Not a talent."
+    "Your body was built to fall asleep on its own, and for most people, that takes about ten to twenty minutes."
    ],
    "src": [
     "ccdrerup"
@@ -24,34 +23,8 @@
   },
   {
    "say": [
-    "In studies, caffeine added about nine minutes to falling asleep, and cut about forty-five minutes of sleep."
-   ],
-   "src": [
-    "gardiner2023"
-   ]
-  },
-  {
-   "say": [
-    "For a regular cup, one review put the cut-off at almost nine hours before bed.",
-    "The NHS says six."
-   ],
-   "src": [
-    "gardiner2023",
-    "nhsinsomnia"
-   ]
-  },
-  {
-   "say": [
-    "A warm bath or shower, one to two hours before bed, gets you there sooner."
-   ],
-   "src": [
-    "haghayegh2019"
-   ]
-  },
-  {
-   "say": [
-    "Trying hard backfires when your head is busy.",
-    "Students told to fall asleep fast, with marches playing, reported thirty-four minutes. The ones who didn't try: twenty-two."
+    "And when your head is busy, trying hard makes it worse.",
+    "In one study, with marching music playing, people told to fall asleep fast said it took thirty-four minutes, and people who weren't trying said twenty-two."
    ],
    "src": [
     "ansfield1996"
@@ -59,8 +32,7 @@
   },
   {
    "say": [
-    "Not asleep after twenty minutes?",
-    "Get up. Do something quiet, away from screens. Go back when you're sleepy."
+    "So if you're still awake after twenty minutes, get up, do something quiet in dim light, with no screens, and go back to bed when you're sleepy."
    ],
    "src": [
     "aasmhabits"
@@ -68,28 +40,34 @@
   },
   {
    "say": [
-    "It's part of CBT for insomnia, the first-line treatment.",
-    "Across twenty trials, people with insomnia fell asleep about nineteen minutes faster."
+    "It sounds backwards, but it's part of the treatment sleep doctors recommend most strongly for insomnia."
    ],
    "src": [
-    "trauer2015",
     "aasm2021"
    ]
   },
   {
    "say": [
-    "Over thirty minutes, three nights a week, for three months?",
-    "That may be insomnia. See a doctor."
+    "A warm bath or shower one to two hours before bed also helped people fall asleep sooner in studies."
+   ],
+   "src": [
+    "haghayegh2019"
+   ]
+  },
+  {
+   "say": [
+    "If it takes you over thirty minutes to fall asleep, three or more nights a week, for three months, see a doctor about insomnia.",
+    "And don't wait that long if poor sleep is making life hard to cope with."
    ],
    "src": [
     "aasminsomnia",
     "nhsinsomnia"
    ],
-   "gap": 1.0
+   "gap": 0.9
   },
   {
    "say": [
-    "Back to factory settings."
+    "Let's get you back to factory settings."
    ]
   }
  ],
@@ -97,10 +75,6 @@
   "ccdrerup": [
    "Cleveland Clinic newsroom, 22 Jun 2026, sleep psychologist Michelle Drerup, PsyD: \"Generally, it should take someone about 10 to 20 minutes to fall asleep.\" \"if you’re falling asleep within a minute, it may suggest sleep deprivation or an underlying sleep issue.\"",
    "https://newsroom.clevelandclinic.org/2026/06/22/how-long-should-it-take-you-to-fall-asleep"
-  ],
-  "gardiner2023": [
-   "Gardiner C et al. The effect of caffeine on subsequent sleep: a systematic review and meta-analysis. Sleep Med Rev 2023;69:101764: 24 studies; sleep onset latency +9.1 min (95% CI 3.8 to 14.4); total sleep time -45.3 min (95% CI 29.0 to 61.5); \"coffee (107 mg per 250 mL) should be consumed at least 8.8 h prior to bedtime\"",
-   "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:10.1016/j.smrv.2023.101764&format=json&resultType=core"
   ],
   "haghayegh2019": [
    "Haghayegh S et al. Before-bedtime passive body heating by warm shower or bath to improve sleep: a systematic review and meta-analysis. Sleep Med Rev 2019;46:124-135: 17 studies; water at 40 to 42.5 °C, \"scheduled 1-2 h before bedtime for little as 10 min\", significantly shortened sleep onset latency",
@@ -114,10 +88,6 @@
    "American Academy of Sleep Medicine, Healthy Sleep Habits (Aug 2020): \"If you don’t fall asleep after 20 minutes, get out of bed. Go do a quiet activity without a lot of light exposure. It is especially important to not get on electronics.\" \"Don’t go to bed unless you are sleepy.\"",
    "https://sleepeducation.org/healthy-sleep/healthy-sleep-habits/"
   ],
-  "trauer2015": [
-   "Trauer JM et al. Cognitive behavioral therapy for chronic insomnia: a systematic review and meta-analysis. Ann Intern Med 2015;163(3):191-204: 20 studies, 1,162 participants with chronic insomnia; sleep onset latency improved by 19.03 min (95% CI 14.12 to 23.93)",
-   "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:10.7326/M14-2841&format=json&resultType=core"
-  ],
   "aasm2021": [
    "Edinger JD et al. Behavioral and psychological treatments for chronic insomnia disorder in adults: an AASM clinical practice guideline. J Clin Sleep Med 2021;17(2):255-262: CBT-I recommended (STRONG); CBT-I includes \"stimulus control instructions and sleep restriction therapy\"; stimulus control includes \"get out of bed when unable to sleep\"",
    "https://pmc.ncbi.nlm.nih.gov/articles/PMC7853203/"
@@ -130,5 +100,8 @@
    "NHS, Insomnia (reviewed 19 Mar 2024): \"See a GP if: changing your sleeping habits has not helped your insomnia; you’ve had trouble sleeping for months; your insomnia is affecting your daily life in a way that makes it hard for you to cope\"",
    "https://www.nhs.uk/conditions/insomnia/"
   ]
- }
+ },
+ "speed": 1.0,
+ "voice_style": "savage",
+ "frame": "factory-settings"
 }

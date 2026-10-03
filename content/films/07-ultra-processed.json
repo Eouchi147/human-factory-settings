@@ -1,0 +1,102 @@
+{
+ "n": 7,
+ "slug": "ultra-processed",
+ "question": "Is ultra-processed food bad for you?",
+ "area": "weight-food",
+ "page": "/weight-food/is-ultra-processed-food-bad-for-you",
+ "posts": "2026-11-03",
+ "lines": [
+  {
+   "say": [
+    "You eat breakfast from a box, lunch from a wrapper and dinner from a bag, then blame your willpower.",
+    "Let's look at the food instead."
+   ],
+   "gap": 0.9
+  },
+  {
+   "say": [
+    "For most of history, people cooked meals from things that grew, swam or walked.",
+    "Ultra-processed food is made in factories from parts of foods and additives, like packaged snacks and fizzy drinks."
+   ],
+   "src": [
+    "lane2024"
+   ]
+  },
+  {
+   "say": [
+    "In a hospital study, twenty adults ate as much as they wanted: two weeks of ultra-processed meals, and two weeks of fresh meals with the same nutrients on offer."
+   ],
+   "src": [
+    "hall2019"
+   ]
+  },
+  {
+   "say": [
+    "On the packaged food, they ate about five hundred extra calories a day and gained almost a kilo.",
+    "They were the same people, with the same willpower."
+   ],
+   "src": [
+    "hall2019"
+   ]
+  },
+  {
+   "say": [
+    "In a newer trial, both diets followed healthy eating advice, and people lost only about half as much weight on the ultra-processed one."
+   ],
+   "src": [
+    "dicken2025"
+   ]
+  },
+  {
+   "say": [
+    "So cook from food that still looks like what it came from, and make packaged snacks, sugary drinks and processed meat the exception.",
+    "A potato is food. A potato-flavoured snack is a hobby."
+   ],
+   "src": [
+    "canada",
+    "santefr",
+    "fang2024"
+   ]
+  },
+  {
+   "say": [
+    "If you take medicine for diabetes or your heart, better food works with it, not instead of it."
+   ],
+   "gap": 0.9
+  },
+  {
+   "say": [
+    "Let's get you back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "dicken2025": [
+   "Dicken SJ et al. Ultraprocessed or minimally processed diets following healthy dietary guidelines on weight and cardiometabolic health: a randomized, crossover trial (UPDATE). Nature Medicine 2025: 55 adults in England, two 8-week diets both following the UK Eatwell Guide; weight fell 2.06% on minimally processed food and 1.05% on ultra-processed food (difference 1.01 percentage points, P = 0.024)",
+   "https://discovery.ucl.ac.uk/id/eprint/10212054/1/41591_2025_3842_OnlinePDF.pdf"
+  ],
+  "santefr": [
+   "Santé publique France via sante.fr (updated 1 Oct 2026): reduce \"Les boissons sucrées, les aliments gras, sucrés, salés et ultra-transformés\"; increase \"Le fait maison\"",
+   "https://www.sante.fr/node/4566467"
+  ],
+  "canada": [
+   "Health Canada, Canada's Dietary Guidelines, Appendix A (updated 23 Mar 2026): \"Limit highly processed foods. If you choose these foods, eat them less often.\"",
+   "https://www.canada.ca/en/health-canada/services/food-guide/explore/dietary-guidelines/appendix-a-recommendations.html"
+  ],
+  "fang2024": [
+   "Fang Z et al. Association of ultra-processed food consumption with all cause and cause specific mortality: population based cohort study. BMJ 2024;385:e078476: 74,563 women and 39,501 men followed about three decades; highest vs lowest intake 4% higher all-cause mortality (HR 1.04, 1.01 to 1.07); the link was driven by meat, poultry and seafood based ready-to-eat products and sugar-sweetened and artificially sweetened drinks, among others; better diet quality was linked to lower mortality at every level of ultra-processed intake",
+   "https://www.bmj.com/content/385/bmj-2023-078476"
+  ],
+  "lane2024": [
+   "Lane MM et al. Ultra-processed food exposure and adverse health outcomes: umbrella review of epidemiological meta-analyses. BMJ 2024;384:e077310: 45 pooled analyses, 9,888,373 participants, all observational; definition of ultra-processed foods (\"Ready to eat products, including packaged snacks, carbonated soft drinks, instant noodles, and ready-made meals\", \"industrial formulations primarily composed of chemically modified substances extracted from foods, along with additives\"); higher exposure linked to cardiovascular disease mortality, type 2 diabetes, all-cause mortality, common mental disorders (mostly low or very low certainty)",
+   "https://www.bmj.com/content/384/bmj-2023-077310"
+  ],
+  "hall2019": [
+   "Hall KD et al. Ultra-processed diets cause excess calorie intake and weight gain: an inpatient randomized controlled trial of ad libitum food intake. Cell Metab 2019;30:67-77: 20 adults on a metabolic ward for 4 weeks, 2 weeks ultra-processed and 2 weeks unprocessed, meals with matched nutritional profiles on offer, eating as much as they liked; energy intake 508 kcal a day greater on the ultra-processed diet; gained 0.9 kg on ultra-processed, lost 0.9 kg on unprocessed; meals eaten faster on ultra-processed",
+   "https://pmc.ncbi.nlm.nih.gov/articles/PMC7946062/"
+  ]
+ },
+ "speed": 1.0,
+ "voice_style": "savage",
+ "frame": "factory-settings"
+}

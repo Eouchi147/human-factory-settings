@@ -1,102 +1,81 @@
 {
- "n": 10,
+ "n": 11,
  "slug": "foam-rolling",
  "question": "Does foam rolling work?",
  "area": "posture-looks",
  "page": "/posture-looks/what-is-fascia",
- "posts": "2026-11-10",
+ "posts": "2026-11-12",
  "lines": [
   {
    "say": [
-    "Foam rolling.",
-    "Lie on a tube, wince, and believe you're breaking up your fascia."
+    "You lie on a foam tube, wince for ten minutes, and believe you're breaking up your fascia.",
+    "Your fascia would like a word."
    ],
-   "gap": 0.8
+   "gap": 0.9
   },
   {
    "say": [
-    "Fascia is real: tough collagen wrapped around every muscle."
+    "Fascia is real: it's the tough wrapping of collagen around every muscle, and it runs through your whole body."
    ],
    "src": [
-    "frs",
-    "openstax"
+    "openstax",
+    "frs"
    ]
   },
   {
    "say": [
-    "To squash the thick kind by just one percent, one model says you'd need about nine hundred and twenty-five kilos.",
-    "Lying on a roller doesn't come close."
+    "But to squash the tough fascia in your thigh by just one percent, one model says you'd need about nine hundred and twenty-five kilos.",
+    "Lying on a roller doesn't come close, so nothing is breaking up."
    ],
    "src": [
-    "chaudhry2008"
+    "chaudhry2008",
+    "behm2019"
    ]
   },
   {
    "say": [
-    "So what does rolling do?",
-    "Before exercise, about four percent more flexibility."
+    "So what does rolling actually do?",
+    "Before exercise, it gives you about four percent more flexibility, no more than stretching does, and in one trial, the extra range was gone within thirty minutes."
    ],
    "src": [
-    "wiewelhove2019"
-   ]
-  },
-  {
-   "say": [
-    "No better than stretching.",
-    "And in one trial, the extra range was gone within thirty minutes."
-   ],
-   "src": [
+    "wiewelhove2019",
     "wilke2020",
     "nakamura2021"
    ]
   },
   {
    "say": [
-    "After exercise, it eases soreness a little."
+    "After exercise, it eases soreness a little, and the best guess is that your nerves turn down pain and tension for a while."
    ],
    "src": [
-    "wiewelhove2019"
-   ]
-  },
-  {
-   "say": [
-    "One likely reason: your nerves turn down pain and tension for a while.",
-    "The release is mostly in the name."
-   ],
-   "src": [
+    "wiewelhove2019",
     "behm2019"
    ]
   },
   {
    "say": [
-    "Flushing out lactic acid?",
-    "In one lab test, sports massage actually slowed its clearing."
+    "Your body keeps its collagen strong by using it: after a workout, it keeps building new collagen for days.",
+    "So give your fascia the boring stuff: walking, lifting and moving every day."
    ],
    "src": [
-    "wiltshire2010"
+    "miller2005",
+    "nhsactivity"
    ]
   },
   {
    "say": [
-    "Use it as a warm-up, not a repair kit."
+    "Use the roller as a warm-up if you like it, not as a repair kit.",
+    "And if muscle pain won't settle with rest, see a doctor, not a foam roller."
    ],
    "src": [
-    "wiewelhove2019"
-   ]
-  },
-  {
-   "say": [
-    "Muscle pain that won't settle with rest?",
-    "See a doctor, not a foam roller."
-   ],
-   "src": [
+    "wiewelhove2019",
     "mayomps"
    ],
-   "gap": 1.0
+   "gap": 0.9
   },
   {
    "say": [
-    "Back to factory settings."
+    "Let's get you back to factory settings."
    ]
   }
  ],
@@ -129,13 +108,20 @@
    "Behm DG, Wilke J. Do self-myofascial release devices release myofascia? Rolling mechanisms: a narrative review. Sports Med 2019;49(8):1173-1181: \"insufficient evidence to support that the primary mechanisms underlying rolling and other similar devices are the release of myofascial restrictions and thus the term ‘self-myofascial release’ devices is misleading\"; proposed mechanisms include global pain modulation and reflex reductions in muscle tone; \"Rolling mechanisms underlying their effect on pain suppression are not well elucidated.\"",
    "https://www.bisp-surf.de/Record/PU202002000917"
   ],
-  "wiltshire2010": [
-   "Wiltshire EV et al. Massage impairs postexercise muscle blood flow and \"lactic acid\" removal. Med Sci Sports Exerc 2010;42:1062-1071: 12 subjects, sports massage of the forearm after 2 min of strenuous handgrip exercise; \"Massage impairs La(-) and H+ removal from muscle after strenuous exercise by mechanically impeding blood flow\"",
-   "https://api.openalex.org/works/doi:10.1249/MSS.0b013e3181c9214f"
-  ],
   "mayomps": [
    "Mayo Clinic, Myofascial pain syndrome (5 Jan 2024): \"if your muscle pain doesn’t go away with rest, massage and other self-care measures, make an appointment with your healthcare professional\"",
    "https://www.mayoclinic.org/diseases-conditions/myofascial-pain-syndrome/symptoms-causes/syc-20375444"
+  ],
+  "miller2005": [
+   "Miller BF et al. Coordinated collagen and muscle protein synthesis in human patella tendon and quadriceps muscle after exercise. J Physiol 2005: after one hour of one-legged kicking, collagen synthesis in the patellar tendon and in the muscle's connective tissue rose, peaking at about 24 hours and still raised at 72 hours",
+   "https://pubmed.ncbi.nlm.nih.gov/16002437/"
+  ],
+  "nhsactivity": [
+   "NHS, Physical activity guidelines for adults aged 19 to 64 (reviewed 22 May 2024): 150 minutes moderate activity a week, strengthening activities on at least 2 days, break up long periods of not moving",
+   "https://www.nhs.uk/live-well/exercise/physical-activity-guidelines-for-adults-aged-19-to-64/"
   ]
- }
+ },
+ "speed": 1.0,
+ "voice_style": "savage",
+ "frame": "factory-settings"
 }

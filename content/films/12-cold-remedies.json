@@ -1,0 +1,104 @@
+{
+ "n": 12,
+ "slug": "cold-remedies",
+ "question": "Do home remedies for colds work?",
+ "area": "aches-health",
+ "page": "/aches-health/do-home-remedies-for-colds-work",
+ "posts": "2026-11-14",
+ "lines": [
+  {
+   "say": [
+    "Every winter, you spend a small fortune on vitamin C tablets, catch a cold anyway, and wonder what went wrong.",
+    "Let's sort it out."
+   ],
+   "gap": 0.9
+  },
+  {
+   "say": [
+    "Your body was built to beat a cold on its own, and most people start to feel better within one to two weeks."
+   ],
+   "src": [
+    "nhscold"
+   ]
+  },
+  {
+   "say": [
+    "Daily vitamin C didn't stop ordinary people catching colds in trials, and starting it once you're ill made no consistent difference.",
+    "So eat the orange and skip the fizzy tablets."
+   ],
+   "src": [
+    "hemila2013",
+    "nhscold"
+   ]
+  },
+  {
+   "say": [
+    "Here's what holds up.",
+    "Hot water with lemon and honey can work about as well as cough syrup, but never give honey to a baby under one."
+   ],
+   "src": [
+    "nhscough",
+    "oduwole2018"
+   ]
+  },
+  {
+   "say": [
+    "And retire the bowl of hot water under a towel: there's no strong evidence it helps, and every winter it scalds people, especially young children."
+   ],
+   "src": [
+    "bba2025",
+    "singh2017"
+   ]
+  },
+  {
+   "say": [
+    "See a doctor if you're getting worse, you're short of breath or have chest pain, or a high temperature lasts over three days, a cough over three weeks, or the cold over ten days.",
+    "Go sooner with a very high temperature, a long-term condition, a weak immune system, or a child you're worried about.",
+    "If you're struggling to breathe, or can't swallow or are drooling, get emergency help."
+   ],
+   "src": [
+    "nhscold",
+    "nhssore"
+   ],
+   "gap": 0.9
+  },
+  {
+   "say": [
+    "Let's get you back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "nhssore": [
+   "NHS, Sore throat (reviewed 8 Apr 2024): \"gargle with warm, salty water (children should not try this)\"; call 999 or go to A&E for difficulty breathing, being unable to swallow, drooling (a sign of not being able to swallow) or a high-pitched sound as you breathe",
+   "https://www.nhs.uk/conditions/sore-throat/"
+  ],
+  "nhscold": [
+   "NHS, Common cold (reviewed 22 Mar 2024): \"You should begin to feel better in about 1 to 2 weeks\"; get plenty of rest, drink lots of fluid; \"There's little evidence that supplements such as vitamin C, echinacea or garlic prevent colds or help you get better more quickly\"; see a GP if: a high temperature for more than 3 days; symptoms get worse; temperature very high, or hot, cold or shivery; short of breath or chest pain; worried about your child's symptoms; not better after 10 days; a cough for more than 3 weeks; a long-term medical condition; a weakened immune system",
+   "https://www.nhs.uk/conditions/common-cold/"
+  ],
+  "bba2025": [
+   "NHS and British Burn Association joint warning, 18 Nov 2025 (Royal Devon NHS news): urging the public to avoid steam inhalation for coughs and colds; \"Each winter, NHS hospitals treat patients - especially young children - who have sustained serious scalds and burns\"; \"There is no strong scientific evidence that steam inhalation helps relieve colds or blocked noses\"",
+   "https://www.royaldevon.nhs.uk/news/nhs-and-british-burn-association-issue-public-safety-warning-steam-inhalation-causes-burns/"
+  ],
+  "oduwole2018": [
+   "Oduwole O et al. Honey for acute cough in children. Cochrane 2018 (CD007094): six trials, 899 children aged 12 months to 18 years; honey probably reduces cough more than placebo; little or no difference between honey and dextromethorphan; honey not advised under 12 months",
+   "https://www.cochrane.org/evidence/CD007094/honey-acute-cough-children"
+  ],
+  "singh2017": [
+   "Singh M et al. Heated, humidified air for the common cold. Cochrane 2017 (CD001728): 6 trials, 387 people; evidence insufficient to show benefit; minor adverse events in 2 trials",
+   "https://www.cochrane.org/zh-hant/evidence/CD001728_heated-humidified-air-common-cold"
+  ],
+  "nhscough": [
+   "NHS, Cough (reviewed 8 Dec 2023): \"hot lemon and honey, which can have a similar effect to cough syrup\"; \"not suitable for babies under 1 year old\"; do not give hot drinks to small children",
+   "https://www.nhs.uk/symptoms/cough/"
+  ],
+  "hemila2013": [
+   "Hemilä H, Chalker E. Vitamin C for preventing and treating the common cold. Cochrane 2013: regular supplements in the general population, catching a cold RR 0.97 (0.94 to 1.00), 29 comparisons, 11,306 people; taken after a cold starts, \"No consistent effect\"; \"routine vitamin C supplementation is not justified\"",
+   "https://www.mv.helsinki.fi/home/hemila/CC/CochraneColds_2013.pdf"
+  ]
+ },
+ "speed": 1.0,
+ "voice_style": "savage",
+ "frame": "factory-settings"
+}

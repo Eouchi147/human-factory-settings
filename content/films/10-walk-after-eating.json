@@ -1,0 +1,73 @@
+{
+ "n": 10,
+ "slug": "walk-after-eating",
+ "question": "Should you walk after eating?",
+ "area": "fitness-strength",
+ "page": "/fitness-strength/should-you-walk-after-eating",
+ "posts": "2026-11-10",
+ "lines": [
+  {
+   "say": [
+    "You go straight from the dinner table to the sofa, and your blood sugar gets the whole evening to itself.",
+    "Let's get you off that sofa."
+   ],
+   "gap": 0.9
+  },
+  {
+   "say": [
+    "Your body was built to walk, not to lie on the sofa after dinner like a python digesting a goat."
+   ]
+  },
+  {
+   "say": [
+    "In a study of forty-one adults with type 2 diabetes, everyone walked thirty minutes a day, either in one go or as ten minutes after each main meal."
+   ],
+   "src": [
+    "reynolds2016"
+   ]
+  },
+  {
+   "say": [
+    "With the same thirty minutes, walking after meals made the rise in their blood sugar after eating about twelve percent smaller, and after dinner, twenty-two percent smaller.",
+    "It was the same walk, with better timing."
+   ],
+   "src": [
+    "reynolds2016"
+   ]
+  },
+  {
+   "say": [
+    "These are short studies, so call it a good habit, not a cure."
+   ]
+  },
+  {
+   "say": [
+    "So after your main meals, especially dinner, walk for about ten minutes: around the block, to the shop, or with the dog.",
+    "The dishes will wait. They always do."
+   ],
+   "src": [
+    "reynolds2016"
+   ]
+  },
+  {
+   "say": [
+    "If you take insulin or another diabetes medicine that can make your blood sugar drop too low, ask your doctor how extra walking fits with your doses."
+   ],
+   "gap": 0.9
+  },
+  {
+   "say": [
+    "Let's get you back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "reynolds2016": [
+   "Reynolds AN et al. Advice to walk after meals is more effective for lowering postprandial glycaemia in type 2 diabetes mellitus than advice that does not specify timing: a randomised crossover study. Diabetologia 2016: 41 adults with type 2 diabetes (mean age 60); 30 min a day either at any time or as 10 min after each main meal (the same total); post-meal glucose (iAUC) 12% lower with after-meal walking (ratio 0.88, 0.78 to 0.99), 22% lower after the evening meal (0.78, 0.67 to 0.91)",
+   "https://link.springer.com/article/10.1007/s00125-016-4085-2"
+  ]
+ },
+ "speed": 1.0,
+ "voice_style": "savage",
+ "frame": "factory-settings"
+}

@@ -8,19 +8,23 @@
  "lines": [
   {
    "say": [
-    "Breathe in, and your heart speeds up a little.",
-    "Breathe out, and it slows."
+    "You keep telling yourself to calm down while you're breathing like something is chasing you.",
+    "Your body has a better way."
+   ],
+   "gap": 0.9
+  },
+  {
+   "say": [
+    "Your body was built with a brake you can reach: when you breathe in, your heart speeds up a little, and when you breathe out, it slows down."
    ],
    "src": [
     "lehrer2014",
     "balban2023"
-   ],
-   "gap": 0.8
+   ]
   },
   {
    "say": [
-    "You already sigh every few minutes without noticing:",
-    "a second breath on top of the first, to reopen tiny air sacs that fold shut."
+    "Your body already sighs every few minutes without you noticing, taking a second breath to reopen tiny air sacs in your lungs."
    ],
    "src": [
     "li2016",
@@ -30,7 +34,7 @@
   },
   {
    "say": [
-    "In a Stanford trial, a hundred and eight people, mostly students, were given five minutes a day of breathing or meditation, for a month."
+    "So sigh on purpose: breathe in twice, then let one long, slow breath out."
    ],
    "src": [
     "balban2023"
@@ -38,78 +42,42 @@
   },
   {
    "say": [
-    "Sighing on purpose, two breaths in, one long breath out, lifted good mood more than meditation did."
+    "In a Stanford study of mostly students, five minutes a day of this for a month lifted mood more than meditation did, and across twelve trials, breathing exercises cut stress by a small to medium amount.",
+    "It's a useful tool, not a magic one."
    ],
    "src": [
-    "balban2023"
-   ]
-  },
-  {
-   "say": [
-    "Feeling anxious dropped just as much with meditation.",
-    "And the trial had no do-nothing group."
-   ],
-   "src": [
-    "balban2023"
-   ]
-  },
-  {
-   "say": [
-    "Across twelve trials, breathing exercises cut stress by a small to medium amount.",
-    "Useful. Not magic."
-   ],
-   "src": [
+    "balban2023",
     "fincham2023"
    ]
   },
   {
    "say": [
-    "Longer out-breaths?",
-    "In a twelve-week trial, they were not clearly better than equal breaths."
+    "Do it for five minutes a day, and skip hard, fast breathing drills, because they can make you dizzy.",
+    "And never practise breathing drills or breath-holding in or near water."
    ],
    "src": [
-    "birdee2023"
-   ]
-  },
-  {
-   "say": [
-    "Skip hard, fast breathing drills.",
-    "They drop your carbon dioxide and can make you dizzy. Never do them in or near water."
-   ],
-   "src": [
+    "nhsbreath",
     "medlinehv",
     "cdc2015"
    ]
   },
   {
    "say": [
-    "Struggling to cope with stress, or nothing you try is helping?",
-    "See a doctor."
+    "If stress is getting too much to cope with, or nothing you try is helping, talk to a doctor.",
+    "If you or someone you know needs help right now, or you've seriously harmed yourself, call emergency services."
    ],
    "src": [
     "nhsstress"
    ],
-   "gap": 1.0
+   "gap": 0.9
   },
   {
    "say": [
-    "Back to factory settings."
-   ]
-  }
- ],
- "screen": [
-  {
-   "show": "The end dial: at rest, 12 to 18 breaths a minute",
-   "src": [
-    "ccvitals"
+    "Let's get you back to factory settings."
    ]
   }
  ],
  "sources": {
-  "ccvitals": [
-   "Cleveland Clinic, Vital signs: \"The normal respiratory rate for an adult at rest is 12 to 18 breaths per minute.\"",
-   "https://my.clevelandclinic.org/health/articles/10881-vital-signs"
-  ],
   "lehrer2014": [
    "Lehrer PM, Gevirtz R. Heart rate variability biofeedback: how and why does it work? Front Psychol 2014;5:756: \"RSA is the heart pattern that occurs when heart rate increases during inhalation and decreases during exhalation.\"",
    "https://www.frontiersin.org/articles/10.3389/fpsyg.2014.00756/full"
@@ -134,10 +102,6 @@
    "Fincham GW et al. Effect of breathwork on stress and mental health: a meta-analysis of randomised-controlled trials. Sci Rep 2023;13:432: 12 RCTs, 785 adults; self-reported stress g = -0.35 (95% CI -0.55 to -0.14), \"small-to-medium\"; the authors warn against \"a miscalibration between hype and evidence\"",
    "https://www.nature.com/articles/s41598-022-27247-y"
   ],
-  "birdee2023": [
-   "Birdee G et al. Slow breathing for reducing stress: the effect of extending exhale. Complement Ther Med 2023;73:102937: randomised, 100 healthy adults, 12 weeks; \"breath ratios do not have a significant differential effect on stress reduction among healthy adults\"",
-   "https://qigonginstitute.org/abstract-print/18181"
-  ],
   "medlinehv": [
    "MedlinePlus, Hyperventilation: \"Excessive breathing creates a low level of carbon dioxide in your blood. This causes many of the symptoms of hyperventilation\", including \"Feeling lightheaded, dizzy\"",
    "https://medlineplus.gov/ency/article/003071.htm"
@@ -147,8 +111,15 @@
    "https://www.cdc.gov/mmwr/preview/mmwrhtml/mm6419a3.htm"
   ],
   "nhsstress": [
-   "NHS, Stress (reviewed 6 Mar 2026): \"See a GP if: you’re struggling to cope with stress; things you’re trying yourself are not helping\"",
+   "NHS, Stress (reviewed 6 Mar 2026): \"See a GP if: you’re struggling to cope with stress; things you’re trying yourself are not helping\"; \"Call 999 or go to A&E now if: you or someone you know needs immediate help; you have seriously harmed yourself, for example by taking a drug overdose\"",
    "https://www.nhs.uk/mental-health/feelings-symptoms-behaviours/feelings-and-symptoms/stress/"
+  ],
+  "nhsbreath": [
+   "NHS, Breathing exercises for stress (reviewed 12 Jun 2026): breathe in through the nose and out through the mouth, counting 1 to 5 each way; \"Repeat for at least 5 minutes\"; \"most benefit if you do it regularly, as part of your daily routine\"",
+   "https://www.nhs.uk/mental-health/self-help/guides-tools-and-activities/breathing-exercises-for-stress/"
   ]
- }
+ },
+ "speed": 1.0,
+ "voice_style": "savage",
+ "frame": "factory-settings"
 }
