@@ -1,0 +1,129 @@
+{
+ "n": 13,
+ "slug": "lower-back",
+ "question": "Why does my lower back hurt?",
+ "area": "aches-health",
+ "page": "/aches-health/why-does-my-lower-back-hurt",
+ "posts": "2026-11-17",
+ "lines": [
+  {
+   "say": [
+    "Lower back pain.",
+    "The world's leading cause of disability."
+   ],
+   "src": [
+    "whofacts"
+   ],
+   "gap": 0.6
+  },
+  {
+   "say": [
+    "Most people get it at least once.",
+    "And about nine cases in ten can't be pinned on any disease or damage."
+   ],
+   "src": [
+    "whofacts"
+   ]
+  },
+  {
+   "say": [
+    "Disc degeneration?",
+    "Scan people with no back pain: thirty-seven percent of twenty-year-olds show it. At eighty, ninety-six percent."
+   ],
+   "src": [
+    "brinjikji2015"
+   ]
+  },
+  {
+   "say": [
+    "The authors' verdict: normal ageing. Not disease."
+   ],
+   "src": [
+    "brinjikji2015"
+   ]
+  },
+  {
+   "say": [
+    "Back pain usually eases within a few weeks.",
+    "And it often comes back."
+   ],
+   "src": [
+    "nhsback",
+    "menezescosta2012",
+    "acp2017",
+    "pengel2003"
+   ]
+  },
+  {
+   "say": [
+    "Core stability exercises?",
+    "A review of twenty-nine trials: no better in the long run than other exercise."
+   ],
+   "src": [
+    "smith2014"
+   ]
+  },
+  {
+   "say": [
+    "The NHS says: stay active, carry on with your day, and don't stay in bed for long."
+   ],
+   "src": [
+    "nhsback"
+   ]
+  },
+  {
+   "say": [
+    "Not easing after a few weeks, worse at night, or losing weight without trying?",
+    "See a doctor."
+   ],
+   "src": [
+    "nhsback"
+   ]
+  },
+  {
+   "say": [
+    "Pain, tingling, weakness or numbness in both legs, lost feeling around your genitals or anus, or changes in peeing or pooing?",
+    "Get emergency help now."
+   ],
+   "src": [
+    "nhsback"
+   ],
+   "gap": 1.0
+  },
+  {
+   "say": [
+    "Back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "whofacts": [
+   "World Health Organization, Low back pain (fact sheet, 19 June 2023): \"LBP is the single leading cause of disability worldwide and the condition for which the greatest number of people may benefit from rehabilitation.\"; \"LBP can be experienced at any age, and most people experience LBP at least once in their life.\"; \"Non-specific LBP is the most common presentation of LBP (about 90% of cases).\"; \"Non-specific means that the experience of pain cannot be confidently accounted for by another diagnosis such as an underlying disease, pathology or tissue damage.\"",
+   "https://www.who.int/news-room/fact-sheets/detail/low-back-pain"
+  ],
+  "brinjikji2015": [
+   "Brinjikji W et al. Systematic literature review of imaging features of spinal degeneration in asymptomatic populations. AJNR Am J Neuroradiol 2015;36(4):811 to 816: \"Thirty-three articles reporting imaging findings for 3110 asymptomatic individuals met our study inclusion criteria.\"; Table 2 (model estimates, people with no back pain): disk degeneration 37% at age 20, 96% at age 80; incidental findings \"should be considered as normal age-related changes rather than pathologic processes\"",
+   "https://pmc.ncbi.nlm.nih.gov/articles/PMC4464797/"
+  ],
+  "nhsback": [
+   "NHS, Back pain (last reviewed 5 March 2026): \"It usually improves within a few weeks but can sometimes last longer or keep coming back.\"; Do: \"stay active and try to continue with your daily activities\"; Don't: \"do not stay in bed for long periods of time\"; See a GP if: \"it does not improve after treating it at home for a few weeks\", \"it does not improve after resting or is worse at night\", \"you've lost weight without trying to\"; Call 999 or go to A&E if: \"pain, tingling, weakness or numbness in both legs\", \"a loss of feeling around your genitals or anus\", \"changes in your bladder or bowels, such as difficulty peeing, or peeing or pooing yourself\"",
+   "https://www.nhs.uk/conditions/back-pain/"
+  ],
+  "menezescosta2012": [
+   "da C Menezes Costa L et al. The prognosis of acute and persistent low-back pain: a meta-analysis. CMAJ 2012;184(11):E613 to E624: 33 cohorts, 11 166 participants; in acute pain cohorts, mean pain out of 100 fell from 52 at baseline to 23 at 6 weeks; \"Patients who presented with acute or persistent low-back pain improved markedly in the first six weeks.\"",
+   "https://www.cmaj.ca/content/184/11/E613"
+  ],
+  "acp2017": [
+   "Qaseem A et al. Noninvasive Treatments for Acute, Subacute, and Chronic Low Back Pain: A Clinical Practice Guideline From the American College of Physicians. Ann Intern Med 2017;166(7):514 to 530: \"Given that most patients with acute or subacute low back pain improve over time regardless of treatment\"",
+   "https://www.ebi.ac.uk/europepmc/webservices/rest/article/MED/28192789?resultType=core&format=json"
+  ],
+  "pengel2003": [
+   "Pengel LHM et al. Acute low back pain: systematic review of its prognosis. BMJ 2003;327:323: \"73% of patients had at least one recurrence within 12 months.\"; \"None the less, pain and disability are typically ongoing, and recurrences are common.\"",
+   "https://www.bmj.com/content/327/7410/323"
+  ],
+  "smith2014": [
+   "Smith BE, Littlewood C, May S. An update of stabilisation exercises for low back pain: a systematic review with meta-analysis. BMC Musculoskelet Disord 2014;15:416: \"29 studies were included\"; \"When compared with alternative forms of exercise, there was no statistical or clinically significant difference.\"; \"There is strong evidence stabilisation exercises are not more effective than any other form of active exercise in the long term.\"",
+   "https://www.ebi.ac.uk/europepmc/webservices/rest/article/MED/25488399?resultType=core&format=json"
+  ]
+ }
+}

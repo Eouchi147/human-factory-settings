@@ -1,0 +1,131 @@
+{
+ "n": 15,
+ "slug": "dopamine-detox",
+ "question": "Can you detox dopamine?",
+ "area": "habits-focus",
+ "page": "/habits-focus/does-a-dopamine-detox-work",
+ "posts": "2026-11-21",
+ "lines": [
+  {
+   "say": [
+    "Dopamine detox.",
+    "Ban all fun, and reset your brain's pleasure chemical."
+   ],
+   "src": [
+    "harvard2020",
+    "sepah2019"
+   ],
+   "gap": 0.6
+  },
+  {
+   "say": [
+    "Few brain scientists who study reward say dopamine causes pleasure.",
+    "It drives wanting, not liking."
+   ],
+   "src": [
+    "berridge2015"
+   ]
+  },
+  {
+   "say": [
+    "People with Parkinson's, who lose much of their dopamine, still find sweetness just as pleasant."
+   ],
+   "src": [
+    "berridge2015"
+   ]
+  },
+  {
+   "say": [
+    "In animal studies, dopamine cells fire at a surprise reward, then switch to firing at what predicts it."
+   ],
+   "src": [
+    "schultz1997"
+   ]
+  },
+  {
+   "say": [
+    "Does a day off lower your dopamine?",
+    "Harvard Health says no."
+   ],
+   "src": [
+    "harvard2020"
+   ]
+  },
+  {
+   "say": [
+    "Even its creator says it isn't about reducing dopamine.",
+    "The name was just catchy."
+   ],
+   "src": [
+    "sepah2019",
+    "harvard2020"
+   ]
+  },
+  {
+   "say": [
+    "It's behaviour therapy: put the phone away, or make it harder to reach.",
+    "Not a bad idea. Not a new one."
+   ],
+   "src": [
+    "harvard2020",
+    "sepah2019"
+   ]
+  },
+  {
+   "say": [
+    "In a big trial, four weeks off one social network freed up an hour a day.",
+    "More time with family and friends. And TV, alone."
+   ],
+   "src": [
+    "allcott2020"
+   ]
+  },
+  {
+   "say": [
+    "Well-being rose a little.",
+    "Afterwards, they reported using the app twenty-two percent less."
+   ],
+   "src": [
+    "allcott2020"
+   ]
+  },
+  {
+   "say": [
+    "Don't cut out people or exercise for it.",
+    "The method never asked you to."
+   ],
+   "src": [
+    "sepah2019",
+    "harvard2020"
+   ],
+   "gap": 1.0
+  },
+  {
+   "say": [
+    "Back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "harvard2020": [
+   "Grinspoon P. Dopamine fasting: Misunderstanding science spawns a maladaptive fad. Harvard Health Blog, Harvard Health Publishing, 26 February 2020: \"The dopamine fast, created by California psychiatrist Dr. Cameron Sepah, has very little to do with either fasting or dopamine.\"; \"What Sepah intended with his dopamine fast was a method, based on cognitive behavioral therapy, by which we can become less dominated by the unhealthy stimuli\"; \"While dopamine does rise in response to rewards or pleasurable activities, it doesn't actually decrease when you avoid overstimulating activities, so a dopamine 'fast' doesn't actually lower your dopamine levels.\"; Sepah, as quoted from the New York Times: dopamine \"makes for a catchy title. The title's not to be taken literally.\"; \"In essence, the dopamine fasters are depriving themselves of healthy things, for no reason, based on faulty science and a misinterpretation of a catchy title.\"; \"Taking time out for mental rejuvenation is never a bad thing, but it's nothing new.\"",
+   "https://www.health.harvard.edu/blog/dopamine-fasting-misunderstanding-science-spawns-a-maladaptive-fad-2020022618917"
+  ],
+  "sepah2019": [
+   "Sepah C. The Definitive Guide to Dopamine Fasting 2.0: The Hot Silicon Valley Trend (2019; read on a third-party copy of the page). Listed as what it is not: \"Reducing dopamine (the focus is on reducing impulsive BEHAVIOR)\"; \"Avoiding all stimulation/pleasure (focuses only on specific behaviors that are problematic for you)\"; \"Not talking/socializing/exercising (actually encourages values-aligned health behaviors)\". Technique named: \"stimulus control\"; \"Put the stimulus (like your phone) away or make it harder to access\"",
+   "https://readmedium.com/dopamine-fasting-2-0-the-hot-silicon-valley-trend-7c4dc3ba2213"
+  ],
+  "berridge2015": [
+   "Berridge KC, Kringelbach ML. Pleasure systems in the brain. Neuron 2015;86(3):646 to 664: \"dopamine is not actually needed for the hedonic impact of food pleasure, but rather only for their incentive motivation value\"; \"dopamine elevations in NAc fail to enhance 'liking' for sweetness, despite increasing motivational 'wanting'\"; \"Parkinson's patients who have extensive dopamine depletion due to their disease still give normal hedonic ratings of liking to the sensory pleasure of a sweet taste\"; \"today relatively few neuroscientists who study dopamine in reward appear to assert in print that dopamine causes pleasure\"",
+   "https://pmc.ncbi.nlm.nih.gov/articles/PMC4425246/"
+  ],
+  "schultz1997": [
+   "Schultz W, Dayan P, Montague PR. A Neural Substrate of Prediction and Reward. Science 1997;275:1593 to 1599: \"dopaminergic neurons in the primate whose fluctuating output apparently signals changes or errors in the predictions of future salient and rewarding events\"; unexpected reward: \"a short burst of impulses after reward delivery\"; \"After several days of training...the primary reward no longer elicits a phasic response.\"; \"onset of the (predictive) light now causes a phasic activation in dopamine cell output.\"",
+   "https://web.math.princeton.edu/~sswang/fundamental-readings-for-Wang-lab-members/schultz_montague97_science.pdf"
+  ],
+  "allcott2020": [
+   "Allcott H et al. The Welfare Effects of Social Media. Am Econ Rev 2020;110(3):629 to 676: \"we recruited a sample of 2,743 users through Facebook display ads\"; \"deactivating Facebook for the four weeks before the 2018 US midterm election (i) reduced online activity, while increasing offline activities such as watching TV alone and socializing with family and friends\"; \"Deactivating Facebook freed up 60 minutes per day for the average person in our Treatment group.\"; \"Deactivation caused small but significant improvements in well-being\"; \"Our overall index of subjective well-being improved by 0.09 standard deviations.\"; \"the Treatment group's reported usage of the Facebook mobile app was about 11 minutes (22 percent) lower than in Control.\"",
+   "https://www.Gwern.net/doc/sociology/technology/2020-allcott.pdf"
+  ]
+ }
+}

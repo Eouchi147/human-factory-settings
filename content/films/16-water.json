@@ -1,0 +1,146 @@
+{
+ "n": 16,
+ "slug": "water",
+ "question": "How much water do you need?",
+ "area": "weight-food",
+ "page": "/weight-food/how-much-water-do-you-need",
+ "posts": "2026-11-24",
+ "lines": [
+  {
+   "say": [
+    "Water.",
+    "Eight glasses a day, and coffee doesn't count."
+   ],
+   "src": [
+    "valtin2002"
+   ],
+   "gap": 0.6
+  },
+  {
+   "say": [
+    "A review went looking for the study behind that rule.",
+    "It found none."
+   ],
+   "src": [
+    "valtin2002"
+   ]
+  },
+  {
+   "say": [
+    "Europe's food safety experts say two litres a day for women, two and a half for men.",
+    "That counts every drink, and the water in food."
+   ],
+   "src": [
+    "efsa2010"
+   ]
+  },
+  {
+   "say": [
+    "In US data, food supplied about twenty percent.",
+    "You eat some of your water."
+   ],
+   "src": [
+    "nasemnews2004",
+    "nasem2004",
+    "efsa2010"
+   ]
+  },
+  {
+   "say": [
+    "Coffee counts.",
+    "In trials, it hydrated as well as water.",
+    "So did tea and cola.",
+    "Milk kept more in."
+   ],
+   "src": [
+    "nhswater",
+    "nasemnews2004",
+    "killer2014",
+    "maughan2016"
+   ]
+  },
+  {
+   "say": [
+    "Most healthy people get enough by drinking when thirsty, and with meals.",
+    "The NHS check: pee that's a clear pale yellow."
+   ],
+   "src": [
+    "nasem2004",
+    "nasemnews2004",
+    "nhswater"
+   ]
+  },
+  {
+   "say": [
+    "You may need more in heat, during long exercise, when ill, pregnant or breastfeeding."
+   ],
+   "src": [
+    "nhswater",
+    "nasem2004",
+    "efsa2010"
+   ]
+  },
+  {
+   "say": [
+    "But overdoing it is dangerous.",
+    "At one marathon, thirteen percent of runners tested at the finish had low blood sodium, linked to gaining weight during the race."
+   ],
+   "src": [
+    "almond2005",
+    "nasemnews2004"
+   ]
+  },
+  {
+   "say": [
+    "Drinking far too much can kill.",
+    "If you're ill, ask your doctor how much to drink."
+   ],
+   "src": [
+    "nasemnews2004",
+    "almond2005",
+    "nhswater",
+    "valtin2002"
+   ],
+   "gap": 1.0
+  },
+  {
+   "say": [
+    "Back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "valtin2002": [
+   "Valtin H. 'Drink at least eight glasses of water a day.' Really? Is there scientific evidence for '8 x 8'? Am J Physiol Regul Integr Comp Physiol 2002;283(5):R993 to 1004 (abstract, Europe PMC): \"Despite the seemingly ubiquitous admonition to 'drink at least eight 8-oz glasses of water a day' (with an accompanying reminder that beverages containing caffeine and alcohol do not count), rigorous proof for this counsel appears to be lacking.\" \"This review sought to find the origin of this advice\" \"No scientific studies were found in support of 8 x 8.\" \"large intakes of fluid, equal to and greater than 8 x 8, are advisable for the treatment or prevention of some diseases and certainly are called for under special circumstances, such as vigorous work and exercise, especially in hot climates.\"",
+   "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=EXT_ID:12376390&format=json&resultType=core"
+  ],
+  "efsa2010": [
+   "EFSA Panel on Dietetic Products, Nutrition, and Allergies (NDA). Scientific Opinion on Dietary Reference Values for water. EFSA Journal 2010;8(3):1459 (abstract, University of Milan AIR repository record): \"Available data for adults permit the definition of AIs as 2.0 L/day (P 95 3.1 L) for females and 2.5 L/day (P95 4.0 L) for males.\" \"The reference values for total water intake include water from drinking water, beverages of all kind, and from food moisture and only apply to conditions of moderate environmental temperature and moderate physical activity levels (PAL 1.6).\" Pregnancy: \"the same water intake as in non-pregnant women plus an increase in proportion to the increase in energy intake (300 mL/day) is proposed.\" Lactation: \"adequate water intakes of about 700 mL/day above the AIs of non-lactating women of the same age are derived\"",
+   "https://air.unimi.it/handle/2434/156017"
+  ],
+  "nasem2004": [
+   "National Academies, Dietary Reference Intakes for Water, Potassium, Sodium, Chloride, and Sulfate, Summary chapter: \"In the NHANES, fluids (beverages and drinking water) provided approximately 3.0 L (101 fluid ounces; ≈ 13 cups) and 2.2 L (74 fluid ounces; ≈ 9 cups) per day for 19- through 30-year-old men and women, representing ~ 81 percent of total water intake\" \"on a day-to-day basis fluid intake, driven by the combination of thirst and the consumption of beverages at meals, allows maintenance of hydration status and total body water at normal levels.\" \"Higher intakes of total water will be required for those who are physically active or who are exposed to hot environments.\"",
+   "https://www.nationalacademies.org/read/10925/chapter/2"
+  ],
+  "nasemnews2004": [
+   "National Academies news release, Report Sets Dietary Intake Levels for Water, Salt, and Potassium To Maintain Health and Reduce Chronic Disease Risk (page shows \"Last update February, 11 2004\"): \"About 80 percent of people's total water comes from drinking water and beverages\" then \"including caffeinated beverages\" then \"and the other 20 percent is derived from food.\" \"The vast majority of healthy people adequately meet their daily hydration needs by letting thirst be their guide\" \"caffeinated beverages can contribute as much as noncaffeinated options.\" \"Some athletes who engage in strenuous activity and some individuals with certain psychiatric disorders occasionally drink water in excessive amounts that can be life-threatening.\"",
+   "https://www.nationalacademies.org/news/report-sets-dietary-intake-levels-for-water-salt-and-potassium-to-maintain-health-and-reduce-chronic-disease-risk"
+  ],
+  "killer2014": [
+   "Killer SC, Blannin AK, Jeukendrup AE. No Evidence of Dehydration with Moderate Daily Coffee Intake: A Counterbalanced Cross-Over Study in a Free-Living Population. PLoS ONE 2014;9(1):e84154: \"In a counterbalanced cross-over design, 50 male coffee drinkers (habitually consuming 3\" to \"6 cups per day) participated in two trials, each lasting three consecutive days.\" \"participants consumed either 4×200 mL of coffee containing 4 mg/kg caffeine (C) or water (W).\" \"These data suggest that coffee, when consumed in moderation by caffeine habituated males provides similar hydrating qualities to water.\"",
+   "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0084154"
+  ],
+  "maughan2016": [
+   "Maughan RJ, Watson P, Cordery PA, Walsh NP, Oliver SJ, Dolci A, Rodriguez-Sanchez N, Galloway SD. A randomized trial to assess the potential of different beverages to affect hydration status: development of a beverage hydration index. Am J Clin Nutr 2016;103(3):717 to 723: 13 drinks; \"Each subject (n = 72, euhydrated and fasted male subjects) ingested 1 L still water or 1 of 3 other commercially available beverages over a period of 30 min. Urine output was then collected for the subsequent 4 h.\" \"Cumulative urine output at 4 h after ingestion of cola, diet cola, hot tea, iced tea, coffee, lager, orange juice, sparkling water, and a sports drink were not different from the response to water ingestion.\" \"Total urine masses (mean ± SD) over 4 h were smaller than the still-water control (1337 ± 330 g) after an oral rehydration solution (ORS) (1038 ± 333 g, P < 0.001), full-fat milk (1052 ± 267 g, P < 0.001), and skimmed milk (1049 ± 334 g, P < 0.001).\"",
+   "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:10.3945/ajcn.115.114769&format=json&resultType=core"
+  ],
+  "nhswater": [
+   "NHS, Water, drinks and hydration (\"Page last reviewed: 17 May 2023\", \"Next review due: 17 May 2026\"): \"Water, lower-fat milk and lower-sugar drinks, including tea and coffee, all count as part of your daily intake.\" \"Most people should aim to drink enough during the day so their pee is a clear pale yellow colour.\" You may need more fluids if you're \"pregnant or breastfeeding\", \"in a hot environment\", \"physically active for long periods\", \"ill or recovering from illness\".",
+   "https://www.nhs.uk/live-well/eat-well/food-guidelines-and-food-labels/water-drinks-nutrition/"
+  ],
+  "almond2005": [
+   "Almond CS, Shin AY, Fortescue EB, Mannix RC, Wypij D, Binstadt BA, Duncan CN, Olson DP, Salerno AE, Newburger JW, Greenes DS. Hyponatremia among runners in the Boston Marathon. N Engl J Med 2005;352(15):1550 to 1556: \"Hyponatremia has emerged as an important cause of race-related death and life-threatening illness among marathon runners.\" \"Of 766 runners enrolled, 488 runners (64 percent) provided a usable blood sample at the finish line. Thirteen percent had hyponatremia (a serum sodium concentration of 135 mmol per liter or less); 0.6 percent had critical hyponatremia (120 mmol per liter or less).\" \"On multivariate analysis, hyponatremia was associated with weight gain (odds ratio, 4.2; 95 percent confidence interval, 2.2 to 8.2), a racing time of >4:00 hours (odds ratio for the comparison with a time of <3:30 hours, 7.4; 95 percent confidence interval, 2.9 to 23.1), and body-mass-index extremes.\"",
+   "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:%2210.1126/science.abm8668%22%20OR%20DOI:%2210.1056/NEJMoa043901%22&format=json&resultType=core"
+  ]
+ }
+}
