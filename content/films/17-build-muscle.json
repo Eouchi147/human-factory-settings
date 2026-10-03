@@ -8,15 +8,14 @@
  "lines": [
   {
    "say": [
-    "Building muscle.",
-    "Heavy weights to grow, light ones to tone."
+    "You've lifted the same tiny dumbbells for three years, scrolling between sets, and you wonder why nothing grows.",
+    "Let's get you growing."
    ],
-   "gap": 0.6
+   "gap": 0.9
   },
   {
    "say": [
-    "In twenty-one studies, with every set taken to the last possible rep, light and heavy loads built similar size.",
-    "Heavy won on maximal strength."
+    "Your muscles were built to grow when you push them: in twenty-one studies, light and heavy loads built similar size when every set went to your last possible rep."
    ],
    "src": [
     "schoenfeld2017load"
@@ -24,120 +23,55 @@
   },
   {
    "say": [
-    "The WHO minimum: strength work at least twice a week."
+    "The World Health Organization recommends strength work at least twice a week, and in studies, more weekly sets meant more growth."
    ],
    "src": [
-    "whoeurope"
-   ]
-  },
-  {
-   "say": [
-    "Then count your sets.",
-    "Across fifteen studies, more weekly sets per muscle went with more growth, in the range tested."
-   ],
-   "src": [
+    "whoeurope",
     "schoenfeld2016vol"
    ]
   },
   {
    "say": [
-    "How often?",
-    "With weekly sets kept equal, it made no real difference, across twenty-five studies.",
-    "It's a preference, not a secret."
+    "Protein helps a little, up to about one point six grams per kilo of body weight a day, and so does sleep: in a small trial, one sleepless night cut the next day's muscle protein building by eighteen percent."
    ],
    "src": [
-    "schoenfeld2018freq"
-   ]
-  },
-  {
-   "say": [
-    "Sleep?",
-    "In a small trial, one sleepless night cut muscle protein building by eighteen percent the next day."
-   ],
-   "src": [
+    "morton2018",
     "lamon2021"
    ]
   },
   {
    "say": [
-    "Extra protein helps a little, up to about one point six grams per kilo a day."
+    "And it's never too late: in one small study, frail ninety-year-olds grew their thigh muscles by nine percent in eight weeks.",
+    "So what's your excuse?"
    ],
-   "src": [
-    "morton2018"
-   ]
-  },
-  {
-   "say": [
-    "In a small study, frail ninety-year-olds grew their thigh muscle nine percent in eight weeks.",
-    "Age slows it.",
-    "It doesn't stop it."
-   ],
-   "src": [
-    "fiatarone1990",
-    "peterson2010"
-   ]
-  },
-  {
-   "say": [
-    "Over sixty-five?",
-    "The WHO adds balance and strength training, to prevent falls."
-   ],
-   "src": [
-    "whoeurope"
-   ],
-   "gap": 1.0
-  },
-  {
-   "say": [
-    "Back to factory settings."
-   ]
-  }
- ],
- "screen": [
-  {
-   "show": "Rack labels GROW and TONE: the claim the film tests",
-   "src": []
-  },
-  {
-   "show": "Sign: EVERY SET TO THE LAST POSSIBLE REP; light and heavy sections grow alike; the heavy MAXIMAL STRENGTH bar rises higher",
-   "src": [
-    "schoenfeld2017load"
-   ]
-  },
-  {
-   "show": "Calendar THIS WEEK with two days ticked",
-   "src": [
-    "whoeurope"
-   ]
-  },
-  {
-   "show": "Chalkboard: WEEKLY SETS PER MUSCLE, UNDER 5, 5 TO 9, 10 OR MORE, a bigger section for each",
-   "src": [
-    "schoenfeld2016vol"
-   ]
-  },
-  {
-   "show": "Two weeks of SAME SETS, 2 DAYS and 4 DAYS; the two sections equal",
-   "src": [
-    "schoenfeld2018freq"
-   ]
-  },
-  {
-   "show": "Brick towers AFTER A NORMAL NIGHT (10) and AFTER NO SLEEP (8.2); tag: 13 adults, one night without sleep, muscle protein building −18%",
-   "src": [
-    "lamon2021"
-   ]
-  },
-  {
-   "show": "Chart EXTRA MUSCLE against GRAMS OF PROTEIN PER KILO A DAY, flat after about 1.6; tag: 49 studies, 1,863 people, about +0.3 kg fat-free mass",
-   "src": [
-    "morton2018"
-   ]
-  },
-  {
-   "show": "Thigh section grows 9% past a dashed ring at its first size; tag: 10 frail volunteers, aged about 90, thigh muscle +9% in 8 weeks",
    "src": [
     "fiatarone1990"
+   ]
+  },
+  {
+   "say": [
+    "Pick a few big moves, like squats, push-ups and rows, and add a rep or a little weight whenever it gets easy."
+   ],
+   "src": [
+    "whoeurope",
+    "nhsadults",
+    "schoenfeld2016vol"
+   ]
+  },
+  {
+   "say": [
+    "If you're over sixty-five, add balance training too, to help prevent falls.",
+    "And if you have a health condition or haven't exercised for a while, check with your doctor before you start."
+   ],
+   "src": [
+    "whoeurope",
+    "nhsadults"
+   ],
+   "gap": 0.9
+  },
+  {
+   "say": [
+    "Let's get you back to factory settings."
    ]
   }
  ],
@@ -154,10 +88,6 @@
    "Schoenfeld BJ, Ogborn D, Krieger J. Dose-response relationship between weekly resistance training volume and increases in muscle mass: a systematic review and meta-analysis. J Sports Sci 35(11):1073 to 1082 (online 19 July 2016; OpenAlex abstract rebuild): \"The final analysis comprised 34 treatment groups from 15 studies.\" \"The findings indicate a graded dose-response relationship whereby increases in RT volume produce greater gains in muscle hypertrophy.\" Three bands \"(<5, 5\" to \"9 and 10+ per muscle)\" showed only a trend \"(P = 0.074)\".",
    "https://api.openalex.org/works/doi:10.1080/02640414.2016.1210197"
   ],
-  "schoenfeld2018freq": [
-   "Schoenfeld BJ, Grgić J, Krieger J. How many times per week should a muscle be trained to maximize muscle hypertrophy? A systematic review and meta-analysis of studies examining the effects of resistance training frequency. J Sports Sci 37(11):1286 to 1295 (online 17 December 2018; OpenAlex abstract rebuild): \"a total of 25 studies were deemed to meet inclusion criteria.\" \"Results showed no significant difference between higher and lower frequency on a volume-equated basis.\" \"In conclusion, there is strong evidence that resistance training frequency does not significantly or meaningfully impact muscle hypertrophy when volume is equated.\" \"Thus, for a given training volume, individuals can choose\" (middle of the sentence garbled in the rebuild) \"based on personal preference.\"",
-   "https://api.openalex.org/works/doi:10.1080/02640414.2018.1555906"
-  ],
   "lamon2021": [
    "Lamon S, Morabito A, Arentson-Lantz E, Knowles O, Vincent GE, Condo D, Alexander SE, Garnham A, Paddon-Jones D, Aisbett B. The effect of acute sleep deprivation on skeletal muscle protein synthesis and the hormonal environment. Physiol Rep 2021;9(1):e14660 (OpenAlex abstract rebuild): \"Healthy young adults (N = 13; seven male, six female) were subjected to one night of total sleep deprivation (DEP) or normal sleep (CON) in a randomized cross-over design.\" \"Postprandial skeletal muscle protein fractional synthesis rate (FSR) was assessed between 13:00 and 15:00\" \"Acute sleep deprivation reduced skeletal muscle protein synthesis by 18% (CON: 0.072 ± 0.015% vs. DEP: 0.059 ± 0.014%·h-1, p = .040).\"",
    "https://api.openalex.org/works/doi:10.14814/phy2.14660"
@@ -170,9 +100,12 @@
    "Fiatarone MA, et al. High-intensity strength training in nonagenarians: effects on skeletal muscle. JAMA 1990;263(22):3029 to 3034 (OpenAlex abstract rebuild): \"Ten frail, institutionalized volunteers aged 90 ± 1 years undertook 8 weeks of high-intensity resistance training.\" \"Strength gains averaged 174%±31% (mean ± SEM) in the 9 subjects who completed training.\" \"Midthigh muscle area increased 9.0%±4.5%.\" No control group described in the abstract.",
    "https://api.openalex.org/works/doi:10.1001/jama.1990.03440220053029"
   ],
-  "peterson2010": [
-   "Peterson MD, Sen A, Gordon PM. Influence of resistance exercise on lean body mass in aging adults. Med Sci Sports Exerc 43(2):249 to 258 (online 11 June 2010; OpenAlex abstract rebuild): \"Randomized controlled trials and randomized or nonrandomized studies among adults ≥ 50 yr were included.\" \"data from 49 studies, representing a total of 1328 participants, were pooled using random-effect models.\" \"The weighted pooled estimate of mean change in LBM was 1.1 kg (95% confidence interval = 0.9\" to \"1.2 kg).\" Older age: less increase \"(β = -0.03, P = 0.01)\". \"RE is effective for eliciting gains in LBM among older adults\"",
-   "https://api.openalex.org/works/doi:10.1249/MSS.0b013e3181eb6265"
+  "nhsadults": [
+   "NHS, Physical activity guidelines for adults aged 19 to 64 (last reviewed 22 May 2024, opened 3 Oct 2026): \"Speak to your GP first if you have not exercised for some time, or if you have medical conditions or concerns.\"; strengthening activities that work all the major muscle groups \"on at least 2 days a week\"",
+   "https://www.nhs.uk/live-well/exercise/physical-activity-guidelines-for-adults-aged-19-to-64/"
   ]
- }
+ },
+ "speed": 1.0,
+ "voice_style": "savage",
+ "frame": "factory-settings"
 }

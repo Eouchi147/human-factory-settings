@@ -8,24 +8,14 @@
  "lines": [
   {
    "say": [
-    "Cold showers.",
-    "Supposedly, they boost immunity and burn fat."
+    "You scream through a cold shower every morning because a podcast promised it would fix your whole life.",
+    "Let's see what it does."
    ],
-   "gap": 0.6
+   "gap": 0.9
   },
   {
    "say": [
-    "In the biggest trial, Dutch adults ended their shower with thirty to ninety seconds of cold, every day for a month."
-   ],
-   "src": [
-    "buijze2016",
-    "cain2025"
-   ]
-  },
-  {
-   "say": [
-    "Compared with normal showers, they reported twenty-nine percent fewer days off sick.",
-    "But no fewer days feeling ill."
+    "In the biggest trial, Dutch adults ended their shower with thirty to ninety seconds of cold water every day for a month."
    ],
    "src": [
     "buijze2016"
@@ -33,8 +23,8 @@
   },
   {
    "say": [
-    "Ninety-one percent wanted to keep going.",
-    "Sixty-four percent did."
+    "They reported about thirty percent fewer days off sick, but no fewer days feeling ill.",
+    "They still felt ill, but they went to more meetings."
    ],
    "src": [
     "buijze2016"
@@ -42,8 +32,7 @@
   },
   {
    "say": [
-    "Immune boost or better mood?",
-    "A review of eleven trials, mostly cold baths, found no proof of either."
+    "But across eleven trials, mostly of ice baths, there was no proof that cold water boosts immunity or mood."
    ],
    "src": [
     "cain2025"
@@ -51,8 +40,7 @@
   },
   {
    "say": [
-    "Lifting?",
-    "In trials, sitting in cold water straight after training may blunt muscle growth."
+    "If you lift weights, skip the ice bath straight after training, because in trials it may blunt muscle growth."
    ],
    "src": [
     "roberts2015",
@@ -61,10 +49,8 @@
   },
   {
    "say": [
-    "Fat loss?",
-    "One small trial: zero point seven kilos of fat in six weeks.",
-    "With two hours in the cold.",
-    "A day."
+    "And for fat loss, one small trial found people lost about seven hundred grams of fat in six weeks, from two hours a day at seventeen degrees Celsius.",
+    "I hope your showers are shorter."
    ],
    "src": [
     "yoneshiro2013"
@@ -72,73 +58,19 @@
   },
   {
    "say": [
-    "Cold water can trigger cold shock: a gasp, breathing up to ten times faster, a harder-working heart."
-   ],
-   "src": [
-    "rnli"
-   ]
-  },
-  {
-   "say": [
-    "Cold shock can cause heart attacks, even in the relatively young and healthy.",
-    "Heart condition?",
-    "Ask your doctor first."
+    "Plunging into cold water triggers a gasp and a racing heart in the first minute, and that shock can cause heart attacks, even in fairly young, healthy people.",
+    "So if you have a heart condition, high blood pressure, diabetes or poor circulation, or you're pregnant, talk to your doctor before you start."
    ],
    "src": [
     "rnli",
     "ccplunge2026",
     "bhf2023"
    ],
-   "gap": 1.0
+   "gap": 0.9
   },
   {
    "say": [
-    "Back to factory settings."
-   ]
-  }
- ],
- "screen": [
-  {
-   "show": "Wall tiles: ONE SHOWER, five warm and the last cold, LAST 30 TO 90 S; EVERY DAY FOR A MONTH, thirty tiles turn blue; tag: 3,018 adults in the Netherlands, 30 days, cold at the end",
-   "src": [
-    "buijze2016"
-   ]
-  },
-  {
-   "show": "Tile bars: DAYS OFF SICK, the cold row 7.1 tiles against 10; DAYS FEELING ILL, both 10; tag: self-reported, sickness absence −29%",
-   "src": [
-    "buijze2016"
-   ]
-  },
-  {
-   "show": "OUT OF 100 WHO TRIED IT: 91 tiles, WANTED TO KEEP GOING; then 64, KEPT GOING",
-   "src": [
-    "buijze2016"
-   ]
-  },
-  {
-   "show": "Cards IMMUNE BOOST and BETTER MOOD stamped NO PROOF; eleven little tubs, 10 IN BATHS, 1 IN SHOWERS; tag: 11 trials, 3,177 people",
-   "src": [
-    "cain2025"
-   ]
-  },
-  {
-   "show": "Sections after training: REST grows more than ICE BATH; tag: 8 studies, quality fair to poor",
-   "src": [
-    "roberts2015",
-    "pinero2024"
-   ]
-  },
-  {
-   "show": "Scale 0.70 kg, 0.7 KG OF FAT; thermometer at 17 °C; the clock turns two hours; DAY 1 to DAY 42; tag: 12 young men, 17 °C, 2 h a day, body fat −0.7 kg in 6 weeks",
-   "src": [
-    "yoneshiro2013"
-   ]
-  },
-  {
-   "show": "Gauge BREATHING from ×1 to ×10; HEART trace speeding up",
-   "src": [
-    "rnli"
+    "Let's get you back to factory settings."
    ]
   }
  ],
@@ -168,12 +100,15 @@
    "https://rnli.org/safety/know-the-risks/cold-water-shock"
   ],
   "ccplunge2026": [
-   "Cleveland Clinic, \"Are 'Cold Plunge' Ice Baths Good for You?\", 8 May 2026: \"Before you take a cold plunge, Dr. King urges you to talk to your healthcare provider about whether it's safe for you. That's particularly true if you're dealing with any of the following:\" (the list starts with \"Heart disease\" and \"High blood pressure\")",
+   "Cleveland Clinic, \"Are 'Cold Plunge' Ice Baths Good for You?\", 8 May 2026 (re-opened 3 Oct 2026): \"Before you take a cold plunge, Dr. King urges you to talk to your healthcare provider about whether it's safe for you.\" The list that follows: heart disease, high blood pressure, diabetes, pregnancy, peripheral neuropathy, poor circulation, venous stasis, cold agglutinin disease",
    "https://health.clevelandclinic.org/what-to-know-about-cold-plunges"
   ],
   "bhf2023": [
    "British Heart Foundation, \"Cold water swimming: is it bad for your heart?\", 31 May 2023: \"However, if you have a heart condition, there are risks you should consider and discuss with your doctor or nurse specialist before starting swimming.\"",
    "https://www.bhf.org.uk/informationsupport/heart-matters-magazine/activity/cold-water-swimming"
   ]
- }
+ },
+ "speed": 1.0,
+ "voice_style": "savage",
+ "frame": "factory-settings"
 }

@@ -1,0 +1,94 @@
+{
+ "n": 15,
+ "slug": "hangry",
+ "question": "Why do I get hangry?",
+ "area": "stress-mood",
+ "page": "/stress-mood/why-do-i-get-hangry",
+ "posts": "2026-11-21",
+ "lines": [
+  {
+   "say": [
+    "You snap at your colleague and decide they're an idiot, when really it's three in the afternoon and your lunch was a coffee.",
+    "Let's get you fed."
+   ],
+   "gap": 0.9
+  },
+  {
+   "say": [
+    "Your body was built to handle hunger, but push it too far and hunger can come out as anger."
+   ],
+   "src": [
+    "swami2022",
+    "whostress"
+   ]
+  },
+  {
+   "say": [
+    "In one study, sixty-four adults rated their hunger and mood five times a day for three weeks, and the hungrier they were, the angrier and more irritable they felt.",
+    "So hangry is real."
+   ],
+   "src": [
+    "swami2022"
+   ]
+  },
+  {
+   "say": [
+    "In a lab test, hungry students blamed for a computer crash saw the researcher as harsher, unless they first stopped to think about their feelings."
+   ],
+   "src": [
+    "maccormack2018"
+   ]
+  },
+  {
+   "say": [
+    "So eat proper meals at regular times, keep a real snack for late lunches, and before you send that email, ask yourself: am I angry, or just hungry?",
+    "Hunger explains it. It doesn't excuse it."
+   ],
+   "src": [
+    "whostress",
+    "maccormack2018"
+   ]
+  },
+  {
+   "say": [
+    "If you take insulin or other diabetes medicines and feel shaky, sweaty or confused, that may be low blood sugar, so treat it straight away, as your diabetes team showed you.",
+    "And if you don't have diabetes but get shaky, sweaty or confused when hungry, or you're struggling to cope with stress, see a doctor."
+   ],
+   "src": [
+    "nhshypo",
+    "nhsstress"
+   ],
+   "gap": 0.9
+  },
+  {
+   "say": [
+    "Let's get you back to factory settings."
+   ]
+  }
+ ],
+ "sources": {
+  "nhshypo": [
+   "NHS, Low blood sugar (hypoglycaemia) (last reviewed 3 August 2023, opened 3 Oct 2026): \"Low blood sugar usually affects people with diabetes who take insulin or some other diabetes medicines. It's rare in people without diabetes.\"; symptoms include \"feeling hungry\", \"feeling anxious or irritable\", \"sweating\", \"shaking\" and confusion; treat it by eating or drinking \"something that will raise your blood sugar quickly\" and checking again after 10 to 15 minutes; See a GP if: \"you do not have diabetes and you get symptoms of low blood sugar such as shaking, sweating, a fast heartbeat and feeling confused\"",
+   "https://www.nhs.uk/conditions/low-blood-sugar-hypoglycaemia/"
+  ],
+  "nhsstress": [
+   "NHS, Stress (reviewed 6 Mar 2026): behavioural signs include \"being irritable and snappy\"; \"See a GP if: you're struggling to cope with stress; things you're trying yourself are not helping\"",
+   "https://www.nhs.uk/mental-health/feelings-symptoms-behaviours/feelings-and-symptoms/stress/"
+  ],
+  "maccormack2018": [
+   "MacCormack JK, Lindquist KA. Feeling hangry? When hunger is conceptualized as emotion. Emotion, online 11 June 2018 (findings read in the University of North Carolina release on Neuroscience News, re-opened 3 Oct 2026; the paper itself was not opened): over 200 university students, fasting or fed; a tedious computer task programmed to crash, then a researcher blamed the student; hungry participants who were not focused on their emotions saw the researcher as \"more judgmental or harsh\"; \"Participants who spent time thinking about their emotions, even when hungry, did not report these shifts in emotions or social perceptions.\"",
+   "https://neurosciencenews.com/hunger-angry-hangry-9308/"
+  ],
+  "whostress": [
+   "WHO, Stress (questions and answers, 30 March 2026, re-opened 3 Oct 2026): \"Try to eat a balanced diet and to eat at regular intervals.\"; \"If we have difficulties coping with stress, we should seek help from a trusted health-care provider or from another trusted person in our community.\"",
+   "https://www.who.int/news-room/questions-and-answers/item/stress"
+  ],
+  "swami2022": [
+   "Swami V, Hochstöger S, Kargl E, Stieger S. Hangry in the field: An experience sampling study on the impact of hunger on anger, irritability, and affect. PLOS ONE 2022;17(7):e0269629 (re-opened 3 Oct 2026): \"Sixty-four participants from Central Europe completed a 21-day experience sampling phase\", five time points a day, \"9,142 responses\"; \"Greater levels of self-reported hunger were associated with greater feelings of anger and irritability, and with lower pleasure.\"; effects \"remained significant after accounting for participant sex, age, body mass index, dietary behaviours, and trait anger\"; limits: single-item measures, situational context not measured",
+   "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0269629"
+  ]
+ },
+ "speed": 1.0,
+ "voice_style": "savage",
+ "frame": "factory-settings"
+}

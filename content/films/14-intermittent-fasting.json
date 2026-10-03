@@ -8,17 +8,19 @@
  "lines": [
   {
    "say": [
-    "Intermittent fasting.",
-    "Trust the clock to do the dieting."
+    "You skip breakfast, call it intermittent fasting, and then eat a family pizza at noon because the window is open.",
+    "Let's talk about the window."
    ],
-   "src": [
-    "lowe2020"
-   ],
-   "gap": 0.6
+   "gap": 0.9
   },
   {
    "say": [
-    "In one trial, people ate only from noon to eight, with no calorie target."
+    "Your body was built to go hours without food, but a long gap between meals isn't a magic fat-burning switch."
+   ]
+  },
+  {
+   "say": [
+    "In one trial, people ate only from noon to eight in the evening, with no calorie limit, and after twelve weeks, they lost about the same weight as people eating three meals a day."
    ],
    "src": [
     "lowe2020"
@@ -26,18 +28,7 @@
   },
   {
    "say": [
-    "After twelve weeks: no more effective than three meals a day.",
-    "Calories eaten: no different."
-   ],
-   "src": [
-    "lowe2020"
-   ]
-  },
-  {
-   "say": [
-    "In a year-long trial, both groups had the same calorie limit.",
-    "One also ate only from eight to four.",
-    "No significant difference in weight."
+    "In a year-long trial, both groups had the same calorie limits, and adding an eight-hour eating window made no clear difference to their weight."
    ],
    "src": [
     "liu2022"
@@ -45,27 +36,8 @@
   },
   {
    "say": [
-    "The scare: eating in under eight hours a day, linked to a ninety-one percent higher risk of cardiovascular death."
-   ],
-   "src": [
-    "aha2024"
-   ]
-  },
-  {
-   "say": [
-    "A conference abstract, not peer reviewed.",
-    "Eating times: two days, from memory.",
-    "A link, not proof."
-   ],
-   "src": [
-    "aha2024",
-    "smc2024"
-   ]
-  },
-  {
-   "say": [
-    "Across ninety-nine trials, every style of fasting beat eating freely.",
-    "Against ordinary dieting, mostly a tie."
+    "Across ninety-nine trials, fasting beat eating freely, but against ordinary dieting, it was mostly a tie.",
+    "The clock isn't magic. It's just one way to eat less."
    ],
    "src": [
     "bmj2025",
@@ -75,68 +47,25 @@
   },
   {
    "say": [
-    "It works like a diet.",
-    "Because it is one."
+    "So if an eating window helps you snack less, use it, and if it makes you raid the fridge at midnight, eat three proper meals instead."
    ],
    "src": [
-    "bmj2025",
     "cochrane2026",
-    "nhslondon"
-   ]
-  },
-  {
-   "say": [
-    "Pregnant, breastfeeding, or a history of eating disorders? Don't fast.",
-    "Diabetes? Don't skip meals. On medication? Tell your doctor first."
-   ],
-   "src": [
-    "nhslondon"
-   ],
-   "gap": 1.0
-  },
-  {
-   "say": [
-    "Back to factory settings."
-   ]
-  }
- ],
- "screen": [
-  {
-   "show": "The plate clock's eating window: noon to 8 pm, then 8 am to 4 pm",
-   "src": [
-    "lowe2020",
-    "liu2022"
-   ]
-  },
-  {
-   "show": "Tag: 12 weeks, 116 adults; difference 0.26 kg, not significant",
-   "src": [
-    "lowe2020"
-   ]
-  },
-  {
-   "show": "Tag: 12 months, 139 adults; difference 1.8 kg, not significant",
-   "src": [
-    "liu2022"
-   ]
-  },
-  {
-   "show": "Newspaper: eating in under 8 hours a day linked to 91% higher risk of cardiovascular death",
-   "src": [
-    "aha2024"
-   ]
-  },
-  {
-   "show": "Stamps: conference abstract; not peer reviewed; a link, not proof. Note: eating times, 2 days, from memory",
-   "src": [
-    "aha2024",
-    "smc2024"
-   ]
-  },
-  {
-   "show": "Tag: 99 trials, 6,582 adults",
-   "src": [
     "bmj2025"
+   ]
+  },
+  {
+   "say": [
+    "Don't fast if you're pregnant or breastfeeding, have diabetes, or have ever had an eating disorder, and if you take medication, tell your doctor before you change how you eat."
+   ],
+   "src": [
+    "nhslondon"
+   ],
+   "gap": 0.9
+  },
+  {
+   "say": [
+    "Let's get you back to factory settings."
    ]
   }
  ],
@@ -148,14 +77,6 @@
   "liu2022": [
    "Liu D et al. Calorie Restriction with or without Time-Restricted Eating in Weight Loss. N Engl J Med 2022;386(16):1495 to 1504: 139 patients with obesity; \"For 12 months, all the participants were instructed to follow a calorie-restricted diet that consisted of 1500 to 1800 kcal per day for men and 1200 to 1500 kcal per day for women.\"; \"time-restricted eating (eating only between 8:00 a.m. and 4:00 p.m.)\"; \"Changes in weight were not significantly different in the two groups at the 12-month assessment (net difference, -1.8 kg; 95% CI, -4.0 to 0.4; P = 0.11).\"; \"Among patients with obesity, a regimen of time-restricted eating was not more beneficial with regard to reduction in body weight, body fat, or metabolic risk factors than daily calorie restriction.\"",
    "https://www.ebi.ac.uk/europepmc/webservices/rest/search?query=DOI:%2210.1056/NEJMoa2114833%22&format=json&resultType=core"
-  ],
-  "aha2024": [
-   "American Heart Association newsroom, 18 March 2024, on a conference abstract: \"People who followed a pattern of eating all of their food across less than 8 hours per day had a 91% higher risk of death due to cardiovascular disease.\"; \"The study included approximately 20,000 adults in the U.S. with an average age of 49 years.\"; participants \"had completed two 24-hour dietary recall questionnaires\"; \"Abstracts presented at the Association's scientific meetings are not peer-reviewed\"; limitations: \"its reliance on self-reported dietary information, which may be affected by participant's memory or recall\"",
-   "https://newsroom.heart.org/news/8-hour-time-restricted-eating-linked-to-a-91-higher-risk-of-cardiovascular-death"
-  ],
-  "smc2024": [
-   "Science Media Centre, expert reaction to conference abstract about time-restricted eating and cardiovascular death, 18 March 2024: \"The full research has not yet been published, and these results are too brief to draw any robust conclusion.\" (Baptiste Leurent, UCL); \"The researchers classified people into different dietary patterns on the basis of what and when they reported they ate in just two days\"; \"This is an observational study, so it's in any case impossible to be sure what causes what.\" (Kevin McConway, Open University)",
-   "https://www.sciencemediacentre.org/expert-reaction-to-conference-abstract-about-time-restricted-eating-and-cardiovascular-death/"
   ],
   "bmj2025": [
    "Semnani-Azad Z et al. Intermittent fasting strategies and their effects on body weight and other cardiometabolic risk factors: systematic review and network meta-analysis of randomised clinical trials. BMJ 2025;389:e082007 (abstract rebuilt from the OpenAlex word index): \"99 randomised clinical trials involving 6582 adults of varying health conditions (720 healthy, 5862 existing health conditions) were identified.\"; \"All intermittent fasting diet strategies reduced body weight when compared with ad-libitum diet.\"; against continuous energy restriction, only alternate day fasting showed a benefit (mean -1.29 kg, 95% CI -1.99 to -0.59, moderate certainty)",
@@ -169,5 +90,8 @@
    "NHS London (MyHealth London), Intermittent fasting (filed under which-diet-is-right-for-me in the page URL; no review date shown): \"People with a history of eating disorders like anorexia and bulimia, and pregnant or breastfeeding women should not attempt intermittent fasting.\"; \"Never attempt to delay or skip meals if you're pregnant, have had or are prone to eating disorders, or have diabetes.\"; \"If you are on medication, you should always inform your healthcare team at your GP practice if you are changing your diet plan.\"",
    "https://www.myhealthlondon.nhs.uk/be-healthier/lose-weight/which-diet-is-right-for-me/intermittent-fasting/"
   ]
- }
+ },
+ "speed": 1.0,
+ "voice_style": "savage",
+ "frame": "factory-settings"
 }

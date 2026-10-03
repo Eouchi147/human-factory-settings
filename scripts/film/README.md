@@ -60,9 +60,26 @@ python3 assemble_film.py 2 frames2 snd02
   projected inside the part's own shader: no extra geometry, and it moves with the part. Keep it discreet (ink at about
   60%, letters well under a centimetre on a bone) but readable on pause in at least one close or side view. Film 3:
   along the outer face of the right thigh bone.
-- **One dry visual gag.** True, quiet, and never near a warning line. Film 3: the 万歩計 neon sign's own ® buzzes on
-  last, on "slogan" (万歩計 is a registered trademark of Yamasa Tokei Keiki, Japanese registration No. 1728037,
-  per Yamasa's press release of 9 October 2025).
+- **One visual gag.** True, and never near a warning line. Film 3 (3 October version): a "10,000" card dangles from a
+  rod on the skeleton's own headband, like a carrot before a donkey; on "slogan" it spins round to SLOGAN, and on
+  "doesn't need ten thousand steps" the whole contraption falls off. (The first film 3 used the 万歩計 neon sign; 万歩計 is
+  a registered trademark of Yamasa Tokei Keiki, so the new dial says TEN-THOUSAND-STEPS METER in English instead.)
+
+## 3 October: the new direction (films 1 to 3 rebuilt)
+Natural, basic care that returns the body to its factory settings; a narrator who calls the viewer out, savage and
+funny, in full sentences. Films 1 to 3 were rebuilt as `films/film01.src.js`, `film02.src.js` and `film03.src.js`
+(with the `//@HANDS@` line; build the `.js` as below), with new sound scripts.
+- `probe_views.py FILM OUT '[[t, view|null], ...]'`: quick 360 x 640 frames and a contact sheet. `EXPR='<js>'` prints a
+  page expression after each frame (camera, bone positions). A film's `pose` returns `S.cfg.view` when one is set.
+- `solveHand(..., aims, extra)`: `extra(A)` adds a posture cost; film 3 uses it so the phone call keeps the elbow down
+  and in front instead of out to the side.
+- Camera holds: a key's `tens` (0.25 to 0.4) on the first key of a hold stops the path overshooting. For a walker,
+  store the keys relative to him (film 3's `CAM`: each key minus his position at that time, added back per frame),
+  so a hold holds on him and the tension does not leave him walking into the lens.
+- Close-ups that lock onto a moving part (film 3's dial) read the part's offset once per frame, at the posed time, so
+  the shutter's two ends agree and the motion blur does not smear it.
+- Films 13 to 18 were rewritten on 3 October (15 is now "Why do I get hangry?"; dopamine detox moved to
+  `content/films/later/`). Their pictures will be rebuilt for the new scripts; the table below describes the old ones.
 
 
 ## Films 4 to 8, and what each added

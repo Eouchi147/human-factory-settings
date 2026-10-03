@@ -33,11 +33,12 @@ function rigHand(R, Side, Wr) {
   const hand = new THREE.Vector3().crossVectors(fdir, across).dot(n) > 0 ? 1 : -1;   // n = hand * (fdir x across)
   return { curl, handle, across: across.clone(), n: n.clone(), fdir: fdir.clone(), eg, hand };
 }
-function solveHand(R, Side, H, at, init, aims = []) {   // an arm and wrist pose that puts the hand's grip at a world point, with hand directions (local v) turned toward world ones
+function solveHand(R, Side, H, at, init, aims = [], extra = null) {   // an arm and wrist pose that puts the hand's grip at a world point, with hand directions (local v) turned toward world ones; extra(A) adds a posture cost
   R.root.updateMatrixWorld(true);
   const A = R.arms[Side], Wr = H.wr, h = new THREE.Vector3(), q = new THREE.Quaternion(), pn = new THREE.Vector3();
   const err = (p) => { poseArm(A, p); setWrist(Wr, p); A.girdle.updateMatrixWorld(true); h.copy(H.handle).applyMatrix4(Wr.g.matrixWorld); let E = h.distanceTo(at);
     if (aims.length) { Wr.g.getWorldQuaternion(q); for (const a of aims) E += a.w * (1 - pn.copy(a.v).applyQuaternion(q).dot(a.to)); }
+    if (extra) E += extra(A);
     E += 0.01 * ((p.wf || 0) ** 2 + 2 * (p.wd || 0) ** 2 + 0.5 * (p.wr || 0) ** 2); return E; };
   const descend = (start) => {
     let best = { dir: [...start.dir], twist: start.twist, elbow: start.elbow, wf: start.wf || 0, wd: start.wd || 0, wr: start.wr || 0, retract: 0, elevate: 0 }, bestE = err(best);
