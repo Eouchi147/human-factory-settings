@@ -127,7 +127,8 @@ export function Body() {
           <span className={s.num}>3</span>
           <h3 className={s.suspectH}>Feet get stronger with use, slowly.</h3>
           <p className={s.suspectP}>
-            In 57 runners, 8 weeks of walking in minimalist shoes made their feet <b>41% stronger</b>; foot exercises did a little better. In another trial, runners
+            In 57 runners, 8 weeks of walking in minimalist shoes made their feet <b>41% stronger</b>, and foot exercises worked just as well (the gap between the
+            two was too small to count). In another trial, runners
             who skipped 8 weeks of foot training were 2.42 times as likely to get hurt over the next year.
           </p>
         </div>
@@ -166,7 +167,7 @@ export function Body() {
         title="Your feet plan"
         steps={[
           { t: "Build up over 8 weeks.", d: "The trial that worked: 2,500 steps a day in minimal shoes for 2 weeks, then 5,000, then 7,000." },
-          { t: "Train the small muscles.", d: "Foot exercises 5 days a week did even better than walking alone." },
+          { t: "Train the small muscles.", d: "Foot exercises 5 days a week worked just as well as the shoes, and they cost nothing." },
           { t: "Stretch your calf and the sole of your foot.", d: "For heel pain, stretching is one of the best-supported treatments in the 2023 guideline." },
           { t: "Leave painless flat feet alone.", d: "If they don't hurt or hold you back, there's nothing to fix." },
         ]}
@@ -176,7 +177,8 @@ export function Body() {
       <div className={s.doctor}>
         <h3>When it&apos;s time to see a doctor</h3>
         <p>
-          See a doctor if your feet are painful, stiff, weak or numb, if only one foot has gone flat, or if you didn&apos;t have flat feet before. An arch that sinks
+          See a doctor if your feet are painful, stiff, weak or numb, if you often injure your feet or ankles or have trouble walking or keeping your balance, if
+          only one foot has gone flat, or if you didn&apos;t have flat feet before. An arch that sinks
           on one side, with pain and swelling inside the ankle or trouble rising onto your toes, should be checked early.
         </p>
         <p>
@@ -203,7 +205,8 @@ export function Body() {
         </p>
         <p>
           In a randomised trial, 8 weeks of walking in minimalist shoes, built up from 2,500 to 7,000 steps a day, raised foot strength by 41% and muscle size by 7%;
-          foot exercises raised them by 58% and 11%, and the control group by about 5% and 0%. In 118 runners, those who did not do an 8-week foot and ankle
+          foot exercises raised them by 58% and 11%, and the control group by about 5% and 0%. The strength gains of the two trained groups were not significantly
+          different from each other. In 118 runners, those who did not do an 8-week foot and ankle
           programme were 2.42 times as likely to have a running injury within 12 months. In 36 runners, 10 of 19 who moved to toe shoes over 10 weeks showed bone
           marrow swelling on MRI.
         </p>

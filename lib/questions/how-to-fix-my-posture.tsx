@@ -175,8 +175,13 @@ export function Body() {
       <div className={s.doctor}>
         <h3>When it&apos;s time to see a doctor</h3>
         <p>
-          Get emergency help if back pain comes with tingling, weakness or numbness in both legs, loss of feeling around your genitals or bottom, changes in your
-          bladder or bowels, or chest pain, or if it started after a serious accident.
+          Get emergency help if back pain comes with pain, tingling, weakness or numbness in both legs, loss of feeling around your genitals or bottom, changes in
+          your bladder or bowels, changes in how your genitals feel during sex (or trouble getting an erection or reaching orgasm), or chest pain, or if it started
+          after a serious accident.
+        </p>
+        <p>
+          Ask for an urgent appointment if back pain comes with feeling hot, cold, shivery or generally unwell, or if the pain is severe, started suddenly or is
+          getting worse quickly.
         </p>
         <p>
           See a doctor if back or neck pain doesn&apos;t improve after a few weeks of looking after it at home, wakes you at night, or comes with weight loss you

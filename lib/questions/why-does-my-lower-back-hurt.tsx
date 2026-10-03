@@ -134,8 +134,16 @@ export function Body() {
         <h3>When it&apos;s time to see a doctor</h3>
         <p>
           The NHS says to see a GP if it doesn&apos;t improve after a few weeks of treating it at home, if it doesn&apos;t improve with rest or is worse
-          at night, or if you&apos;ve lost weight without trying. Call 999 or go to A&amp;E if you have pain, tingling, weakness or numbness in both
-          legs, a loss of feeling around your genitals or anus, or changes in your bladder or bowels.
+          at night, if you&apos;ve lost weight without trying, or if there&apos;s a lump or swelling in your back or it has changed shape.
+        </p>
+        <p>
+          Ask for an urgent appointment if you also feel hot, cold, shivery or generally unwell, or if the pain is severe, started suddenly or is getting
+          worse quickly.
+        </p>
+        <p>
+          Get emergency help if you have pain, tingling, weakness or numbness in both legs, a loss of feeling around your genitals or anus, changes in your
+          bladder or bowels, changes in how your genitals feel during sex (or trouble getting an erection or reaching orgasm), or chest pain, or if the pain
+          started after a serious accident.
         </p>
       </div>
 

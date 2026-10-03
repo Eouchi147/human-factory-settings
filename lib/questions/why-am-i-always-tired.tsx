@@ -93,12 +93,12 @@ export function Body() {
       <div className={s.doctor}>
         <h3>When it&apos;s time to see a doctor</h3>
         <p>
-          See a doctor if you&apos;re still tired after fixing your sleep, coffee and evening light. Tiredness can come from things like low iron (anaemia), thyroid
-          problems, sleep apnoea or depression, which are all treatable.
+          See a doctor if you&apos;re still tired after fixing your sleep, coffee and evening light, or if the tiredness comes with a fever, regular sweats or weight
+          loss you can&apos;t explain. Tiredness can come from things like low iron (anaemia), thyroid problems, sleep apnoea or depression, which are all treatable.
         </p>
         <p>
-          Loud snoring, or someone seeing you stop breathing in your sleep, can be a sign of sleep apnoea. Get help straight away if you feel confused or dizzy, or
-          have thoughts of harming yourself.
+          Loud snoring, or someone seeing you stop breathing in your sleep, can be a sign of sleep apnoea. Get help straight away if you feel confused or dizzy, your
+          vision is blurred, you pass little or no urine, you have new swelling and weight gain, or you have thoughts of harming yourself.
         </p>
       </div>
 
