@@ -1,0 +1,808 @@
+{
+ "n": 1,
+ "slug": "episode-sleep",
+ "title": "Sleep: the setting that runs the others",
+ "format": "documentary, 16:9, about 12 minutes",
+ "note": "Four parts per chapter, as in the Direction: the moment, inside you, the reset, back to default. Gaps after chapter ends are the planned quiet between chapters.",
+ "lines": [
+  {
+   "chapter": "Opening",
+   "part": "moment",
+   "say": [
+    "It's 3:07 a.m. and you're awake again."
+   ],
+   "gap": 2.4
+  },
+  {
+   "chapter": "Opening",
+   "part": "moment",
+   "say": [
+    "You checked the time twice.",
+    "Both times, it was later than you hoped."
+   ],
+   "gap": 1.4
+  },
+  {
+   "chapter": "Opening",
+   "part": "moment",
+   "say": [
+    "In four hours, an alarm goes off.",
+    "You'll get up, and you'll blame the night."
+   ],
+   "gap": 1.2
+  },
+  {
+   "chapter": "Opening",
+   "part": "moment",
+   "say": [
+    "Sleep is the setting that runs the others.",
+    "Tonight, three questions about it."
+   ]
+  },
+  {
+   "chapter": "Opening",
+   "part": "moment",
+   "say": [
+    "Why am I always tired?",
+    "How do I fall asleep faster?",
+    "And why is it always three a.m.?"
+   ],
+   "gap": 3.0
+  },
+  {
+   "chapter": "1. Why am I always tired?",
+   "part": "moment",
+   "say": [
+    "Seven a.m. The alarm.",
+    "You slept. You're still tired."
+   ]
+  },
+  {
+   "chapter": "1. Why am I always tired?",
+   "part": "moment",
+   "say": [
+    "Before you blame your age, your job or your genes, check the three things you control."
+   ],
+   "gap": 1.2
+  },
+  {
+   "chapter": "1. Why am I always tired?",
+   "part": "inside",
+   "say": [
+    "One: short sleep.",
+    "Adults need seven hours or more a night.",
+    "About one in three get less."
+   ],
+   "src": [
+    "ahr"
+   ]
+  },
+  {
+   "chapter": "1. Why am I always tired?",
+   "part": "inside",
+   "say": [
+    "All day, a chemical called adenosine builds up in your brain.",
+    "It comes from the energy your brain burns, and it's one of the signals that make you sleepy."
+   ],
+   "src": [
+    "reichert2022"
+   ]
+  },
+  {
+   "chapter": "1. Why am I always tired?",
+   "part": "inside",
+   "say": [
+    "Sleep clears it.",
+    "Cut sleep short, and you start the day with yesterday's leftovers."
+   ],
+   "src": [
+    "reichert2022"
+   ],
+   "gap": 1.1
+  },
+  {
+   "chapter": "1. Why am I always tired?",
+   "part": "inside",
+   "say": [
+    "Two: late coffee.",
+    "Caffeine doesn't clear adenosine.",
+    "It sits in the spots adenosine needs and switches nothing on.",
+    "The sleepiness is still there. You just can't feel it."
+   ],
+   "src": [
+    "reichert2022"
+   ]
+  },
+  {
+   "chapter": "1. Why am I always tired?",
+   "part": "inside",
+   "say": [
+    "Your body clears half the caffeine in about five hours, on average.",
+    "In some people it's an hour and a half. In others, nine and a half."
+   ],
+   "src": [
+    "iom2001"
+   ]
+  },
+  {
+   "chapter": "1. Why am I always tired?",
+   "part": "inside",
+   "say": [
+    "A coffee at six p.m.? About half of it is still in you at eleven.",
+    "You're not a light sleeper. You're caffeinated."
+   ],
+   "src": [
+    "iom2001"
+   ],
+   "gap": 1.0
+  },
+  {
+   "chapter": "1. Why am I always tired?",
+   "part": "inside",
+   "say": [
+    "A review of twenty-four studies found caffeine cost about forty-five minutes of sleep.",
+    "For a regular cup, it put the cut-off at almost nine hours before bed."
+   ],
+   "src": [
+    "gardiner2023"
+   ]
+  },
+  {
+   "chapter": "1. Why am I always tired?",
+   "part": "inside",
+   "say": [
+    "In one small study, four cups' worth, six hours before bed, cut sleep by more than an hour."
+   ],
+   "src": [
+    "drake2013"
+   ],
+   "gap": 1.1
+  },
+  {
+   "chapter": "1. Why am I always tired?",
+   "part": "inside",
+   "say": [
+    "Three: late light.",
+    "Your brain has a clock, and it runs mostly on light and dark.",
+    "In the evening it releases melatonin, the signal that it's night."
+   ],
+   "src": [
+    "gooley2011"
+   ]
+  },
+  {
+   "chapter": "1. Why am I always tired?",
+   "part": "inside",
+   "say": [
+    "Ordinary room light, in the eight hours before bed, delayed melatonin in ninety-nine percent of people, and shortened it by about ninety minutes."
+   ],
+   "src": [
+    "gooley2011"
+   ]
+  },
+  {
+   "chapter": "1. Why am I always tired?",
+   "part": "inside",
+   "say": [
+    "Reading on a glowing tablet instead of a paper book pushed the body clock later, and added about ten minutes to falling asleep."
+   ],
+   "src": [
+    "chang2015"
+   ]
+  },
+  {
+   "chapter": "1. Why am I always tired?",
+   "part": "inside",
+   "say": [
+    "So your sleep signal comes later.",
+    "Your alarm doesn't."
+   ],
+   "src": [
+    "gooley2011"
+   ],
+   "gap": 1.3
+  },
+  {
+   "chapter": "1. Why am I always tired?",
+   "part": "reset",
+   "say": [
+    "For a seven a.m. alarm: in bed by eleven.",
+    "Last coffee by two.",
+    "Lights low from eight."
+   ],
+   "src": [
+    "gardiner2023",
+    "brown2022"
+   ]
+  },
+  {
+   "chapter": "1. Why am I always tired?",
+   "part": "reset",
+   "say": [
+    "Eight hours in bed, for seven of sleep.",
+    "Even good sleepers take a while to drop off, and wake a little in the night."
+   ],
+   "src": [
+    "nsf"
+   ],
+   "gap": 1.2
+  },
+  {
+   "chapter": "1. Why am I always tired?",
+   "part": "default",
+   "say": [
+    "Still tired after all that? See a doctor.",
+    "Low iron, your thyroid or sleep apnoea can cause it, and coffee fixes none of them."
+   ],
+   "src": [
+    "medlineplus"
+   ],
+   "gap": 3.0
+  },
+  {
+   "chapter": "2. How do I fall asleep faster?",
+   "part": "moment",
+   "say": [
+    "Eleven p.m. Lights off. Eyes open.",
+    "You work out how much sleep you'll get if you fall asleep now.",
+    "And now."
+   ],
+   "gap": 1.2
+  },
+  {
+   "chapter": "2. How do I fall asleep faster?",
+   "part": "moment",
+   "say": [
+    "How long should it take? About ten to twenty minutes.",
+    "Thirty or less still counts as good sleep.",
+    "Out within a minute isn't a talent. It can mean you're short on sleep."
+   ],
+   "src": [
+    "ccdrerup",
+    "nsf"
+   ],
+   "gap": 1.1
+  },
+  {
+   "chapter": "2. How do I fall asleep faster?",
+   "part": "inside",
+   "say": [
+    "Caffeine again: in studies, it added about nine minutes to falling asleep."
+   ],
+   "src": [
+    "gardiner2023"
+   ]
+  },
+  {
+   "chapter": "2. How do I fall asleep faster?",
+   "part": "inside",
+   "say": [
+    "Heat helps, which sounds backwards.",
+    "A warm bath or shower, one to two hours before bed, even for ten minutes, shortened the time to fall asleep in a review of seventeen studies."
+   ],
+   "src": [
+    "haghayegh2019"
+   ]
+  },
+  {
+   "chapter": "2. How do I fall asleep faster?",
+   "part": "inside",
+   "say": [
+    "The warmth draws blood to your hands and feet.",
+    "You shed heat, your core cools, and that drop is what helps."
+   ],
+   "src": [
+    "haghayegh2019"
+   ],
+   "gap": 1.0
+  },
+  {
+   "chapter": "2. How do I fall asleep faster?",
+   "part": "inside",
+   "say": [
+    "Evening exercise didn't harm sleep across twenty-three studies.",
+    "The possible exception: a hard session that ends within an hour of bed."
+   ],
+   "src": [
+    "stutz2019"
+   ]
+  },
+  {
+   "chapter": "2. How do I fall asleep faster?",
+   "part": "inside",
+   "say": [
+    "Trying hard can backfire.",
+    "Students told to fall asleep fast, with marches playing, took thirty-four minutes. Those who didn't try: twenty-two.",
+    "With calm music, trying worked."
+   ],
+   "src": [
+    "ansfield1996"
+   ]
+  },
+  {
+   "chapter": "2. How do I fall asleep faster?",
+   "part": "inside",
+   "say": [
+    "In one small study, five minutes writing a to-do list for the next few days got people to sleep faster than writing about what they'd already done."
+   ],
+   "src": [
+    "scullin2018"
+   ],
+   "gap": 0.9
+  },
+  {
+   "chapter": "2. How do I fall asleep faster?",
+   "part": "inside",
+   "say": [
+    "In another, people with insomnia who pictured an engaging scene fell asleep faster than people given no instructions."
+   ],
+   "src": [
+    "harvey2002"
+   ],
+   "gap": 1.0
+  },
+  {
+   "chapter": "2. How do I fall asleep faster?",
+   "part": "inside",
+   "say": [
+    "The viral tricks? The military method, the four-seven-eight breath: we found no trial that timed them.",
+    "The internet timed them for you."
+   ],
+   "src": [
+    "vierra2022",
+    "aasm2021"
+   ]
+  },
+  {
+   "chapter": "2. How do I fall asleep faster?",
+   "part": "inside",
+   "say": [
+    "Melatonin pills: about seven minutes faster, across nineteen studies.",
+    "American sleep doctors suggest not using them for insomnia."
+   ],
+   "src": [
+    "ferracioli2013",
+    "aasm2017"
+   ],
+   "gap": 1.2
+  },
+  {
+   "chapter": "2. How do I fall asleep faster?",
+   "part": "reset",
+   "say": [
+    "Not asleep after twenty minutes? Get up.",
+    "Do something quiet, away from screens.",
+    "Go back when you're sleepy."
+   ],
+   "src": [
+    "aasmhabits"
+   ]
+  },
+  {
+   "chapter": "2. How do I fall asleep faster?",
+   "part": "reset",
+   "say": [
+    "It feels like giving up.",
+    "It's part of CBT for insomnia, the first-line treatment.",
+    "Across twenty trials, people with insomnia fell asleep about nineteen minutes faster."
+   ],
+   "src": [
+    "aasm2021",
+    "trauer2015"
+   ]
+  },
+  {
+   "chapter": "2. How do I fall asleep faster?",
+   "part": "reset",
+   "say": [
+    "The usual list of sleep tips, on its own, isn't recommended as a treatment.",
+    "Inside CBT, it's one of the parts."
+   ],
+   "src": [
+    "aasm2021"
+   ],
+   "gap": 1.2
+  },
+  {
+   "chapter": "2. How do I fall asleep faster?",
+   "part": "default",
+   "say": [
+    "Over thirty minutes, at least three nights a week, for three months?",
+    "That may be insomnia. See a doctor."
+   ],
+   "src": [
+    "aasminsomnia",
+    "nhsinsomnia"
+   ],
+   "gap": 3.0
+  },
+  {
+   "chapter": "3. Why do I wake up at 3 a.m.?",
+   "part": "moment",
+   "say": [
+    "Three-oh-seven. Again.",
+    "Your body is asleep. Your mind has called a meeting."
+   ],
+   "gap": 1.2
+  },
+  {
+   "chapter": "3. Why do I wake up at 3 a.m.?",
+   "part": "moment",
+   "say": [
+    "One waking in the night, back to sleep within twenty minutes, still counts as good sleep."
+   ],
+   "src": [
+    "nsf"
+   ]
+  },
+  {
+   "chapter": "3. Why do I wake up at 3 a.m.?",
+   "part": "moment",
+   "say": [
+    "Older adults wake three or four times a night on average, and notice it more."
+   ],
+   "src": [
+    "medlineplus-aging"
+   ],
+   "gap": 1.1
+  },
+  {
+   "chapter": "3. Why do I wake up at 3 a.m.?",
+   "part": "inside",
+   "say": [
+    "Sleep isn't one long dive.",
+    "It runs in cycles of about ninety minutes, four to six times a night."
+   ],
+   "src": [
+    "ninds",
+    "statpearls-sleep"
+   ]
+  },
+  {
+   "chapter": "3. Why do I wake up at 3 a.m.?",
+   "part": "inside",
+   "say": [
+    "Deep sleep comes early, in the first half of the night.",
+    "REM sleep gets longer toward morning."
+   ],
+   "src": [
+    "ninds",
+    "statpearls-sleep"
+   ]
+  },
+  {
+   "chapter": "3. Why do I wake up at 3 a.m.?",
+   "part": "inside",
+   "say": [
+    "So by three, most of your deep sleep is behind you.",
+    "And the sleep pressure that knocked you out at eleven has been draining for hours."
+   ],
+   "src": [
+    "ninds",
+    "dijk1995"
+   ]
+  },
+  {
+   "chapter": "3. Why do I wake up at 3 a.m.?",
+   "part": "inside",
+   "say": [
+    "Your body is already getting ready for the day.",
+    "Cortisol starts rising in the final hours of sleep.",
+    "It sets its alarm long before you do."
+   ],
+   "src": [
+    "statpearls-cortisol"
+   ],
+   "gap": 1.1
+  },
+  {
+   "chapter": "3. Why do I wake up at 3 a.m.?",
+   "part": "inside",
+   "say": [
+    "Alcohol gets you to sleep faster and holds the first half of the night together.",
+    "Then it breaks up the second half, at every dose studied.",
+    "It doesn't knock you out. It knocks you out until three."
+   ],
+   "src": [
+    "ebrahim2013"
+   ]
+  },
+  {
+   "chapter": "3. Why do I wake up at 3 a.m.?",
+   "part": "inside",
+   "say": [
+    "At night your body makes less urine, so most people can sleep six to eight hours without a trip.",
+    "That's why sleep doctors say: drink less before bed."
+   ],
+   "src": [
+    "medlineplus-nocturia",
+    "aasmhabits"
+   ]
+  },
+  {
+   "chapter": "3. Why do I wake up at 3 a.m.?",
+   "part": "inside",
+   "say": [
+    "Stress, noise and a room that's too hot or too cold are on the NHS list of usual causes."
+   ],
+   "src": [
+    "nhsinsomnia"
+   ],
+   "gap": 1.2
+  },
+  {
+   "chapter": "3. Why do I wake up at 3 a.m.?",
+   "part": "reset",
+   "say": [
+    "Don't check the clock.",
+    "In two experiments, people told to watch a clock while trying to sleep worried more and took longer to fall asleep.",
+    "Turn it to the wall. It'll still be three-oh-seven."
+   ],
+   "src": [
+    "tang2007"
+   ]
+  },
+  {
+   "chapter": "3. Why do I wake up at 3 a.m.?",
+   "part": "reset",
+   "say": [
+    "Can't get back to sleep? Same rule as bedtime.",
+    "Get up, keep the light low, do something quiet, go back when you're sleepy."
+   ],
+   "src": [
+    "aasm2021"
+   ]
+  },
+  {
+   "chapter": "3. Why do I wake up at 3 a.m.?",
+   "part": "reset",
+   "say": [
+    "And keep alcohol, tea and coffee out of the last six hours before bed.",
+    "That's the NHS rule, not ours."
+   ],
+   "src": [
+    "nhsinsomnia"
+   ],
+   "gap": 1.2
+  },
+  {
+   "chapter": "3. Why do I wake up at 3 a.m.?",
+   "part": "default",
+   "say": [
+    "Waking like this three nights a week, for three months? That's chronic insomnia.",
+    "About one in ten people have it, and CBT is the first treatment."
+   ],
+   "src": [
+    "aasminsomnia",
+    "aasm2021"
+   ]
+  },
+  {
+   "chapter": "3. Why do I wake up at 3 a.m.?",
+   "part": "default",
+   "say": [
+    "Loud snoring, gasping, or breathing that stops and starts can be sleep apnoea. See a GP."
+   ],
+   "src": [
+    "nhsapnoea"
+   ]
+  },
+  {
+   "chapter": "3. Why do I wake up at 3 a.m.?",
+   "part": "default",
+   "say": [
+    "And if you wake very early and feel low most of the day, every day, for more than two weeks, see a GP."
+   ],
+   "src": [
+    "nhsdepression"
+   ],
+   "gap": 3.0
+  },
+  {
+   "chapter": "Your settings",
+   "part": "reset",
+   "say": [
+    "Your three settings. Set them from your alarm."
+   ]
+  },
+  {
+   "chapter": "Your settings",
+   "part": "reset",
+   "say": [
+    "Bedtime: eight hours before it."
+   ],
+   "src": [
+    "nsf"
+   ]
+  },
+  {
+   "chapter": "Your settings",
+   "part": "reset",
+   "say": [
+    "Last coffee: nine hours before bed."
+   ],
+   "src": [
+    "gardiner2023"
+   ]
+  },
+  {
+   "chapter": "Your settings",
+   "part": "reset",
+   "say": [
+    "Lights: low for three hours before bed."
+   ],
+   "src": [
+    "brown2022"
+   ],
+   "gap": 1.1
+  },
+  {
+   "chapter": "Your settings",
+   "part": "reset",
+   "say": [
+    "For a seven a.m. alarm: in bed by eleven, last coffee by two, lights low from eight."
+   ],
+   "gap": 1.1
+  },
+  {
+   "chapter": "Your settings",
+   "part": "reset",
+   "say": [
+    "And at three a.m.: no clock, no phone, no negotiating.",
+    "Get up, stay dim, go back when you're sleepy."
+   ],
+   "src": [
+    "tang2007",
+    "aasm2021"
+   ],
+   "gap": 2.0
+  },
+  {
+   "chapter": "End",
+   "part": "default",
+   "say": [
+    "Back to factory settings."
+   ],
+   "gap": 1.5
+  }
+ ],
+ "sources": {
+  "ahr": [
+   "America's Health Rankings (CDC BRFSS data): adults who sleep under 7 hours a night (about 1 in 3)",
+   "https://americashealthrankings.org/explore/measures/sleep"
+  ],
+  "reichert2022": [
+   "Reichert CF, Deboer T, Landolt HP. Adenosine, caffeine, and sleep-wake regulation: state of the science and perspectives. J Sleep Res 2022",
+   "https://doi.org/10.1111/jsr.13597"
+  ],
+  "iom2001": [
+   "Institute of Medicine 2001. Caffeine for the Sustainment of Mental Task Performance: half-life averages about 5 hours, range 1.5 to 9.5 hours",
+   "https://www.ncbi.nlm.nih.gov/books/NBK223808/"
+  ],
+  "gardiner2023": [
+   "Gardiner C et al. The effect of caffeine on subsequent sleep: a systematic review and meta-analysis. Sleep Med Rev 2023;69:101764: 24 studies; sleep onset latency +9.1 min; total sleep time -45.3 min; coffee (107 mg) at least 8.8 h before bed",
+   "https://doi.org/10.1016/j.smrv.2023.101764"
+  ],
+  "drake2013": [
+   "Drake C et al. Caffeine effects on sleep taken 0, 3, or 6 hours before going to bed. J Clin Sleep Med 2013: 400 mg 6 h before bed cut total sleep by more than 1 hour",
+   "https://doi.org/10.5664/jcsm.3170"
+  ],
+  "gooley2011": [
+   "Gooley JJ et al. Exposure to room light before bedtime suppresses melatonin onset and shortens melatonin duration in humans. J Clin Endocrinol Metab 2011",
+   "https://pmc.ncbi.nlm.nih.gov/articles/PMC3047226/"
+  ],
+  "chang2015": [
+   "Chang AM et al. Evening use of light-emitting eReaders negatively affects sleep, circadian timing, and next-morning alertness. PNAS 2015",
+   "https://pmc.ncbi.nlm.nih.gov/articles/PMC4313820/"
+  ],
+  "brown2022": [
+   "Brown TM et al. Recommendations for daytime, evening, and nighttime indoor light exposure. PLoS Biol 2022: low evening light for at least 3 hours before bed",
+   "https://journals.plos.org/plosbiology/article?id=10.1371/journal.pbio.3001571"
+  ],
+  "nsf": [
+   "National Sleep Foundation, What Is Sleep Quality? (falling asleep in 30 minutes or less; waking 1 time or less; awake 20 minutes or less after falling asleep)",
+   "https://www.thensf.org/what-is-sleep/"
+  ],
+  "medlineplus": [
+   "MedlinePlus. Fatigue: causes, and when to contact a provider",
+   "https://medlineplus.gov/ency/article/003088.htm"
+  ],
+  "ccdrerup": [
+   "Cleveland Clinic newsroom, 22 Jun 2026, sleep psychologist Michelle Drerup, PsyD: about 10 to 20 minutes to fall asleep; within a minute may suggest sleep deprivation",
+   "https://newsroom.clevelandclinic.org/2026/06/22/how-long-should-it-take-you-to-fall-asleep"
+  ],
+  "haghayegh2019": [
+   "Haghayegh S et al. Before-bedtime passive body heating by warm shower or bath to improve sleep: a systematic review and meta-analysis. Sleep Med Rev 2019;46:124-135: 17 studies; 40 to 42.5 C, 1 to 2 h before bed, as little as 10 min",
+   "https://doi.org/10.1016/j.smrv.2019.04.008"
+  ],
+  "stutz2019": [
+   "Stutz J, Eiholzer R, Spengler CM. Effects of evening exercise on sleep in healthy participants: a systematic review and meta-analysis. Sports Med 2019;49:269-287: 23 studies; sleep might be impaired after vigorous exercise ending 1 h or less before bedtime",
+   "https://link.springer.com/article/10.1007/s40279-018-1015-0"
+  ],
+  "ansfield1996": [
+   "Ansfield ME, Wegner DM, Bowser R. Ironic effects of sleep urgency. Behav Res Ther 1996;34(7):523-531: high mental load, trying 34.40 vs 21.80 min; low load, trying 15.55 vs 29.28 min",
+   "https://doi.org/10.1016/0005-7967(96)00031-9"
+  ],
+  "scullin2018": [
+   "Scullin MK et al. The effects of bedtime writing on difficulty falling asleep: a polysomnographic study comparing to-do lists and completed activity lists. J Exp Psychol Gen 2018;147(1):139-146 (57 healthy young adults)",
+   "https://doi.org/10.1037/xge0000374"
+  ],
+  "vierra2022": [
+   "Vierra J et al. Effects of sleep deprivation and 4-7-8 breathing control on heart rate variability, blood pressure, blood glucose, and endothelial function. Physiol Rep 2022 (measured heart and blood measures, not time to fall asleep)",
+   "https://doi.org/10.14814/phy2.15389"
+  ],
+  "ferracioli2013": [
+   "Ferracioli-Oda E, Qawasmi A, Bloch MH. Meta-analysis: melatonin for the treatment of primary sleep disorders. PLoS One 2013: 19 studies, 1683 subjects; sleep latency -7.06 min",
+   "https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0063773"
+  ],
+  "aasm2017": [
+   "Sateia MJ et al. Clinical practice guideline for the pharmacologic treatment of chronic insomnia in adults: an AASM guideline. J Clin Sleep Med 2017: suggests clinicians not use melatonin for insomnia (WEAK)",
+   "https://doi.org/10.5664/jcsm.6470"
+  ],
+  "aasmhabits": [
+   "American Academy of Sleep Medicine, Healthy Sleep Habits (Aug 2020): get out of bed after 20 minutes; reduce fluid intake before bedtime",
+   "https://sleepeducation.org/healthy-sleep/healthy-sleep-habits/"
+  ],
+  "trauer2015": [
+   "Trauer JM et al. Cognitive behavioral therapy for chronic insomnia: a systematic review and meta-analysis. Ann Intern Med 2015;163(3):191-204: 20 studies, 1,162 participants; sleep onset latency improved by 19.03 min",
+   "https://doi.org/10.7326/M14-2841"
+  ],
+  "aasm2021": [
+   "Edinger JD et al. Behavioral and psychological treatments for chronic insomnia disorder in adults: an AASM clinical practice guideline. J Clin Sleep Med 2021: CBT-I (STRONG); stimulus control (CONDITIONAL); sleep hygiene not as a single therapy (CONDITIONAL)",
+   "https://pmc.ncbi.nlm.nih.gov/articles/PMC7853203/"
+  ],
+  "aasminsomnia": [
+   "AASM Sleep Education, Insomnia: chronic insomnia occurs at least three times per week and lasts for at least three months; about 10 percent of people have chronic insomnia",
+   "https://sleepeducation.org/sleep-disorders/insomnia/"
+  ],
+  "nhsinsomnia": [
+   "NHS, Insomnia (reviewed 19 Mar 2024): common causes; do not drink alcohol, tea or coffee at least 6 hours before bed; when to see a GP",
+   "https://www.nhs.uk/conditions/insomnia/"
+  ],
+  "medlineplus-aging": [
+   "MedlinePlus, Aging changes in sleep (7/15/2024): older people wake up an average of 3 or 4 times each night and are more aware of being awake",
+   "https://medlineplus.gov/ency/article/004018.htm"
+  ],
+  "ninds": [
+   "NINDS, Brain Basics: Understanding Sleep (reviewed 25 Feb 2025): cycles through the night; deep sleep in the first half; longer REM later; sleep drive",
+   "https://www.ninds.nih.gov/health-information/public-education/brain-basics/brain-basics-understanding-sleep"
+  ],
+  "statpearls-sleep": [
+   "Patel AK et al. Physiology, Sleep Stages. StatPearls 2024: about 4 to 6 cycles a night averaging 90 minutes",
+   "https://www.ncbi.nlm.nih.gov/books/NBK526132/"
+  ],
+  "dijk1995": [
+   "Dijk DJ, Czeisler CA. Contribution of the circadian pacemaker and the sleep homeostat to sleep propensity, sleep structure, electroencephalographic slow waves, and sleep spindle activity in humans. J Neurosci 1995 (slow-wave activity decreased in the course of all sleep episodes)",
+   "https://doi.org/10.1523/JNEUROSCI.15-05-03526.1995"
+  ],
+  "statpearls-cortisol": [
+   "Kaur J et al. Physiology, Cortisol. StatPearls 2025: levels begin to rise during the final hours of sleep",
+   "https://www.ncbi.nlm.nih.gov/books/NBK538239/"
+  ],
+  "ebrahim2013": [
+   "Ebrahim IO et al. Alcohol and sleep I: effects on normal sleep. Alcohol Clin Exp Res 2013;37:539-549: at all dosages, faster sleep onset, a more consolidated first half and more disruption in the second half",
+   "https://doi.org/10.1111/acer.12006"
+  ],
+  "medlineplus-nocturia": [
+   "MedlinePlus, Urinating more at night (7/1/2025): less urine at night lets most people sleep 6 to 8 hours without urinating",
+   "https://medlineplus.gov/ency/article/003141.htm"
+  ],
+  "tang2007": [
+   "Tang NKY, Schmidt DA, Harvey AG. Sleeping with the enemy: clock monitoring in the maintenance of insomnia. J Behav Ther Exp Psychiatry 2007;38:40-55 (two experiments)",
+   "https://www.med.upenn.edu/cbti/assets/user-content/documents/Tang2007_SleepingwiththeEnemy-ClockMonitoringintheMaintenanceofInsomnia.pdf"
+  ],
+  "nhsapnoea": [
+   "NHS, Sleep apnoea (reviewed 11 May 2026): symptoms and when to see a GP",
+   "https://www.nhs.uk/conditions/sleep-apnoea/"
+  ],
+  "nhsdepression": [
+   "NHS, Depression in adults: symptoms (waking up very early; see a GP if symptoms most of the day, every day, for more than 2 weeks)",
+   "https://www.nhs.uk/mental-health/conditions/depression-in-adults/symptoms/"
+  ],
+  "harvey2002": [
+   "Harvey AG, Payne S. The management of unwanted pre-sleep thoughts in insomnia: distraction with imagery versus general distraction. Behav Res Ther 2002;40(3):267-277 (41 people with insomnia)",
+   "https://doi.org/10.1016/S0005-7967(01)00012-2"
+  ]
+ },
+ "speed": 0.84
+}
