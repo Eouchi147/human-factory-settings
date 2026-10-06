@@ -1,0 +1,6 @@
+runner: 2 cores, 7 GB
+Ubuntu 24.04.5 LTS
+no ffmpeg
+Python 3.12.3
+v22.23.3
+Tue Oct  6 22:36:45 UTC 2026
