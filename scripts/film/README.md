@@ -101,6 +101,13 @@ funny, in full sentences. Films 1 to 3 were rebuilt as `films/film01.src.js`, `f
   from the desk (the chair rolls back) so his knees clear it. Film 3: the headband is fitted round the skull; the carrot pops
   off the crown and falls clear of him; the phone at the ear sits off the skull and the hand holds it; the bag's handles run
   through the closed fingers.
+- Film 4: the hands now have wrists (`hands_block.js`), so each palm lies on the side of the head behind the ear with the
+  elbows wide. The pose is solved at nine points of the crunch: every hand bone 7 mm off the skull and outside the head's
+  outline, each hand on its own side of the midline, the arm clear of the trunk; the fingers then close until 6 mm off the
+  head. When the crunches end the hands slide out (a path checked clear of the head and the mat) before the arms go down.
+  The thumb wraps over the dumbbell's bar (the hand closes before the dumbbell appears in it), the third two-arm press ends
+  as the arms go down (no jump), and the remote's thumb moves before the remote appears. 0 problems at 0.1 s, and at 0.05 s
+  through the crunches and the presses.
 
 ## Films 4 to 8, and what each added
 - **Film 4** (belly fat): `soft.js`, soft tissue skinned to the rig: muscle that spans a joint and a layer of fat, built
