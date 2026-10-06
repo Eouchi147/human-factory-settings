@@ -1,0 +1,97 @@
+# The render farm: every film in render/queue.json is split across GitHub's machines (its frames in interleaved parts,
+# two browsers per machine), then one machine per film makes the sound and the cuts and hands them back on a branch
+# render-out/<film>-r<run>. Runs on pushes to render/batch-* branches only (never main, so the site never redeploys).
+name: render
+on:
+  push:
+    branches: ['render/batch-*']
+permissions:
+  contents: write
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      frames: ${{ steps.m.outputs.frames }}
+      films: ${{ steps.m.outputs.films }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: render/queue.json
+          sparse-checkout-cone-mode: false
+      - id: m
+        run: |
+          python3 - <<'PY'
+          import json, os
+          q = json.load(open('render/queue.json'))
+          parts = int(q.get('parts', 10))
+          fr = [dict(f, part=p, parts=parts) for f in q['films'] for p in range(parts)]
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as o:
+              o.write('frames=' + json.dumps({'include': fr}) + '\n')
+              o.write('films=' + json.dumps({'include': q['films']}) + '\n')
+          PY
+
+  frames:
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.frames) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Set up the renderer
+        run: bash render/setup.sh
+      - name: Render this part of the frames
+        working-directory: scripts/film
+        run: |
+          S=$(( ${{ matrix.part }} * 2 )); STEP=$(( ${{ matrix.parts }} * 2 ))
+          for k in 0 1; do
+            python3 film_render.py frames --film ${{ matrix.film }} --w 1080 --h 1920 --fps 24 --t0 0 --t1 ${{ matrix.t1 }} --blur --shadow 2048 --port $((8800 + k)) --start $((S + k)) --step $STEP > render$k.log 2>&1 &
+          done
+          wait
+          echo "frames: $(ls frames | wc -l)"; tail -n 3 render0.log render1.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: frames-${{ matrix.film }}-${{ matrix.part }}
+          path: scripts/film/frames/
+          retention-days: 3
+          compression-level: 0
+
+  assemble:
+    needs: [plan, frames]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.films) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Set up
+        run: bash render/setup.sh assemble
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: frames-${{ matrix.film }}-*
+          path: scripts/film/frames${{ matrix.nn }}
+          merge-multiple: true
+      - name: Sound and cuts
+        working-directory: scripts/film
+        env:
+          HFS_REPO: ${{ github.workspace }}
+        run: |
+          echo "frames: $(ls frames${{ matrix.nn }} | wc -l)"
+          python3 sound_${{ matrix.film }}.py ../voice/guides/${{ matrix.guide }}-voice-guide.wav ../voice/guides/${{ matrix.guide }}-report.json snd${{ matrix.nn }} > sound.log 2>&1
+          python3 assemble_film.py ${{ matrix.n }} frames${{ matrix.nn }} snd${{ matrix.nn }} --mb 19 > assemble.log 2>&1
+          cat assemble.log
+      - name: Hand the film back
+        if: always()
+        env:
+          TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: bash render/hand_back.sh "${{ matrix.film }}" "${{ github.run_number }}" "${{ job.status }}"
