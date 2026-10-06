@@ -12,6 +12,7 @@ export const NECK_MUSCLES = /splenius|semispinalis (capitis|cervicis)|levator sc
 export const BACK_MUSCLES = /trapezius|rhomboid/i;
 export const HAND = /radius|ulna|scaphoid|lunate|triquetral|pisiform|trapezium|trapezoid|capitate|hamate|metacarpal|phalanx of (right|left) (thumb|\w+ finger)/i;
 export const FOOT = /talus|calcaneus|cuboid bone|navicular bone of|cuneiform bone|metatarsal bone|phalanx of (right|left) (big|second|third|fourth|little) toe|sesamoid bone of (right|left) foot/i;
+const TOES = /phalanx of (right|left) (big|second|third|fourth|little) toe/i;
 const SHANK = /^(right|left) (tibia|fibula|patella)$/i, THIGH = /^(right|left) femur$/i, PELVIS = /hip bone|sacrum|coccyx|bladder|^intervertebral disk$/i;
 const sideOf = (n) => (/\bright\b/i.test(n) ? 'Right' : /\bleft\b/i.test(n) ? 'Left' : null);
 
@@ -23,6 +24,7 @@ export function skeletonKind(extra) {
     if (p.system !== 'skeletal') return null;
     if (has('gingiva', 'fibularis', 'tibialis', 'subscapularis', 'iliotibial', 'levator scapulae')) return null;
     if (has('tooth')) return 'tooth';
+    if (has('alar cartilage', 'thyroid cartilage', 'cricoid', 'arytenoid', 'corniculate', 'cuneiform cartilage')) return null;   // soft-tissue cartilages: they float without the nose and the throat
     if (has('cartilage', 'intervertebral disk')) return 'cartilage';
     return 'bone';
   };
@@ -104,6 +106,17 @@ export function buildRig(meshes, { assign } = {}) {
     const knee = new THREE.Group(); knee.position.copy(J.K).sub(J.H); hip.add(knee); pivots.set(knee, J.K);
     const ankle = new THREE.Group(); ankle.position.copy(J.A).sub(J.K); knee.add(ankle); pivots.set(ankle, J.A);
     legs[Side] = { ...J, hip, knee, ankle, s: Side === 'Right' ? -1 : 1 };
+    // the toes bend at the ball of the foot, about the slanted line of the metatarsophalangeal joints (big toe's joint ahead
+    // of the little toe's), so at toe-off every toe stays on the ground, not in it
+    const m1 = worldVerts(byName.get(`${Side} first metatarsal bone`)), m5 = worldVerts(byName.get(`${Side} fifth metatarsal bone`));
+    const f1 = m1.reduce((a, v) => (v.z > a.z ? v : a)).clone(), f5 = m5.reduce((a, v) => (v.z > a.z ? v : a)).clone();
+    const piv = f1.clone().lerp(f5, 0.5); piv.y = J.ground + 0.012; piv.z -= 0.01;
+    const tAxis = f5.clone().sub(f1).setY(0).normalize(); if (tAxis.x < 0) tAxis.negate();
+    const toe = new THREE.Group(); toe.position.copy(piv).sub(J.A); ankle.add(toe); pivots.set(toe, piv);
+    const tv = all(TOES).filter((m) => sideOf(m.userData.name) === Side).flatMap((m) => worldVerts(m, 1));
+    legs[Side].toe = toe; legs[Side].toeAxis = tAxis;
+    legs[Side].toeD = tv.filter((_, i) => i % Math.max(1, Math.floor(tv.length / 220)) === 0).map((v) => v.clone().sub(piv));   // every toe, all round
+    legs[Side].toeP = toe.position.clone();
   }
   // ---- the arms, on the third thoracic vertebra
   const t3 = seg['Third thoracic vertebra'], arms = {};
@@ -126,9 +139,10 @@ export function buildRig(meshes, { assign } = {}) {
     if (j === 'girdle' || j === 'arm' || j === 'elbow') return arms[Side][j];
     return legs[Side][j];
   };
+  const toeOf = (name, place) => (Array.isArray(place) && place[1] === 'ankle' && TOES.test(name) ? [place[0], 'toe'] : place);
   for (const m of meshes) {
     if (SPINE.includes(m.userData.name) && seg[m.userData.name] && m.parent === seg[m.userData.name].g) continue;
-    const place = (assign && assign(m.userData.name, m)) || placeOf(m.userData.name);
+    const place = toeOf(m.userData.name, (assign && assign(m.userData.name, m)) || placeOf(m.userData.name));
     if (place === 'world') { m.position.copy(m.userData.home); root.add(m); continue; }
     const g = groupOf(place); m.position.copy(m.userData.home).sub(pivots.get(g)); g.add(m);
   }
@@ -149,10 +163,16 @@ export function bendSpine(seg, { lum = 0, tho = 0, cer = 0, side = 0, twist = 0,
 }
 const DOWN = new THREE.Vector3(0, -1, 0), _q = new THREE.Quaternion(), _q2 = new THREE.Quaternion(), _d = new THREE.Vector3();
 // dir: where the upper arm points, [outward, up, forward]; twist: internal rotation (+ turns the forearm in); elbow: flexion
-export function poseArm(A, a) {
+// a pose may carry mix: [a, b, k] (from mixArm): the upper arm then takes the shortest turn from a to b, not a sweep through
+// whatever the in-between dir and twist would give (which can swing a forearm round behind the back)
+export function armQuat(A, a, out = new THREE.Quaternion()) {
+  if (a.mix) { const qa = armQuat(A, a.mix[0], new THREE.Quaternion()), qb = armQuat(A, a.mix[1], new THREE.Quaternion()); return out.copy(qa).slerp(qb, a.mix[2]); }
   _d.set(a.dir[0] * A.s, a.dir[1], a.dir[2]).normalize();
   _q.setFromUnitVectors(DOWN, _d); _q2.setFromAxisAngle(_d, (a.twist || 0) * A.s);
-  A.arm.quaternion.multiplyQuaternions(_q2, _q);
+  return out.multiplyQuaternions(_q2, _q);
+}
+export function poseArm(A, a) {
+  armQuat(A, a, A.arm.quaternion);
   A.elbow.rotation.set(-(a.elbow || 0), 0, 0);
   A.girdle.rotation.set(0, (a.retract || 0) * A.s, (a.elevate || 0) * A.s);
 }
@@ -183,7 +203,23 @@ export function legIK(rig, Side, target, footQuat, forward = new THREE.Vector3(0
   // foot
   _qk.multiplyQuaternions(_qh, G.knee.quaternion); _qi.copy(_qk).invert();
   G.ankle.quaternion.multiplyQuaternions(_qi, footQuat);
+  if (G.toe) toesOnGround(rig, G);
   return { reach: d / (G.L1 + G.L2) };
+}
+
+// the toes: as little bend at the ball of the foot as keeps every toe at or above the ground (rig.ground(x, z), default the floor)
+const _M = new THREE.Matrix4(), _tq = new THREE.Quaternion(), _tv = new THREE.Vector3(), _X = new THREE.Vector3(1, 0, 0);
+function toesOnGround(rig, G) {
+  G.toe.quaternion.identity();
+  G.ankle.updateWorldMatrix(true, false); _M.copy(G.ankle.matrixWorld);
+  const gy = rig.ground || (() => 0);
+  const lowest = (a) => { _tq.setFromAxisAngle(G.toeAxis || _X, -a); let mn = 9;
+    for (const d of G.toeD) { _tv.copy(d).applyQuaternion(_tq).add(G.toeP).applyMatrix4(_M); mn = Math.min(mn, _tv.y - gy(_tv.x, _tv.z)); }
+    return mn; };
+  if (lowest(0) >= -0.0005) return;
+  let lo = 0, hi = 1.3; if (lowest(hi) < -0.0005) { G.toe.quaternion.setFromAxisAngle(G.toeAxis || _X, -hi); return; }
+  for (let i = 0; i < 14; i++) { const m = (lo + hi) / 2; if (lowest(m) < 0) lo = m; else hi = m; }
+  G.toe.quaternion.setFromAxisAngle(G.toeAxis || _X, -hi);
 }
 
 // ---------------------------------------------------------------- walking
@@ -201,7 +237,10 @@ export function walkAt(rig, s, { stride = 1.1, ground = () => 0, slope = () => 0
     const u = s / stride - off, k = Math.floor(u), f = u - k;
     const hs = (kk) => z0 + rig.P0.z + (kk + off) * stride + 0.27;   // world z of the heel contact for step kk
     const pose = (pivot, pivotRest, pitch, zHeel) => {       // ankle and foot orientation, foot pivoting on a point on the ground
-      const zz = zHeel + (pivotRest.z - G.heel.z), beta = slope(zz);
+      // the foot's pitch: the chord from heel to ball on the ground under them (on a curving hill the tangent at one end
+      // would put the other end in the ground)
+      const zz = zHeel + (pivotRest.z - G.heel.z), L = G.ball.z - G.heel.z, onHeel = pivotRest === G.heel;
+      const zH = onHeel ? zz : zz - L, zB = onHeel ? zz + L : zz, beta = Math.atan2(ground(zB) - ground(zH), zB - zH);
       const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -(pitch + beta));
       const P = new THREE.Vector3(pivotRest.x + x0, ground(zz) + (pivotRest.y - G.ground) + G.ground, zz);
       const ankle = G.A.clone().sub(pivotRest).applyQuaternion(q).add(P);
@@ -242,3 +281,112 @@ export function standApply(rig, spine = {}, armR = ARM0, armL = ARM0) {
   bendSpine(rig.seg, spine); poseArm(rig.arms.Right, armR); poseArm(rig.arms.Left, armL);
   for (const Side of ['Right', 'Left']) { const G = rig.legs[Side]; G.hip.quaternion.identity(); G.knee.quaternion.identity(); G.ankle.quaternion.identity(); }
 }
+
+// ---------------------------------------------------------------- arms clear of the trunk
+// The trunk's bones (ribs and their cartilages, breastbone, vertebrae, sacrum, hip bones) are each turned once into a
+// smooth field of signed depth (metres, + inside, trilinear); the arm's bones are sampled once. clearArms() then finds,
+// every frame, the smallest outward swing of each arm (about the body's front axis, at the shoulder) that keeps every
+// sample at least `gap` outside the trunk (the flesh that is not drawn). The swing is a continuous function of the pose,
+// so a corrected movement stays smooth; a pose that is already clear is left exactly as it is.
+const TRUNK = /\brib\b|costal|sternum|manubrium|xiphoid|vertebra|^atlas$|^axis$|sacrum|coccyx|hip bone/i, LEGS = /femur|patella|tibia|fibula/i;
+function signedField(geo, cell, pad = 5) {
+  const P = geo.attributes.position, I = geo.index ? geo.index.array : null, n = P.count;
+  geo.computeBoundingBox(); const bb = geo.boundingBox, size = bb.getSize(new THREE.Vector3());
+  const o = bb.min.clone().subScalar(cell * pad), nx = Math.ceil(size.x / cell) + 2 * pad + 1, ny = Math.ceil(size.y / cell) + 2 * pad + 1, nz = Math.ceil(size.z / cell) + 2 * pad + 1;
+  const N = nx * ny * nz, G = new Uint8Array(N), idx = (x, y, z) => (z * ny + y) * nx + x;
+  const a = new THREE.Vector3(), b = new THREE.Vector3(), c = new THREE.Vector3();
+  const tri = (i0, i1, i2) => {
+    a.fromBufferAttribute(P, i0); b.fromBufferAttribute(P, i1); c.fromBufferAttribute(P, i2);
+    const L = Math.max(a.distanceTo(b), b.distanceTo(c), c.distanceTo(a)), k = Math.max(1, Math.ceil(L / (cell * 0.45)));
+    for (let i = 0; i <= k; i++) for (let j = 0; j <= k - i; j++) { const u = i / k, v = j / k;
+      const x = Math.floor((a.x + (b.x - a.x) * u + (c.x - a.x) * v - o.x) / cell), y = Math.floor((a.y + (b.y - a.y) * u + (c.y - a.y) * v - o.y) / cell), z = Math.floor((a.z + (b.z - a.z) * u + (c.z - a.z) * v - o.z) / cell);
+      G[idx(x, y, z)] = 1; } };
+  if (I) for (let t = 0; t < I.length; t += 3) tri(I[t], I[t + 1], I[t + 2]); else for (let t = 0; t < n; t += 3) tri(t, t + 1, t + 2);
+  const out = new Uint8Array(N), q = new Int32Array(N); let qh = 0, qt = 0;
+  const push = (x, y, z) => { if (x < 0 || y < 0 || z < 0 || x >= nx || y >= ny || z >= nz) return; const k = idx(x, y, z); if (out[k] || G[k]) return; out[k] = 1; q[qt++] = k; };
+  push(0, 0, 0);
+  while (qh < qt) { const k = q[qh++], x = k % nx, y = Math.floor(k / nx) % ny, z = Math.floor(k / (nx * ny)); push(x + 1, y, z); push(x - 1, y, z); push(x, y + 1, z); push(x, y - 1, z); push(x, y, z + 1); push(x, y, z - 1); }
+  // depth in cells: + inside (1 on the surface layer), - outside (-1 next to it), by breadth-first layers both ways
+  const D = new Int16Array(N), NB = [[1, 0, 0], [-1, 0, 0], [0, 1, 0], [0, -1, 0], [0, 0, 1], [0, 0, -1]];
+  const lay = (inside) => { qh = 0; qt = 0;
+    for (let k = 0; k < N; k++) { if (!!out[k] === inside) continue; const x = k % nx, y = Math.floor(k / nx) % ny, z = Math.floor(k / (nx * ny));
+      if (NB.some(([dx, dy, dz]) => { const X = x + dx, Y = y + dy, Z = z + dz; if (X < 0 || Y < 0 || Z < 0 || X >= nx || Y >= ny || Z >= nz) return inside; return !!out[idx(X, Y, Z)] === inside; })) { D[k] = inside ? 1 : -1; q[qt++] = k; } }
+    while (qh < qt) { const k = q[qh++], d = D[k], x = k % nx, y = Math.floor(k / nx) % ny, z = Math.floor(k / (nx * ny));
+      for (const [dx, dy, dz] of NB) { const X = x + dx, Y = y + dy, Z = z + dz; if (X < 0 || Y < 0 || Z < 0 || X >= nx || Y >= ny || Z >= nz) continue; const kk = idx(X, Y, Z); if (D[kk] || !!out[kk] === inside) continue; D[kk] = inside ? d + 1 : d - 1; q[qt++] = kk; } } };
+  lay(true); lay(false);
+  const F = new Float32Array(N); for (let k = 0; k < N; k++) F[k] = D[k] > 0 ? (D[k] - 0.5) * cell : D[k] < 0 ? (D[k] + 0.5) * cell : -pad * cell;
+  return { o, cell, nx, ny, nz, F, far: -(pad - 1) * cell };
+}
+function fieldAt(V, x, y, z) {   // trilinear between cell centres; far outside the grid, far outside the bone
+  const u = (x - V.o.x) / V.cell - 0.5, v = (y - V.o.y) / V.cell - 0.5, w = (z - V.o.z) / V.cell - 0.5;
+  const i = Math.floor(u), j = Math.floor(v), k = Math.floor(w);
+  if (i < 0 || j < 0 || k < 0 || i + 1 >= V.nx || j + 1 >= V.ny || k + 1 >= V.nz) return V.far;
+  const fu = u - i, fv = v - j, fw = w - k, nx = V.nx, nxy = V.nx * V.ny, F = V.F, b = k * nxy + j * nx + i;
+  const c00 = F[b] * (1 - fu) + F[b + 1] * fu, c10 = F[b + nx] * (1 - fu) + F[b + nx + 1] * fu, c01 = F[b + nxy] * (1 - fu) + F[b + nxy + 1] * fu, c11 = F[b + nxy + nx] * (1 - fu) + F[b + nxy + nx + 1] * fu;
+  return (c00 * (1 - fv) + c10 * fv) * (1 - fw) + (c01 * (1 - fv) + c11 * fv) * fw;
+}
+export function armClearance(rig, { cell = 0.003, gap = 0.003, legGap = 0.006, max = 0.75, legMax = 0.9 } = {}) {
+  const trunk = [], legs = []; rig.root.traverse((m) => { if (!m.isMesh || !m.userData.name || !['bone', 'cartilage'].includes(m.userData.tissue)) return; if (TRUNK.test(m.userData.name)) trunk.push(m); else if (LEGS.test(m.userData.name)) legs.push(m); });
+  const fields = new Map(); for (const m of [...trunk, ...legs]) { if (!fields.has(m.geometry)) fields.set(m.geometry, signedField(m.geometry, cell)); if (!m.geometry.boundingSphere) m.geometry.computeBoundingSphere(); }
+  const C = { gap, max, trunk, legs, fields, arms: {}, last: { Right: 0, Left: 0 }, lift: { Right: 0, Left: 0 } };
+  const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _inv = new THREE.Matrix4(), _q3 = new THREE.Quaternion(), _ax = new THREE.Vector3(), _axX = new THREE.Vector3(), _S = new THREE.Vector3(), _sp = new THREE.Sphere();
+  const sampleArm = (Side) => {   // the arm's own bones, sampled (geometry-local points, and the mesh they belong to); built on first use, after any wrist rig
+    const A = rig.arms[Side], parts = [];
+    A.arm.traverse((m) => { if (!m.isMesh || !m.userData.name || !['bone', 'cartilage'].includes(m.userData.tissue)) return;
+      const P = m.geometry.attributes.position, want = /humerus/i.test(m.userData.name) ? 420 : /radius|ulna/i.test(m.userData.name) ? 220 : 14, st = Math.max(1, Math.floor(P.count / want)), pts = [];
+      for (let i = 0; i < P.count; i += st) pts.push(new THREE.Vector3().fromBufferAttribute(P, i));
+      // in chunks along the bone's length, each with its own bounding sphere, so only the near ones are looked up
+      const bx = new THREE.Box3().setFromPoints(pts), sz = bx.getSize(new THREE.Vector3()), ax = sz.x > sz.y ? (sz.x > sz.z ? 'x' : 'z') : (sz.y > sz.z ? 'y' : 'z');
+      pts.sort((a, b) => a[ax] - b[ax]);
+      for (let i = 0; i < pts.length; i += 60) { const c = pts.slice(i, i + 60); parts.push({ m, pts: c, world: c.map(() => new THREE.Vector3()) }); } });
+    return parts; };
+  // how far the arm, turned by th (swung out, or lifted forward for the legs), still reaches into the trunk or the legs
+  // (0: clear by the gap)
+  const intrusion = (Side, th, set = trunk, g = gap, lift = false) => {
+    const A = rig.arms[Side], parts = C.arms[Side];
+    if (lift) _q3.setFromAxisAngle(_axX, -th); else _q3.setFromAxisAngle(_ax, th * A.s);
+    let E = 0;
+    for (const pt of parts) {
+      // the part's bounding sphere, turned
+      _sp.copy(pt.sphere); _sp.center.sub(_S).applyQuaternion(_q3).add(_S);
+      for (const b of set) {
+        const bs = b.userData._ws; if (bs.center.distanceTo(_sp.center) > bs.radius + _sp.radius + g) continue;
+        const V = fields.get(b.geometry); _inv.copy(b.matrixWorld).invert();
+        for (const w of pt.world) { _v.copy(w).sub(_S).applyQuaternion(_q3).add(_S).applyMatrix4(_inv); const f = fieldAt(V, _v.x, _v.y, _v.z); if (f > -g) E += f + g; }
+      }
+    }
+    return E; };
+  // set up one frame: world samples, bounding spheres, the swing axis
+  const prepare = (Side) => {
+    const A = rig.arms[Side]; if (!C.arms[Side]) C.arms[Side] = sampleArm(Side);
+    A.girdle.updateMatrixWorld(true); A.arm.getWorldPosition(_S);
+    _ax.setFromMatrixColumn(A.girdle.matrixWorld, 2).normalize(); _axX.setFromMatrixColumn(A.girdle.matrixWorld, 0).normalize();
+    for (const pt of C.arms[Side]) { const M = pt.m.matrixWorld; let cx = 0, cy = 0, cz = 0; pt.world.forEach((w, i) => { w.copy(pt.pts[i]).applyMatrix4(M); cx += w.x; cy += w.y; cz += w.z; });
+      const n = pt.world.length, c = new THREE.Vector3(cx / n, cy / n, cz / n); let r = 0; for (const w of pt.world) r = Math.max(r, w.distanceTo(c)); pt.sphere = new THREE.Sphere(c, r); }
+    for (const b of [...trunk, ...legs]) { b.userData._ws = b.userData._ws || new THREE.Sphere(); b.userData._ws.copy(b.geometry.boundingSphere).applyMatrix4(b.matrixWorld); } };
+  C.why = (Side, th = 0) => {   // which arm bones come into which trunk bones (debugging)
+    rig.root.updateMatrixWorld(true); prepare(Side); const A = rig.arms[Side]; _q3.setFromAxisAngle(_ax, th * A.s); const out = {};
+    for (const pt of C.arms[Side]) for (const b of trunk) { const V = fields.get(b.geometry); _inv.copy(b.matrixWorld).invert();
+      for (const w of pt.world) { _v.copy(w).sub(_S).applyQuaternion(_q3).add(_S).applyMatrix4(_inv); const f = fieldAt(V, _v.x, _v.y, _v.z); if (f > -gap) { const k = pt.m.userData.name + ' > ' + b.userData.name; out[k] = Math.max(out[k] || -1, +((f + gap) * 1000).toFixed(1)); } } }
+    return out; };
+  C.cost = (Side) => { prepare(Side); return intrusion(Side, 0); };   // for hand solvers (the trunk already posed): 0 when clear
+  C.apply = () => {
+    rig.root.updateMatrixWorld(true);
+    for (const Side of ['Right', 'Left']) {
+      prepare(Side); C.last[Side] = 0;
+      if (intrusion(Side, 0) <= 0) continue;
+      if (intrusion(Side, max) > 0) { C.last[Side] = -1; continue; }   // not solvable by a swing: left as it is (the audit reports it)
+      let lo = 0, hi = max; for (let it = 0; it < 14; it++) { const mid = (lo + hi) / 2; if (intrusion(Side, mid) > 0) lo = mid; else hi = mid; }
+      const A = rig.arms[Side]; _q3.setFromAxisAngle(_w.set(0, 0, 1), hi * A.s); A.arm.quaternion.premultiply(_q3); A.arm.updateMatrixWorld(true); C.last[Side] = hi;
+    }
+    // then the legs: the smallest forward lift of the arm that keeps it off the thighs and shins (a hand never sinks into a thigh)
+    for (const Side of ['Right', 'Left']) {
+      prepare(Side); C.lift[Side] = 0;
+      if (intrusion(Side, 0, legs, legGap, true) <= 0) continue;
+      if (intrusion(Side, legMax, legs, legGap, true) > 0) { C.lift[Side] = -1; continue; }
+      let lo = 0, hi = legMax; for (let it = 0; it < 14; it++) { const mid = (lo + hi) / 2; if (intrusion(Side, mid, legs, legGap, true) > 0) lo = mid; else hi = mid; }
+      const A = rig.arms[Side]; _q3.setFromAxisAngle(_w.set(1, 0, 0), -hi); A.arm.quaternion.premultiply(_q3); A.arm.updateMatrixWorld(true); C.lift[Side] = hi;
+    } };
+  rig.clear = C; return C;
+}
+export function clearArms(rig) { (rig.clear || armClearance(rig)).apply(); }

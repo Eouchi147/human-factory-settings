@@ -9,7 +9,7 @@
 // The hoop becomes the logo. The factory stamp is on the back of the left shoulder blade.
 import { THREE, ORANGE, AMBER, ss, s5, lerp, clamp01, hash, camTrack, phys, glowMat, shadows, spot, RoundedBoxGeometry,
   loadAnatomy, V3, place, logoEnd, makeFilm, outBack, stamp, stampCanvas, stampSpot, noiseTex, TIME, keys } from '../kit.js';
-import { buildRig, skeletonKind, legIK, bendSpine, poseArm, worldVerts, avgV } from '../rig.js';
+import { buildRig, skeletonKind, legIK, bendSpine, poseArm, worldVerts, avgV, clearArms } from '../rig.js';
 import { makeClock, makePhone, makeLamp, makeLogoRing, tickAngle } from '../props.js';
 
 // ------------------------------------------------------------------ a wrist, and hands that can hold (from film 11, on the wrist)
@@ -30,7 +30,7 @@ function rigHand(R, Side, Wr) {
   const mcpI = top(F[0].P), mcpL = top(F[3].P), fdir = bot(F[1].D).sub(top(F[1].P)).normalize();
   const across = mcpL.clone().sub(mcpI); across.sub(fdir.clone().multiplyScalar(across.dot(fdir))).normalize();
   const n = new THREE.Vector3().crossVectors(fdir, across).normalize(); if (n.z < 0) n.negate();
-  const axis = new THREE.Vector3().crossVectors(fdir, n).dot(across) > 0 ? across.clone().negate() : across.clone();
+  const axis = new THREE.Vector3().crossVectors(fdir, n).normalize();   // +angle turns each finger toward the palm (n): the way fingers close
   const joints = [];
   for (const f of F) { const pts = [top(f.P), top(f.M), top(f.D)], gs = []; let parent = eg, pp = EL;
     [f.P, f.M, f.D].forEach((m, i) => { const g = new THREE.Group(); g.position.copy(pts[i]).sub(pp); parent.add(g); m.parent.remove(m); m.position.copy(m.userData.home).sub(pts[i]); g.add(m); gs.push(g); parent = g; pp = pts[i]; }); joints.push(gs); }
@@ -40,18 +40,38 @@ function rigHand(R, Side, Wr) {
   { let parent = eg, pp = EL; [tP, tD].forEach((m, i) => { const g = new THREE.Group(); g.position.copy(tpt[i]).sub(pp); parent.add(g); m.parent.remove(m); m.position.copy(m.userData.home).sub(tpt[i]); g.add(m); tg.push(g); parent = g; pp = tpt[i]; }); }
   const mid = mcpI.clone().add(mcpL).multiplyScalar(0.5);
   const handle = mid.clone().addScaledVector(fdir, 0.03).addScaledVector(n, 0.024).sub(EL);
-  function curl(k) {
-    joints.forEach((gs, i) => { const s = 1 + 0.06 * i; gs[0].quaternion.setFromAxisAngle(axis, 1.25 * k * s); gs[1].quaternion.setFromAxisAngle(axis, 1.5 * k * s); gs[2].quaternion.setFromAxisAngle(axis, 0.95 * k * s); });
-    tg[0].quaternion.setFromAxisAngle(taxis, 0.55 * k); tg[1].quaternion.setFromAxisAngle(taxis, 0.7 * k);
+  // prof: how a finger shares its closing between knuckle, middle and end joint (a fist by default; a hand flat on a
+  // phone's back that wraps its far edge bends mostly at the middle joints)
+  const PROF = [1.25, 1.5, 0.95];
+  const setF = (gs, kk, s, pr) => { gs[0].quaternion.setFromAxisAngle(axis, pr[0] * kk * s); gs[1].quaternion.setFromAxisAngle(axis, pr[1] * kk * s); gs[2].quaternion.setFromAxisAngle(axis, pr[2] * kk * s); };
+  function curl(k, per = null, tk = null, prof = PROF) {   // per: each finger's own closing [index, middle, ring, little]; tk: the thumb's
+    joints.forEach((gs, i) => setF(gs, per ? per[i] : k, 1 + 0.06 * i, prof));
+    const t = tk ?? k; tg[0].quaternion.setFromAxisAngle(taxis, 0.55 * t); tg[1].quaternion.setFromAxisAngle(taxis, 0.7 * t);
+  }
+  // close each finger (and the thumb) on an object until it is `need` off it: sdf(world point) is the distance to the object
+  // (+ outside). Returns { per, tk } for curl(); a finger that never meets it closes to kmax
+  function fit(sdf, { need = 0.003, kmin = 0.05, kmax = 0.95, prof = PROF, tmin = kmin } = {}) {   // tmin < 0 lets the thumb stand off, away from the palm
+    const v = new THREE.Vector3(), samp = (ms) => ms.map((m) => { const P = m.geometry.attributes.position, st = Math.max(1, Math.floor(P.count / 200)), pts = []; for (let i = 0; i < P.count; i += st) pts.push(new THREE.Vector3().fromBufferAttribute(P, i)); return { m, pts }; });
+    const gap = (S) => { eg.updateMatrixWorld(true); let g = 9; for (const { m, pts } of S) for (const p of pts) g = Math.min(g, sdf(v.copy(p).applyMatrix4(m.matrixWorld))); return g; };
+    // the first contact on the way from open to closed (a finger can pass an object's edge and curl clear of it again,
+    // so the whole sweep is scanned, then the contact is found finely)
+    const search = (S, set, k0 = kmin) => { set(k0); if (gap(S) < need) return k0; let lo = k0, hi = null;
+      for (let j = 1; j <= 24; j++) { const k = k0 + (kmax - k0) * (j / 24); set(k); if (gap(S) < need) { hi = k; break; } lo = k; }
+      if (hi === null) return kmax;
+      for (let j = 0; j < 12; j++) { const m = (lo + hi) / 2; set(m); if (gap(S) >= need) lo = m; else hi = m; } set(lo); return lo; };
+    const per = joints.map((gs, i) => search(samp(gs.map((g) => g.children.find((c) => c.isMesh)).filter(Boolean)), (kk) => setF(gs, kk, 1 + 0.06 * i, prof)));
+    const tk = search(samp(tg.map((g) => g.children.find((c) => c.isMesh)).filter(Boolean)), (kk) => { tg[0].quaternion.setFromAxisAngle(taxis, 0.55 * kk); tg[1].quaternion.setFromAxisAngle(taxis, 0.7 * kk); }, tmin);
+    return { per, tk };
   }
   const hand = new THREE.Vector3().crossVectors(fdir, across).dot(n) > 0 ? 1 : -1;   // n = hand * (fdir x across)
-  return { curl, handle, across: across.clone(), n: n.clone(), fdir: fdir.clone(), eg, hand };
+  return { curl, fit, handle, across: across.clone(), n: n.clone(), fdir: fdir.clone(), eg, hand };
 }
-function solveHand(R, Side, H, at, init, aims = []) {   // an arm and wrist pose that puts the hand's grip at a world point, with hand directions (local v) turned toward world ones
+function solveHand(R, Side, H, at, init, aims = [], extra = null, starts = null) {   // starts: other initial poses to try (default: a spread for a standing body)   // an arm and wrist pose that puts the hand's grip at a world point, with hand directions (local v) turned toward world ones; extra(A) adds a posture cost
   R.root.updateMatrixWorld(true);
   const A = R.arms[Side], Wr = H.wr, h = new THREE.Vector3(), q = new THREE.Quaternion(), pn = new THREE.Vector3();
   const err = (p) => { poseArm(A, p); setWrist(Wr, p); A.girdle.updateMatrixWorld(true); h.copy(H.handle).applyMatrix4(Wr.g.matrixWorld); let E = h.distanceTo(at);
     if (aims.length) { Wr.g.getWorldQuaternion(q); for (const a of aims) E += a.w * (1 - pn.copy(a.v).applyQuaternion(q).dot(a.to)); }
+    if (extra) E += extra(A);
     E += 0.01 * ((p.wf || 0) ** 2 + 2 * (p.wd || 0) ** 2 + 0.5 * (p.wr || 0) ** 2); return E; };
   const descend = (start) => {
     let best = { dir: [...start.dir], twist: start.twist, elbow: start.elbow, wf: start.wf || 0, wd: start.wd || 0, wr: start.wr || 0, retract: 0, elevate: 0 }, bestE = err(best);
@@ -66,13 +86,44 @@ function solveHand(R, Side, H, at, init, aims = []) {   // an arm and wrist pose
     return { best, bestE };
   };
   let out = descend(init);
-  for (const dir of [[0.6, 0.8, 0.2], [0.35, 0.7, 0.45], [0.9, 0.35, 0.1], [0.5, 0.5, -0.3], [0.2, -0.2, 0.9]]) for (const twist of [-1.2, -0.4, 0.4, 1.2]) for (const elbow of [1.3, 1.9, 2.4]) {
-    if (out.bestE < 0.004) break; const r = descend({ dir, twist, elbow }); if (r.bestE < out.bestE) out = r; }
+  const tries = starts || [[0.6, 0.8, 0.2], [0.35, 0.7, 0.45], [0.9, 0.35, 0.1], [0.5, 0.5, -0.3], [0.2, -0.2, 0.9]].flatMap((dir) => [-1.2, -0.4, 0.4, 1.2].flatMap((twist) => [1.3, 1.9, 2.4].map((elbow) => ({ dir, twist, elbow }))));
+  for (const st of tries) { if (out.bestE < 0.004) break; const r = descend(st); if (r.bestE < out.bestE) out = r; }
   poseArm(A, out.best); setWrist(Wr, out.best); A.girdle.updateMatrixWorld(true); h.copy(H.handle).applyMatrix4(Wr.g.matrixWorld); Wr.g.getWorldQuaternion(q);
   const dbg = { pos: +h.distanceTo(at).toFixed(4), dots: aims.map((a) => +pn.copy(a.v).applyQuaternion(q).dot(a.to).toFixed(3)), at: at.toArray().map((v) => +v.toFixed(3)) };
   return { ...out.best, err: out.bestE, dbg };
 }
-const mixArm = (a, b, k) => ({ dir: a.dir.map((v, i) => lerp(v, b.dir[i], k)), twist: lerp(a.twist, b.twist, k), elbow: lerp(a.elbow, b.elbow, k), wf: lerp(a.wf || 0, b.wf || 0, k), wd: lerp(a.wd || 0, b.wd || 0, k), wr: lerp(a.wr || 0, b.wr || 0, k), retract: 0, elevate: 0 });
+const FIST = [1.25, 1.5, 0.95], FLAT_WRAP = [0.35, 1.6, 1.25];   // how the fingers close: a fist; flat on a phone's back, bent round its edge
+// a hand closing on what it holds: each finger goes from `base` toward its fitted closing, and never further in than that fit
+// while the object is there (a finger more closed than its fit would be inside the object)
+function gripCurl(H, G, g, base, prof) { H.curl(0, G.per.map((k) => lerp(Math.min(base, k), k, g)), lerp(Math.min(base, G.tk), G.tk, g), prof); }
+// the phone (props.js makePhone): a rounded box, its long edges rounded to half its thickness; local y = 0 is the back, Th the
+// screen. Signed distance from a point in the phone's own frame (+ outside)
+const PHONE = { W: 0.0716, L: 0.1476, Th: 0.0078 };
+function phoneSDF(p) {
+  const r = PHONE.Th / 2, qx = Math.abs(p.x) - (PHONE.W / 2 - r), qy = Math.abs(p.y - PHONE.Th / 2) - (PHONE.Th / 2 - r), qz = Math.abs(p.z) - (PHONE.L / 2 - r);
+  return Math.hypot(Math.max(qx, 0), Math.max(qy, 0), Math.max(qz, 0)) + Math.min(Math.max(qx, qy, qz), 0) - r;
+}
+// how far a hand's bones come inside their gap round an object (sdf: world point -> distance, + outside): fingers `finger`,
+// palm and wrist `palm` (the flesh that is not drawn). palmOnly skips the fingers (they are closed on the object after)
+function handGap(H, sdf, { palm = 0.006, finger = 0.003, palmOnly = false } = {}) {
+  if (!H._gapPts) { H._gapPts = []; H.wr.g.traverse((m) => { if (!m.isMesh) return; const P = m.geometry.attributes.position, st = Math.max(1, Math.floor(P.count / 40)), fing = /phalanx/i.test(m.userData.name);
+    for (let i = 0; i < P.count; i += st) H._gapPts.push({ m, p: new THREE.Vector3().fromBufferAttribute(P, i), fing }); }); }
+  const v = new THREE.Vector3(); let E = 0, worst = 0, who = '';
+  for (const q of H._gapPts) { if (palmOnly && q.fing) continue; const d = (q.fing ? finger : palm) - sdf(v.copy(q.p).applyMatrix4(q.m.matrixWorld)); if (d > 0) { E += d; if (d > worst) { worst = d; who = q.m.userData.name; } } }
+  return { E, worst, who };
+}
+// a posture cost that keeps an arm out of ellipsoids (world centre c, semi-axes r, the bone's own thickness included):
+// samples the upper arm (from a quarter of the way down, the shoulder itself sits where it sits), the forearm and the hand
+function keepOut(R, Side, H, zones, w = 3) {
+  const A = R.arms[Side], s = new THREE.Vector3(), e = new THREE.Vector3(), wr = new THREE.Vector3(), g = new THREE.Vector3(), p = new THREE.Vector3();
+  const f = (arm) => { A.arm.getWorldPosition(s); A.elbow.getWorldPosition(e); H.wr.g.getWorldPosition(wr); g.copy(H.handle).applyMatrix4(H.wr.g.matrixWorld);
+    let E = 0;
+    for (const [a, b, n, u0] of [[s, e, 10, 0.25], [e, wr, 10, 0], [wr, g, 4, 0]]) for (let i = 0; i <= n; i++) { p.lerpVectors(a, b, u0 + (1 - u0) * i / n);
+      for (const z of zones) { const q = Math.hypot((p.x - z.c.x) / z.r.x, (p.y - z.c.y) / z.r.y, (p.z - z.c.z) / z.r.z); if (q < 1) E += w * (1 - q); } }
+    return E; };
+  return f;
+}
+const mixArm = (a, b, k) => ({ dir: a.dir.map((v, i) => lerp(v, b.dir[i], k)), twist: lerp(a.twist, b.twist, k), elbow: lerp(a.elbow, b.elbow, k), wf: lerp(a.wf || 0, b.wf || 0, k), wd: lerp(a.wd || 0, b.wd || 0, k), wr: lerp(a.wr || 0, b.wr || 0, k), retract: 0, elevate: 0, mix: [a, b, k] });
 
 
 
@@ -361,7 +412,8 @@ async function build(S, cfg) {
   W.mats = [...new Set(meshes.map((m) => m.material))]; W.col0 = W.mats.map((m) => m.color.clone()); W.rough0 = W.mats.map((m) => m.roughness ?? 0.5);
   W.sheen0 = W.mats.map((m) => m.sheen ?? 0); W.coat0 = W.mats.map((m) => m.clearcoat ?? 0);
   // ---- the set
-  makeRoom(scene); makeDesk(scene); W.chair = makeChair(scene); W.hoop = makeHoop(scene); W.case = makeCase(scene); W.gauge = makeGauge(scene);
+  makeRoom(scene); W.desk = makeDesk(scene); W.chair = makeChair(scene); W.hoop = makeHoop(scene); W.case = makeCase(scene); W.gauge = makeGauge(scene);
+  W.auditSolids = [['desk', W.desk]];   // the audit also checks the bones against the desk
   W.clock = makeClock(); W.clock.g.position.set(CLOCKW.x, CLOCKW.y - W.clock.R * CLOCKW.s, CLOCKW.z); W.clock.g.scale.setScalar(CLOCKW.s); scene.add(W.clock.g);
   W.clock.body.rotation.x = 0; W.clock.g.traverse((o) => o.layers.enable(1));
   W.lamp = makeLamp(); W.lamp.g.position.copy(LAMPP); scene.add(W.lamp.g);
@@ -384,15 +436,34 @@ async function build(S, cfg) {
     const zl = top.clone().negate(), xl = new THREE.Vector3().crossVectors(n, zl).normalize();   // phone local axes in the world: +y = n (the screen), -z = top
     const M = new THREE.Matrix4().makeBasis(xl, n, zl); const q = new THREE.Quaternion().setFromRotationMatrix(M);
     const ph = W.phone.g; ph.position.copy(at).addScaledVector(n, -0.004); ph.quaternion.copy(q); ph.updateMatrixWorld(true);
-    const half = 0.0358 + 0.004, sideR = xl.z < 0 ? xl.clone() : xl.clone().negate();   // the skeleton's right is -z
-    const gripR = at.clone().addScaledVector(sideR, half).addScaledVector(n, -0.012), gripL = at.clone().addScaledVector(sideR, -half).addScaledVector(n, -0.012);
-    W.holdR = solveHand(R, 'Right', W.handR, gripR, { dir: [0.2, -0.5, 0.8], twist: 0.6, elbow: 1.7 }, [{ v: W.handR.n, to: sideR.clone().negate(), w: 0.3 }, { v: W.handR.fdir, to: top, w: 0.2 }]);
-    W.holdL = solveHand(R, 'Left', W.handL, gripL, { dir: [0.2, -0.5, 0.8], twist: 0.6, elbow: 1.7 }, [{ v: W.handL.n, to: sideR.clone(), w: 0.3 }, { v: W.handL.fdir, to: top, w: 0.2 }]);
-    poseArm(R.arms.Right, W.holdR); setWrist(W.wristR, W.holdR); poseArm(R.arms.Left, W.holdL); setWrist(W.wristL, W.holdL); W.handR.curl(0.5); W.handL.curl(0.5);
+    // each hand takes a long edge of the lower half: palm against the edge, fingers round onto the back, thumb onto the screen
+    // (its knuckles along the edge); then each finger and thumb closes until it is 3 mm off the phone (the flesh not drawn)
+    const toPh = ph.matrixWorld.clone().invert(), vv = new THREE.Vector3(), sdf = (p) => phoneSDF(vv.copy(p).applyMatrix4(toPh));
+    const qph = ph.getWorldQuaternion(new THREE.Quaternion()), L = (x, y, z) => new THREE.Vector3(x, y, z).applyQuaternion(qph);
+    const grip = (sx) => new THREE.Vector3(sx * (PHONE.W / 2 - 0.012), PHONE.Th / 2 - 0.004, 0.035).applyMatrix4(ph.matrixWorld);
+    const side = (L(1, 0, 0).z < 0) ? 1 : -1;   // which local x is the skeleton's right (-z)
+    // each arm stays on its own side (elbow no more than 6 cm in from its shoulder), clear of the trunk and the head
+    const hb = new THREE.Box3(); for (const m of meshes) if (/frontal bone|parietal bone|occipital bone|temporal bone|maxilla|mandible|zygomatic/i.test(m.userData.name)) hb.expandByObject(m);
+    const zHead = { c: hb.getCenter(new THREE.Vector3()), r: hb.getSize(new THREE.Vector3()).multiplyScalar(0.5).addScalar(0.035) };
+    const e1 = new THREE.Vector3(), s1 = new THREE.Vector3();
+    const own = (A) => { const par = A.girdle.parent; A.elbow.getWorldPosition(e1); A.arm.getWorldPosition(s1); par.worldToLocal(e1); par.worldToLocal(s1); return 2 * Math.max(0, (e1.x - s1.x) * -A.s - 0.06); };
+    const starts = [{ dir: [0.2, -0.5, 0.8], twist: 0.6, elbow: 1.7 }, { dir: [0.35, -0.6, 0.7], twist: 0.3, elbow: 1.5 }, { dir: [0.15, -0.35, 0.9], twist: 0.9, elbow: 1.9 }, { dir: [0.3, -0.7, 0.6], twist: -0.2, elbow: 1.3 }];
+    const one = (Side, H, sx) => { const ko = keepOut(R, Side, H, [zHead]);
+      return solveHand(R, Side, H, grip(sx), starts[0], [{ v: H.n, to: L(-sx, 0, 0), w: 0.3 }, { v: H.fdir, to: L(0, -1, 0), w: 0.2 }],
+        (A) => 2 * handGap(H, sdf, { palmOnly: true }).E + own(A) + ko() + (R.clear ? R.clear.cost(Side) : 0), starts); };
+    W.handR.curl(0.08); W.handL.curl(0.08);
+    W.holdR = one('Right', W.handR, side); W.holdL = one('Left', W.handL, -side);
+    poseArm(R.arms.Right, W.holdR); setWrist(W.wristR, W.holdR); poseArm(R.arms.Left, W.holdL); setWrist(W.wristL, W.holdL);
     R.root.updateMatrixWorld(true);
+    W.gripR = W.handR.fit(sdf, { need: 0.003, kmin: 0.05, kmax: 0.8, tmin: -0.6 }); W.handR.curl(0, W.gripR.per, W.gripR.tk); R.root.updateMatrixWorld(true);
+    { const rp = []; W.wristR.g.traverse((m) => { if (!m.isMesh || !/phalanx|metacarpal/i.test(m.userData.name || '')) return; const P = m.geometry.attributes.position, st = Math.max(1, Math.floor(P.count / 60)); for (let i = 0; i < P.count; i += st) rp.push(new THREE.Vector3().fromBufferAttribute(P, i).applyMatrix4(m.matrixWorld)); });
+      const both = (p) => { let d = sdf(p); for (const q of rp) d = Math.min(d, p.distanceTo(q) - 0.002); return d; };   // the right hand's bones as a solid (2 mm round each surface point)
+      W.gripL = W.handL.fit(both, { need: 0.003, kmin: 0.05, kmax: 0.8, tmin: -0.6 }); }
+    W.handL.curl(0, W.gripL.per, W.gripL.tk);
+    R.root.updateMatrixWorld(true); W.gripCheck = [handGap(W.handR, sdf), handGap(W.handL, sdf)].map((g) => [+(g.worst * 1000).toFixed(1), g.who]);
     W.wristR.g.attach(ph);                         // from here on the phone rides in the right hand
     W.phoneLocal = { p: ph.position.clone(), q: ph.quaternion.clone() };
-    W.holdInfo = { at: at.toArray().map((v) => +v.toFixed(3)), R: W.holdR.dbg, L: W.holdL.dbg }; }
+    W.holdInfo = { at: at.toArray().map((v) => +v.toFixed(3)), R: W.holdR.dbg, L: W.holdL.dbg, gripR: W.gripR, gripL: W.gripL, check: W.gripCheck }; }
   // ---- hands resting on the thighs: solved once sitting up (the exercises) and once sitting back (the new position)
   { const solveRest = (name) => {
       const o = { ...PO[name], rest: 0 }; applyPose(o, 0, true); R.root.updateMatrixWorld(true); const out = {}, dbg = {};
@@ -438,7 +509,7 @@ async function build(S, cfg) {
 // ------------------------------------------------------------------ postures (sitting) and the arms
 // tilt: pelvis, + forward; lum/tho/cer: + flexion; poke: chin forward; hx: hips forward (+ = toward the desk); fx: ankles forward of the hips;
 // rec: the backrest reclines; rise: 0 sitting, 1 standing; arms: hold (phone), rest, squeeze, up
-const P0S = { tilt: 0, lum: 0, tho: 0, cer: 0, poke: 0, side: 0, twist: 0, hx: 0, fx: 0.43, fz: 0, rec: 0, rise: 0, hold: 1, rest: 0, sq: 0, up: 0, tuck: 0, place: 0 };
+const P0S = { tilt: 0, lum: 0, tho: 0, cer: 0, poke: 0, side: 0, twist: 0, hx: 0, fx: 0.43, fz: 0, rec: 0, rise: 0, hold: 1, rest: 0, sq: 0, up: 0, tuck: 0, place: 0, pull: 0 };
 const PO = {
   slouch: { ...P0S, tilt: -0.3, lum: 0.42, tho: 0.34, cer: 0.2, poke: 0.18, hx: 0.06, fx: 0.47 },
   upright: { ...P0S, tilt: 0.12, lum: -0.16, tho: -0.08, cer: -0.08, poke: -0.06, hx: -0.02, fx: 0.4 },
@@ -452,6 +523,7 @@ const PO = {
   look: { ...P0S, tilt: -0.14, lum: 0.2, tho: 0.22, cer: 0.1, poke: 0.04, hx: 0.04, fx: 0.45 },
   calm: { ...P0S, tilt: -0.08, lum: 0.1, tho: 0.12, cer: 0.06, poke: 0.04, hx: 0.03, fx: 0.44 },
   place: { ...P0S, tilt: 0.14, lum: 0.12, tho: 0.14, cer: 0.1, poke: 0.0, hx: 0.0, fx: 0.42, hold: 0, place: 1 },
+  pull: { ...P0S, tilt: 0.06, lum: 0.02, tho: 0.04, cer: 0.02, poke: 0.0, hx: 0.0, fx: 0.42, hold: 0, place: 0, pull: 1 },
   sq: { ...P0S, tilt: 0.06, lum: -0.04, tho: 0.0, cer: -0.04, poke: -0.04, hx: 0.0, fx: 0.42, hold: 0, rest: 1, sq: 1 },
   stand: { ...P0S, tilt: 0.0, lum: -0.02, tho: 0.02, cer: 0.0, hx: 0.0, fx: 0.0, hold: 0, rest: 1, rise: 1 },
   reach: { ...P0S, tilt: 0.0, lum: -0.1, tho: -0.06, cer: -0.1, hx: 0.0, fx: 0.0, hold: 0, up: 1, rise: 1 },
@@ -465,7 +537,7 @@ const SEQ = [
   [T.up - 0.12, 'upright', 0.32, SNAP],                       // "sit up straight": the soldier
   [T.guessing - 0.05, 'slouch', 0.75, MELT],                  // "she was guessing": melts back
   [T.move - 0.15, 'lean', 0.32, SNAP], [T.bend - 0.1, 'fwd', 0.3, SNAP], [T.change - 0.1, 'sideL', 0.3, SNAP],
-  [T.position + 0.1, 'twistR', 0.3, SNAP], [T.all - 0.05, 'tuck', 0.3, SNAP], [T.not - 0.05, 'deep', 0.3, SNAP],
+  [T.position + 0.1, 'twistR', 0.3, SNAP], [T.all - 0.05, 'tuck', 0.3, (u) => outBack(u, 1.2)], [T.not - 0.05, 'deep', 0.3, SNAP],
   [T.freeze - 0.12, 'upright', 0.28, SNAP],                   // "freeze in one perfect pose"
   [T.and1 - 0.3, 'slouch', 0.8, MELT],
   [T.people - 0.2, 'neutral', 0.8, EZ],
@@ -473,7 +545,8 @@ const SEQ = [
   [T.if1 - 0.2, 'look', 0.1, EZ],
   [T.if1 + 0.4, 'calm', 1.6, EZ],                            // the warnings: still
   [T.everyone - 0.05, 'place', 0.45, EZ],
-  [T.strengthen - 0.15, 'sq', 0.4, EZ],
+  [T.everyone + 0.27, 'pull', 0.32, EZ],                      // as it is let go the hands come back over the desk's edge, then go down
+  [T.strengthen + 0.1, 'sq', 0.32, EZ],
   [T.getup + 0.05, 'stand', 1.1, EZ], [T.because2 - 0.1, 'relax', 1.3, EZ],
 ];
 function basePose(t) {
@@ -505,6 +578,7 @@ const ARM_SQB = { dir: [0.2, -0.82, -0.5], twist: 0.6, elbow: 1.65, wf: 0 };    
 const ARM_UP = { dir: [0.18, 1, 0.08], twist: 0.4, elbow: 0.12, wf: 0 };                 // the stretch, overhead
 const ARM_DOWN = { dir: [0.08, -1, 0.05], twist: 0.2, elbow: 0.12, wf: 0 };              // standing, hands by the sides
 const ARM_PLACE = { dir: [0.12, -0.42, 0.9], twist: 0.6, elbow: 0.4, wf: 0.35 };          // reaching to put the phone on the desk
+const ARM_PULL = { dir: [0.18, -0.8, 0.3], twist: 0.5, elbow: 1.9, wf: 0 };              // hands back by the chest, clear of the desk
 function restArm(o, Side) {   // hands resting on the thighs: solved for sitting up and for sitting back; standing, by the sides
   const up = (W.restUp && W.restUp[Side]) || ARM_REST, back = (W.restBack && W.restBack[Side]) || ARM_REST;
   const seated = mixArm(up, back, clamp01((o.rec || 0) / 0.18));
@@ -518,6 +592,7 @@ function armFor(o, Side) {
   let a = H;
   const w = (k) => clamp01(k);
   if (o.place > 0.001) a = mixArm(a, ARM_PLACE, w(o.place));
+  if (o.pull > 0.001) a = mixArm(a, ARM_PULL, w(o.pull));
   if (o.rest > 0.001) a = mixArm(a, restArm(o, Side), w(o.rest));
   const row = clamp01(o.row || 0) * clamp01(o.sq || 0);
   if (row > 0.001) a = mixArm(a, mixArm(ARM_SQ, ARM_SQB, clamp01(o.sqk || 0)), row);
@@ -531,10 +606,16 @@ function applyPose(o, t, quick) {
   bendSpine(R.seg, { lum: o.lum, tho: o.tho, cer: o.cer, side: o.side, twist: o.twist, poke: o.poke });
   for (const Side of ['Right', 'Left']) { const a = armFor(o, Side); poseArm(R.arms[Side], a); setWrist(Side === 'Right' ? W.wristR : W.wristL, a); }
   const hold = clamp01(o.hold), cu = Math.min(0.85, 0.12 + 0.4 * hold + 0.15 * clamp01(o.rest) * (1 - o.rise) + 0.55 * clamp01(o.row || 0) * clamp01(o.sq || 0));
-  W.handR.curl(cu); W.handL.curl(cu);
+  const cu0 = Math.min(0.85, 0.12 + 0.15 * clamp01(o.rest) * (1 - o.rise) + 0.55 * clamp01(o.row || 0) * clamp01(o.sq || 0));   // the same, without the phone
+  const tRel = T.everyone + 0.28, gk = 1 - s5(tRel - 0.25, tRel, t);   // the fingers open as it is let go
+  if (W.gripR && t < tRel + 0.3) { const g = Math.max(s5(0, 1, hold) * (t < tRel - 0.25 ? 1 : 0), gk), after = s5(tRel, tRel + 0.3, t);   // after the phone has gone, any finger may relax
+    const rel = (G) => ({ per: G.per.map((k) => lerp(k, cu0, after)), tk: lerp(G.tk, cu0, after) });
+    gripCurl(W.handR, rel(W.gripR), g, cu0); gripCurl(W.handL, rel(W.gripL), g, cu0); }
+  else { W.handR.curl(cu0); W.handL.curl(cu0); }
+  clearArms(R);   // no arm through the trunk, in any pose or between poses
   // the hips: on the seat (forward by hx), or up over the feet when standing
   const seatX = W.hipX - o.hx, seatY = W.hipY + 0.035 * Math.abs(o.tilt);
-  const footX = W.hipX - 0.43 - 0.02;   // where the feet stand when getting up
+  const footX = W.hipX - 0.35;   // where the feet stand when getting up: back from the desk (the chair rolls back), so knees and hands stay clear of it
   const r = clamp01(o.rise), standX = footX + 0.06, standY = W.legLen - 0.012;
   const lift = Math.sin(Math.PI * r);   // leaning forward as the hips come up
   W.body.position.set(lerp(seatX, standX, s5(0, 1, r)) - 0.05 * lift, lerp(seatY, standY, s5(0.15, 1, r)), 0);
@@ -544,10 +625,10 @@ function applyPose(o, t, quick) {
   // the feet, flat on the floor (tucked back under the seat for "tuck")
   const fx = lerp(lerp(W.hipX - o.fx, W.hipX - 0.2, 0), footX, s5(0, 0.6, r));
   for (const Side of ['Right', 'Left']) {
-    const zs = Side === 'Right' ? -1 : 1, tuckBack = (o.tuck || 0) * (Side === 'Right' ? 0.0 : 0.08);
-    const lift = 0.15 * (o.march || 0) * Math.max(0, Math.sin(o.mph || 0) * (Side === 'Left' ? 1 : -1));
-    const target = new THREE.Vector3(fx + tuckBack - 0.25 * lift, W.ankleH + 0.003 + lift + (o.tuck || 0) * (Side === 'Left' ? 0.05 : 0), zs * (0.11 + 0.015 * (1 - r)));
-    const fq = W.qBody.clone(); if ((o.tuck || 0) > 0 && Side === 'Left') fq.multiply(new THREE.Quaternion().setFromAxisAngle(X, -0.6 * o.tuck));
+    const tk = clamp01(o.tuck || 0), zs = Side === 'Right' ? -1 : 1, tuckBack = tk * (Side === 'Right' ? 0.0 : 0.08);   // the snap overshoots; the tuck may not (the foot would go under the floor)
+    const lift = 0.075 * (o.march || 0) * Math.max(0, Math.sin(o.mph || 0) * (Side === 'Left' ? 1 : -1));   // knees stay under the desk top
+    const target = new THREE.Vector3(fx + tuckBack - 0.25 * lift, W.ankleH + 0.003 + lift + tk * (Side === 'Left' ? 0.05 : 0), zs * (0.11 + 0.015 * (1 - r)));
+    const fq = W.qBody.clone(); if (tk > 0 && Side === 'Left') fq.multiply(new THREE.Quaternion().setFromAxisAngle(X, -0.6 * tk));
     legIK(R, Side, target, fq, FWD);
   }
   W.body.updateMatrixWorld(true);

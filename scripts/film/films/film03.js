@@ -9,7 +9,7 @@
 // "survive". The pedometer, face up on the hill, becomes the logo. The factory stamp runs along the right thigh bone.
 import { THREE, ORANGE, ss, s5, lerp, clamp01, hash, camTrack, phys, glowMat, shadows, spot, RoundedBoxGeometry,
   loadAnatomy, V3, vadd, place, logoEnd, makeFilm, outBack, stamp, labelCanvas, stampLine, noiseTex } from '../kit.js';
-import { buildRig, skeletonKind, walkAt, legIK, bendSpine, poseArm, ARM0, worldVerts, avgV } from '../rig.js';
+import { buildRig, skeletonKind, walkAt, legIK, bendSpine, poseArm, ARM0, worldVerts, avgV, clearArms } from '../rig.js';
 import { makePhone } from '../props.js';
 
 // ------------------------------------------------------------------ a wrist, and hands that can hold (from film 11, on the wrist)
@@ -30,7 +30,7 @@ function rigHand(R, Side, Wr) {
   const mcpI = top(F[0].P), mcpL = top(F[3].P), fdir = bot(F[1].D).sub(top(F[1].P)).normalize();
   const across = mcpL.clone().sub(mcpI); across.sub(fdir.clone().multiplyScalar(across.dot(fdir))).normalize();
   const n = new THREE.Vector3().crossVectors(fdir, across).normalize(); if (n.z < 0) n.negate();
-  const axis = new THREE.Vector3().crossVectors(fdir, n).dot(across) > 0 ? across.clone().negate() : across.clone();
+  const axis = new THREE.Vector3().crossVectors(fdir, n).normalize();   // +angle turns each finger toward the palm (n): the way fingers close
   const joints = [];
   for (const f of F) { const pts = [top(f.P), top(f.M), top(f.D)], gs = []; let parent = eg, pp = EL;
     [f.P, f.M, f.D].forEach((m, i) => { const g = new THREE.Group(); g.position.copy(pts[i]).sub(pp); parent.add(g); m.parent.remove(m); m.position.copy(m.userData.home).sub(pts[i]); g.add(m); gs.push(g); parent = g; pp = pts[i]; }); joints.push(gs); }
@@ -40,14 +40,33 @@ function rigHand(R, Side, Wr) {
   { let parent = eg, pp = EL; [tP, tD].forEach((m, i) => { const g = new THREE.Group(); g.position.copy(tpt[i]).sub(pp); parent.add(g); m.parent.remove(m); m.position.copy(m.userData.home).sub(tpt[i]); g.add(m); tg.push(g); parent = g; pp = tpt[i]; }); }
   const mid = mcpI.clone().add(mcpL).multiplyScalar(0.5);
   const handle = mid.clone().addScaledVector(fdir, 0.03).addScaledVector(n, 0.024).sub(EL);
-  function curl(k) {
-    joints.forEach((gs, i) => { const s = 1 + 0.06 * i; gs[0].quaternion.setFromAxisAngle(axis, 1.25 * k * s); gs[1].quaternion.setFromAxisAngle(axis, 1.5 * k * s); gs[2].quaternion.setFromAxisAngle(axis, 0.95 * k * s); });
-    tg[0].quaternion.setFromAxisAngle(taxis, 0.55 * k); tg[1].quaternion.setFromAxisAngle(taxis, 0.7 * k);
+  // prof: how a finger shares its closing between knuckle, middle and end joint (a fist by default; a hand flat on a
+  // phone's back that wraps its far edge bends mostly at the middle joints)
+  const PROF = [1.25, 1.5, 0.95];
+  const setF = (gs, kk, s, pr) => { gs[0].quaternion.setFromAxisAngle(axis, pr[0] * kk * s); gs[1].quaternion.setFromAxisAngle(axis, pr[1] * kk * s); gs[2].quaternion.setFromAxisAngle(axis, pr[2] * kk * s); };
+  function curl(k, per = null, tk = null, prof = PROF) {   // per: each finger's own closing [index, middle, ring, little]; tk: the thumb's
+    joints.forEach((gs, i) => setF(gs, per ? per[i] : k, 1 + 0.06 * i, prof));
+    const t = tk ?? k; tg[0].quaternion.setFromAxisAngle(taxis, 0.55 * t); tg[1].quaternion.setFromAxisAngle(taxis, 0.7 * t);
+  }
+  // close each finger (and the thumb) on an object until it is `need` off it: sdf(world point) is the distance to the object
+  // (+ outside). Returns { per, tk } for curl(); a finger that never meets it closes to kmax
+  function fit(sdf, { need = 0.003, kmin = 0.05, kmax = 0.95, prof = PROF, tmin = kmin } = {}) {   // tmin < 0 lets the thumb stand off, away from the palm
+    const v = new THREE.Vector3(), samp = (ms) => ms.map((m) => { const P = m.geometry.attributes.position, st = Math.max(1, Math.floor(P.count / 200)), pts = []; for (let i = 0; i < P.count; i += st) pts.push(new THREE.Vector3().fromBufferAttribute(P, i)); return { m, pts }; });
+    const gap = (S) => { eg.updateMatrixWorld(true); let g = 9; for (const { m, pts } of S) for (const p of pts) g = Math.min(g, sdf(v.copy(p).applyMatrix4(m.matrixWorld))); return g; };
+    // the first contact on the way from open to closed (a finger can pass an object's edge and curl clear of it again,
+    // so the whole sweep is scanned, then the contact is found finely)
+    const search = (S, set, k0 = kmin) => { set(k0); if (gap(S) < need) return k0; let lo = k0, hi = null;
+      for (let j = 1; j <= 24; j++) { const k = k0 + (kmax - k0) * (j / 24); set(k); if (gap(S) < need) { hi = k; break; } lo = k; }
+      if (hi === null) return kmax;
+      for (let j = 0; j < 12; j++) { const m = (lo + hi) / 2; set(m); if (gap(S) >= need) lo = m; else hi = m; } set(lo); return lo; };
+    const per = joints.map((gs, i) => search(samp(gs.map((g) => g.children.find((c) => c.isMesh)).filter(Boolean)), (kk) => setF(gs, kk, 1 + 0.06 * i, prof)));
+    const tk = search(samp(tg.map((g) => g.children.find((c) => c.isMesh)).filter(Boolean)), (kk) => { tg[0].quaternion.setFromAxisAngle(taxis, 0.55 * kk); tg[1].quaternion.setFromAxisAngle(taxis, 0.7 * kk); }, tmin);
+    return { per, tk };
   }
   const hand = new THREE.Vector3().crossVectors(fdir, across).dot(n) > 0 ? 1 : -1;   // n = hand * (fdir x across)
-  return { curl, handle, across: across.clone(), n: n.clone(), fdir: fdir.clone(), eg, hand };
+  return { curl, fit, handle, across: across.clone(), n: n.clone(), fdir: fdir.clone(), eg, hand };
 }
-function solveHand(R, Side, H, at, init, aims = [], extra = null) {   // an arm and wrist pose that puts the hand's grip at a world point, with hand directions (local v) turned toward world ones; extra(A) adds a posture cost
+function solveHand(R, Side, H, at, init, aims = [], extra = null, starts = null) {   // starts: other initial poses to try (default: a spread for a standing body)   // an arm and wrist pose that puts the hand's grip at a world point, with hand directions (local v) turned toward world ones; extra(A) adds a posture cost
   R.root.updateMatrixWorld(true);
   const A = R.arms[Side], Wr = H.wr, h = new THREE.Vector3(), q = new THREE.Quaternion(), pn = new THREE.Vector3();
   const err = (p) => { poseArm(A, p); setWrist(Wr, p); A.girdle.updateMatrixWorld(true); h.copy(H.handle).applyMatrix4(Wr.g.matrixWorld); let E = h.distanceTo(at);
@@ -67,13 +86,44 @@ function solveHand(R, Side, H, at, init, aims = [], extra = null) {   // an arm 
     return { best, bestE };
   };
   let out = descend(init);
-  for (const dir of [[0.6, 0.8, 0.2], [0.35, 0.7, 0.45], [0.9, 0.35, 0.1], [0.5, 0.5, -0.3], [0.2, -0.2, 0.9]]) for (const twist of [-1.2, -0.4, 0.4, 1.2]) for (const elbow of [1.3, 1.9, 2.4]) {
-    if (out.bestE < 0.004) break; const r = descend({ dir, twist, elbow }); if (r.bestE < out.bestE) out = r; }
+  const tries = starts || [[0.6, 0.8, 0.2], [0.35, 0.7, 0.45], [0.9, 0.35, 0.1], [0.5, 0.5, -0.3], [0.2, -0.2, 0.9]].flatMap((dir) => [-1.2, -0.4, 0.4, 1.2].flatMap((twist) => [1.3, 1.9, 2.4].map((elbow) => ({ dir, twist, elbow }))));
+  for (const st of tries) { if (out.bestE < 0.004) break; const r = descend(st); if (r.bestE < out.bestE) out = r; }
   poseArm(A, out.best); setWrist(Wr, out.best); A.girdle.updateMatrixWorld(true); h.copy(H.handle).applyMatrix4(Wr.g.matrixWorld); Wr.g.getWorldQuaternion(q);
   const dbg = { pos: +h.distanceTo(at).toFixed(4), dots: aims.map((a) => +pn.copy(a.v).applyQuaternion(q).dot(a.to).toFixed(3)), at: at.toArray().map((v) => +v.toFixed(3)) };
   return { ...out.best, err: out.bestE, dbg };
 }
-const mixArm = (a, b, k) => ({ dir: a.dir.map((v, i) => lerp(v, b.dir[i], k)), twist: lerp(a.twist, b.twist, k), elbow: lerp(a.elbow, b.elbow, k), wf: lerp(a.wf || 0, b.wf || 0, k), wd: lerp(a.wd || 0, b.wd || 0, k), wr: lerp(a.wr || 0, b.wr || 0, k), retract: 0, elevate: 0 });
+const FIST = [1.25, 1.5, 0.95], FLAT_WRAP = [0.35, 1.6, 1.25];   // how the fingers close: a fist; flat on a phone's back, bent round its edge
+// a hand closing on what it holds: each finger goes from `base` toward its fitted closing, and never further in than that fit
+// while the object is there (a finger more closed than its fit would be inside the object)
+function gripCurl(H, G, g, base, prof) { H.curl(0, G.per.map((k) => lerp(Math.min(base, k), k, g)), lerp(Math.min(base, G.tk), G.tk, g), prof); }
+// the phone (props.js makePhone): a rounded box, its long edges rounded to half its thickness; local y = 0 is the back, Th the
+// screen. Signed distance from a point in the phone's own frame (+ outside)
+const PHONE = { W: 0.0716, L: 0.1476, Th: 0.0078 };
+function phoneSDF(p) {
+  const r = PHONE.Th / 2, qx = Math.abs(p.x) - (PHONE.W / 2 - r), qy = Math.abs(p.y - PHONE.Th / 2) - (PHONE.Th / 2 - r), qz = Math.abs(p.z) - (PHONE.L / 2 - r);
+  return Math.hypot(Math.max(qx, 0), Math.max(qy, 0), Math.max(qz, 0)) + Math.min(Math.max(qx, qy, qz), 0) - r;
+}
+// how far a hand's bones come inside their gap round an object (sdf: world point -> distance, + outside): fingers `finger`,
+// palm and wrist `palm` (the flesh that is not drawn). palmOnly skips the fingers (they are closed on the object after)
+function handGap(H, sdf, { palm = 0.006, finger = 0.003, palmOnly = false } = {}) {
+  if (!H._gapPts) { H._gapPts = []; H.wr.g.traverse((m) => { if (!m.isMesh) return; const P = m.geometry.attributes.position, st = Math.max(1, Math.floor(P.count / 40)), fing = /phalanx/i.test(m.userData.name);
+    for (let i = 0; i < P.count; i += st) H._gapPts.push({ m, p: new THREE.Vector3().fromBufferAttribute(P, i), fing }); }); }
+  const v = new THREE.Vector3(); let E = 0, worst = 0, who = '';
+  for (const q of H._gapPts) { if (palmOnly && q.fing) continue; const d = (q.fing ? finger : palm) - sdf(v.copy(q.p).applyMatrix4(q.m.matrixWorld)); if (d > 0) { E += d; if (d > worst) { worst = d; who = q.m.userData.name; } } }
+  return { E, worst, who };
+}
+// a posture cost that keeps an arm out of ellipsoids (world centre c, semi-axes r, the bone's own thickness included):
+// samples the upper arm (from a quarter of the way down, the shoulder itself sits where it sits), the forearm and the hand
+function keepOut(R, Side, H, zones, w = 3) {
+  const A = R.arms[Side], s = new THREE.Vector3(), e = new THREE.Vector3(), wr = new THREE.Vector3(), g = new THREE.Vector3(), p = new THREE.Vector3();
+  const f = (arm) => { A.arm.getWorldPosition(s); A.elbow.getWorldPosition(e); H.wr.g.getWorldPosition(wr); g.copy(H.handle).applyMatrix4(H.wr.g.matrixWorld);
+    let E = 0;
+    for (const [a, b, n, u0] of [[s, e, 10, 0.25], [e, wr, 10, 0], [wr, g, 4, 0]]) for (let i = 0; i <= n; i++) { p.lerpVectors(a, b, u0 + (1 - u0) * i / n);
+      for (const z of zones) { const q = Math.hypot((p.x - z.c.x) / z.r.x, (p.y - z.c.y) / z.r.y, (p.z - z.c.z) / z.r.z); if (q < 1) E += w * (1 - q); } }
+    return E; };
+  return f;
+}
+const mixArm = (a, b, k) => ({ dir: a.dir.map((v, i) => lerp(v, b.dir[i], k)), twist: lerp(a.twist, b.twist, k), elbow: lerp(a.elbow, b.elbow, k), wf: lerp(a.wf || 0, b.wf || 0, k), wd: lerp(a.wd || 0, b.wd || 0, k), wr: lerp(a.wr || 0, b.wr || 0, k), retract: 0, elevate: 0, mix: [a, b, k] });
 
 
 
@@ -168,12 +218,13 @@ function pedometerFace(c, count, logoK) {
 }
 
 // the carrot: a headband, a rod forward over the face, a string, and a card: 10,000 on the front, SLOGAN on the back
-function makeCarrot() {
+function makeCarrot(fit) {   // fit: the band's path round the skull and where the post stands on it (the carrot's own frame)
   const g = new THREE.Group();
-  const band = new THREE.Mesh(new THREE.TorusGeometry(0.085, 0.009, 12, 64), phys({ color: 0xc23b2c, roughness: 0.7, sheen: 0.4 }));
-  band.rotation.x = Math.PI / 2; band.scale.set(1, 1.2, 1); g.add(band);
+  const band = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(fit.band, true), 160, 0.009, 12, true), phys({ color: 0xc23b2c, roughness: 0.7, sheen: 0.4 }));
+  g.add(band);
   const rodM = phys({ color: 0x8a6a45, roughness: 0.5, clearcoat: 0.3 });
-  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.01, 0.05, 16), rodM); base.position.set(0, 0.03, 0.03); g.add(base);
+  const bh = 0.055 - fit.postY;   // the post: from the skull's surface up to where the rod starts
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.008, 0.01, bh, 16), rodM); base.position.set(0, fit.postY + bh / 2, 0.03); g.add(base);
   const curve = new THREE.CatmullRomCurve3([V3(0, 0.05, 0.03), V3(0, 0.13, 0.12), V3(0, 0.15, 0.3), V3(0, 0.12, 0.44)].map((a) => new THREE.Vector3(...a)));
   const rod = new THREE.Mesh(new THREE.TubeGeometry(curve, 48, 0.0045, 10, false), rodM); g.add(rod);
   const tip = new THREE.Vector3(0, 0.12, 0.44);
@@ -221,13 +272,15 @@ function makeBag() {
   const paper = phys({ color: 0xb98a55, roughness: 0.9 });
   const bw = 0.24, bd = 0.13, bh = 0.3;
   const body = new THREE.Mesh(new THREE.BoxGeometry(bw, bh, bd), paper); body.position.y = -0.1 - bh / 2; g.add(body);
-  const rope = new THREE.MeshStandardMaterial({ color: 0xe9dfc8, roughness: 0.9 });
+  const rope = new THREE.MeshStandardMaterial({ color: 0xe9dfc8, roughness: 0.9 }), ropes = [];
   for (const s of [-1, 1]) { const c = new THREE.CatmullRomCurve3([new THREE.Vector3(-0.05, -0.1, s * bd / 2), new THREE.Vector3(-0.02, 0.0, s * 0.01), new THREE.Vector3(0.02, 0.0, s * 0.01), new THREE.Vector3(0.05, -0.1, s * bd / 2)]);
-    g.add(new THREE.Mesh(new THREE.TubeGeometry(c, 20, 0.004, 6, false), rope)); }
+    g.add(new THREE.Mesh(new THREE.TubeGeometry(c, 20, 0.004, 6, false), rope)); ropes.push(c.getSpacedPoints(80)); }
   const greens = phys({ color: 0x3f7a3a, roughness: 0.7 });
-  const leek = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.016, 0.22, 10), greens); leek.position.set(0.05, -0.08, 0.02); leek.rotation.z = -0.25; g.add(leek);
+  const leek = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.016, 0.22, 10), greens); leek.position.set(0.06, -0.14, 0.02); leek.rotation.z = -0.25; g.add(leek);
   shadows(g);
-  return { g };
+  // distance from a point (the bag's own frame) to the rope handles' surface
+  const ropeSDF = (p) => { let d = 9; for (const pts of ropes) for (let i = 0; i + 1 < pts.length; i++) { const a = pts[i], b = pts[i + 1], ab = b.clone().sub(a), t = clamp01(p.clone().sub(a).dot(ab) / ab.lengthSq()); d = Math.min(d, p.distanceTo(a.clone().addScaledVector(ab, t))); } return d - 0.004; };
+  return { g, ropeSDF };
 }
 
 async function build(S, cfg) {
@@ -238,6 +291,7 @@ async function build(S, cfg) {
   // ---- the skeleton, its brain, its hands
   const meshes = await loadAnatomy(skeletonKind(brainKind));
   const R = W.rig = buildRig(meshes); scene.add(R.root);
+  R.ground = (x, z) => (Math.abs(x) <= 0.45 && z >= -0.3 && z <= Z_END ? hill(z) : 0);   // the hill's top where the slab is, the floor beside it
   for (const m of meshes) { m.castShadow = true; m.receiveShadow = true; m.layers.enable(1); }
   W.brain = meshes.filter((m) => m.userData.tissue === 'brain');
   for (const m of W.brain) { m.material.transparent = true; m.material.opacity = 0; m.visible = false; m.castShadow = false; m.material.emissive.set(0xffb27a); }
@@ -275,9 +329,19 @@ async function build(S, cfg) {
     const vs = parts.flatMap((m) => worldVerts(m, 3)); let ymax = -9; for (const v of vs) ymax = Math.max(ymax, v.y);
     const crown = avgV(vs.filter((v) => v.y > ymax - 0.05));
     const atlas = R.seg.Atlas.g; R.root.updateMatrixWorld(true);
-    W.carrot = makeCarrot(); atlas.add(W.carrot.g);
-    W.carrot.g.position.copy(atlas.worldToLocal(crown.clone().add(new THREE.Vector3(0, -0.035, 0.0))));
-    W.carrot.g.traverse((o) => o.layers.enable(1)); W.crownInfo = crown.toArray().map((v) => +v.toFixed(3)); }
+    // the band: round the skull 3.5 cm under the crown, 1.5 mm off the widest bone across its own thickness
+    const skull = ['Frontal bone', 'Right parietal bone', 'Left parietal bone', 'Occipital bone', 'Right temporal bone', 'Left temporal bone', 'Sphenoid bone']
+      .map((n) => R.byName.get(n)).filter(Boolean).flatMap((m) => worldVerts(m, 1));
+    const yb = crown.y - 0.035, ring = skull.filter((v) => Math.abs(v.y - yb) < 0.011);
+    const c = avgV(ring), NB = 96, rad = new Array(NB).fill(0);
+    for (const v of ring) { const a = Math.atan2(v.z - c.z, v.x - c.x), k = ((Math.round((a / (2 * Math.PI)) * NB) % NB) + NB) % NB; rad[k] = Math.max(rad[k], Math.hypot(v.x - c.x, v.z - c.z)); }
+    const r2 = rad.map((_, k) => Math.max(rad[(k + NB - 1) % NB], rad[k], rad[(k + 1) % NB]));   // the widest of each bin and its neighbours
+    const band = r2.map((r, k) => { const a = (k / NB) * 2 * Math.PI, R0 = r + 0.009 + 0.0015; return new THREE.Vector3(R0 * Math.cos(a), 0, R0 * Math.sin(a)); });
+    // the post stands on the skull: the highest bone under its foot (1.5 mm off)
+    const px = c.x, pz = c.z + 0.03; let top = -9; for (const v of skull) if (Math.hypot(v.x - px, v.z - pz) < 0.011) top = Math.max(top, v.y);
+    W.carrot = makeCarrot({ band, postY: top - yb + 0.0015 }); atlas.add(W.carrot.g);
+    W.carrot.g.position.copy(atlas.worldToLocal(new THREE.Vector3(c.x, yb, c.z)));
+    W.carrot.g.traverse((o) => o.layers.enable(1)); W.carHome = W.carrot.g.position.clone(); W.crownInfo = crown.toArray().map((v) => +v.toFixed(3)); }
   // ---- the hill: a dark slab whose top is the curve, a white line along its edge, ticks every thousand steps
   const N = 300, zs = [], slab = new THREE.Shape();
   for (let i = 0; i <= N; i++) zs.push(-0.3 + (Z_END + 0.3) * (i / N));
@@ -334,31 +398,72 @@ async function build(S, cfg) {
   // ---- the phone call at the top: the right hand solved to the right ear, the phone between them
   applyBody(T.phone + 0.6, { noProps: true }); R.root.updateMatrixWorld(true);
   { const tbm = R.byName.get('Right temporal bone'), tb = avgV(posedVerts(tbm, 3));
-    const head = R.seg.Atlas.g.getWorldPosition(new THREE.Vector3());
+    const head = R.seg.Atlas.g.getWorldPosition(new THREE.Vector3()), qh = R.seg.Atlas.g.getWorldQuaternion(new THREE.Quaternion());
     const out = tb.clone().sub(head).setY(0).normalize();               // from the head out through the right ear
-    const ear = tb.clone().addScaledVector(out, 0.03).add(new THREE.Vector3(0, -0.01, 0.01));
-    const e1 = new THREE.Vector3(), s1 = new THREE.Vector3();   // a natural call: the elbow down and in front, not out to the side
+    const fwd = new THREE.Vector3(0, 0, 1).applyQuaternion(qh).setY(0).normalize(), up = new THREE.Vector3(0, 1, 0);
+    // the phone against the ear: screen in, its top behind and above the ear, the bottom toward the mouth (25 degrees), 9 mm
+    // off the nearest bone (the ear and the skin are not drawn)
+    const top = up.clone().multiplyScalar(Math.cos(0.44)).addScaledVector(fwd, -Math.sin(0.44)), inward = out.clone().negate();
+    top.addScaledVector(inward, -top.dot(inward)).normalize();
+    const side = new THREE.Vector3().crossVectors(inward, top.clone().negate()).normalize();   // local x, so that x, y (in), z (down) is right-handed
+    const qph = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(side, inward, top.clone().negate()));
+    const headPts = []; R.seg.Atlas.g.traverse((m) => { if (!m.isMesh || !['bone', 'tooth', 'cartilage'].includes(m.userData.tissue)) return; m.updateMatrixWorld(true); const P = m.geometry.attributes.position, st = Math.max(1, Math.floor(P.count / 600)); for (let i = 0; i < P.count; i += st) headPts.push(new THREE.Vector3().fromBufferAttribute(P, i).applyMatrix4(m.matrixWorld)); });
+    const ear = tb.clone().addScaledVector(top, -0.035), M = new THREE.Matrix4(), v = new THREE.Vector3(), one = new THREE.Vector3(1, 1, 1);
+    const at = (d) => ear.clone().addScaledVector(out, d).addScaledVector(inward, PHONE.Th);   // the screen face d out from the ear point
+    const clear = (d) => { M.compose(at(d), qph, one).invert(); let mn = 9; for (const p of headPts) mn = Math.min(mn, phoneSDF(v.copy(p).applyMatrix4(M))); return mn; };
+    let lo = -0.03, hi = 0.12; for (let i = 0; i < 30; i++) { const m = (lo + hi) / 2; if (clear(m) >= 0.009) hi = m; else lo = m; }
+    const ph = W.phone.g; ph.position.copy(at(hi)); ph.quaternion.copy(qph); ph.updateMatrixWorld(true);
+    const toPh = ph.matrixWorld.clone().invert(), sdf = (p) => phoneSDF(v.copy(p).applyMatrix4(toPh));
+    // the hand: palm on the back, fingers up along it (the way a phone is held to the ear); the elbow down and in front
+    const H = W.handR;
+    const target = new THREE.Vector3(0, 0.011, 0.02).applyMatrix4(ph.matrixWorld);   // the grip point (phone local): palm ~13 mm off the back, low on it
+    const e1 = new THREE.Vector3(), s1 = new THREE.Vector3();
     const posture = (A) => { A.elbow.getWorldPosition(e1); A.arm.getWorldPosition(s1); return 2 * Math.max(0, e1.y - (s1.y - 0.06)) + 2 * Math.max(0, Math.abs(e1.x - s1.x) - 0.18); };
-    W.callR = solveHand(R, 'Right', W.handR, ear.clone().addScaledVector(out, 0.03), { dir: [0.3, -0.3, 0.9], twist: 0.6, elbow: 2.4 },
-      [{ v: W.handR.n, to: out.clone().negate(), w: 0.35 }, { v: W.handR.fdir, to: new THREE.Vector3(0, 1, 0.2).normalize(), w: 0.25 }], posture);
-    poseArm(R.arms.Right, W.callR); setWrist(W.wristR, W.callR); W.handR.curl(0.55); R.root.updateMatrixWorld(true);
-    const inward = out.clone().negate(), side = new THREE.Vector3().crossVectors(inward, new THREE.Vector3(0, 1, 0)).normalize();
-    const ph = W.phone.g; ph.position.copy(ear); ph.quaternion.setFromRotationMatrix(new THREE.Matrix4().makeBasis(side, inward, new THREE.Vector3(0, -1, 0)));
-    ph.updateMatrixWorld(true); W.wristR.g.attach(ph);
-    W.callInfo = W.callR.dbg; }
+    H.curl(0.08, null, -0.4, FLAT_WRAP);   // fingers nearly straight, thumb out: all of them kept off the phone while the arm is solved
+    W.callR = solveHand(R, 'Right', H, target, { dir: [0.3, -0.3, 0.9], twist: 0.6, elbow: 2.4 },
+      [{ v: H.n, to: inward.clone(), w: 0.3 }, { v: H.fdir, to: top.clone(), w: 0.2 }], (A) => posture(A) + 2 * handGap(H, sdf).E,
+      [{ dir: [0.3, -0.3, 0.9], twist: 0.6, elbow: 2.4 }, { dir: [0.5, -0.2, 0.8], twist: 0.2, elbow: 2.3 }, { dir: [0.2, -0.5, 0.8], twist: 1.0, elbow: 2.5 }]);
+    poseArm(R.arms.Right, W.callR); setWrist(W.wristR, W.callR); R.root.updateMatrixWorld(true);
+    W.callGrip = H.fit(sdf, { need: 0.003, kmin: 0.05, kmax: 0.95, prof: FLAT_WRAP, tmin: -0.8 }); H.curl(0, W.callGrip.per, W.callGrip.tk, FLAT_WRAP); R.root.updateMatrixWorld(true);
+    W.wristR.g.attach(ph);
+    const chk = handGap(H, sdf); H.curl(0.2);
+    W.callInfo = { dbg: W.callR.dbg, off: +hi.toFixed(4), grip: W.callGrip, worst: +(chk.worst * 1000).toFixed(1), who: chk.who }; }
   // ---- where the pedometer and the carrot are when they let go, read now so any frame can be drawn alone
   { applyBody(T.anything - 0.25, { noProps: true }); R.root.updateMatrixWorld(true);
     W.pedRelP = W.ped.getWorldPosition(new THREE.Vector3()); W.pedRelQ = W.ped.getWorldQuaternion(new THREE.Quaternion());
     const zl = W.pedRelP.z + 0.16, xl = -0.3;
-    W.pedLandP = new THREE.Vector3(xl, hill(zl) + 0.0068, zl);
-    W.pedLandQ = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0)));   // face up, 12 o'clock toward +x
-    applyBody(T.need - 0.05, { noProps: true }); R.root.updateMatrixWorld(true);
-    W.carRelP = W.carrot.g.getWorldPosition(new THREE.Vector3()); W.carRelQ = W.carrot.g.getWorldQuaternion(new THREE.Quaternion()); }
+    // face up (12 o'clock toward +x), lying with the slope, its lowest point 1.5 mm off the hill
+    W.pedLandQ = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -slopeOf(zl)).multiply(new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3(0, 0, 1), new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 1, 0))));
+    { const P = W.ped, keep = P.parent, kp = P.position.clone(), kq = P.quaternion.clone(); scene.add(P); P.position.set(xl, hill(zl), zl); P.quaternion.copy(W.pedLandQ); P.updateMatrixWorld(true);
+      let mn = 9; const v = new THREE.Vector3(); P.traverse((o) => { if (!o.isMesh) return; const G = o.geometry.attributes.position; for (let i = 0; i < G.count; i++) { v.fromBufferAttribute(G, i).applyMatrix4(o.matrixWorld); mn = Math.min(mn, v.y - R.ground(v.x, v.z)); } });
+      W.pedLandP = new THREE.Vector3(xl, hill(zl) - mn + 0.0015, zl); keep.add(P); P.position.copy(kp); P.quaternion.copy(kq); }
+    applyBody(CAR.tr, { noProps: true }); carrotOnHead(CAR.tr); R.root.updateMatrixWorld(true);
+    W.carRelP = W.carrot.g.getWorldPosition(new THREE.Vector3()); W.carRelQ = W.carrot.g.getWorldQuaternion(new THREE.Quaternion());
+    // where it comes to rest: on the floor beside the hill, band flat, rod pointing away from the path, the card's edge on the floor
+    const C = W.carrot, keep = C.g.parent; scene.add(C.g); C.g.position.set(0, 0, 0); C.g.quaternion.copy(CAR.lq); C.spin.rotation.y = Math.PI; C.swing.rotation.set(0, 0, 0);
+    const lowOf = (root, skip) => { root.updateMatrixWorld(true); let mn = 9; root.traverse((o) => { if (!o.isMesh || (skip && isUnder(o, skip))) return; const P = o.geometry.attributes.position, v = new THREE.Vector3(); for (let i = 0; i < P.count; i += 2) mn = Math.min(mn, v.fromBufferAttribute(P, i).applyMatrix4(o.matrixWorld).y); }); return mn; };
+    const isUnder = (o, a) => { for (let p = o; p; p = p.parent) if (p === a) return true; return false; };
+    const y0 = -lowOf(C.g, C.swing) + 0.002;
+    C.g.position.set(CAR.x, y0, W.carRelP.z + 0.2);
+    let lo = 0, hi = Math.PI / 2; for (let i = 0; i < 24; i++) { const m = (lo + hi) / 2; C.swing.rotation.set(-m, 0, 0); if (lowOf(C.swing) < 0.002) lo = m; else hi = m; }
+    W.carLand = { p: C.g.position.clone(), q: CAR.lq.clone(), swing: hi };
+    keep.add(C.g); C.g.position.copy(W.carHome); C.g.quaternion.identity(); C.swing.rotation.set(0, 0, 0); }
   { applyBody(T.owe + 0.6, { noProps: true }); R.root.updateMatrixWorld(true);
     const pw = W.ped.getWorldPosition(new THREE.Vector3());
+    // the pedometer as a solid (its own frame: a disc 26 mm round, 13 mm thick along z), for the hand to close on it
+    const toPed = W.ped.matrixWorld.clone().invert(), vp = new THREE.Vector3();
+    const pedSDF = (p) => { vp.copy(p).applyMatrix4(toPed); const dr = Math.hypot(vp.x, vp.y) - 0.026, dz = Math.abs(vp.z) - 0.0065; return Math.hypot(Math.max(dr, 0), Math.max(dz, 0)) + Math.min(Math.max(dr, dz), 0); };
+    W.handR.curl(0.15);
     W.unclipR = solveHand(R, 'Right', W.handR, pw.clone().add(new THREE.Vector3(-0.012, 0.004, 0.028)), { dir: [0.1, -0.7, 0.5], twist: 0.6, elbow: 1.5 },
-      [{ v: W.handR.n, to: new THREE.Vector3(0.2, 0, -1).normalize(), w: 0.3 }, { v: W.handR.fdir, to: new THREE.Vector3(0, -0.7, -0.3).normalize(), w: 0.2 }]);
+      [{ v: W.handR.n, to: new THREE.Vector3(0.2, 0, -1).normalize(), w: 0.3 }, { v: W.handR.fdir, to: new THREE.Vector3(0, -0.7, -0.3).normalize(), w: 0.2 }],
+      () => (R.clear ? R.clear.cost('Right') : 0) + 2 * handGap(W.handR, pedSDF, { palmOnly: true }).E);   // clear of the ribs, the palm off the dial
+    poseArm(R.arms.Right, W.unclipR); setWrist(W.wristR, W.unclipR); R.root.updateMatrixWorld(true);
+    W.unclipGrip = W.handR.fit(pedSDF, { need: 0.002, kmin: 0.05, kmax: 0.9, tmin: -0.6 }); W.handR.curl(0.2);
     W.unclipInfo = W.unclipR.dbg; }
+  // the bag's rope handles in the left hand: each finger closes on them
+  { applyBody(T.shop + 1.2); R.root.updateMatrixWorld(true);
+    const bp = bagPose(T.shop + 1.2), toBag = new THREE.Matrix4().compose(bp.p, bp.q, new THREE.Vector3(1, 1, 1)).invert(), vb = new THREE.Vector3();
+    W.bagGrip = W.handL.fit((p) => W.bag.ropeSDF(vb.copy(p).applyMatrix4(toBag)), { need: 0.002, kmin: 0.05, kmax: 0.9, tmin: -0.6 }); W.handL.curl(0.2); }
   applyBody(0, { noProps: true });
   buildTracks();
   return { stride: STRIDE, P0: R.P0.toArray(), stamp: W.stampSpot, call: W.callInfo, unclip: W.unclipInfo, crown: W.crownInfo, pedLand: W.pedLandP.toArray().map((v) => +v.toFixed(3)) };
@@ -407,7 +512,7 @@ function bodyAt(t) {
       const a = w.feet[Side], b = st.feet[Side], lift = a.stance ? 0 : 0.035 * Math.sin(Math.PI * k);
       a.ankle.lerp(b.ankle, k); a.ankle.y += lift; a.q.slerp(b.q, k);
     }
-    const mix = (x, y) => ({ dir: x.dir.map((v, i) => lerp(v, y.dir[i], k)), twist: lerp(x.twist || 0, 0, k), elbow: lerp(x.elbow, y.elbow, k), retract: 0, elevate: 0 });
+    const mix = (x, y) => ({ dir: x.dir.map((v, i) => lerp(v, y.dir[i], k)), twist: lerp(x.twist || 0, 0, k), elbow: lerp(x.elbow, y.elbow, k), retract: 0, elevate: 0, mix: [x, y, k] });
     w.armR = mix(w.armR, ARM0); w.armL = mix(w.armL, ARM0); w.twist *= 1 - k;
   }
   return w;
@@ -426,7 +531,12 @@ function applyBody(t, extra = {}) {
   if (call > 0) aR = mixArm(aR, W.callR, call);
   if (bag > 0) aL = mixArm(aL, ARM_BAG, bag);
   poseArm(R.arms.Right, aR); setWrist(W.wristR, aR); poseArm(R.arms.Left, aL); setWrist(W.wristL, aL);
-  W.handR.curl(0.2 + 0.35 * call + 0.3 * un); W.handL.curl(0.2 + 0.45 * bag);
+  { const U = W.unclipGrip, tr = T.anything - 0.25, ug = un * (1 - s5(tr - 0.2, tr, t));   // the fingers open just before it is let go
+    const b0 = 0.2, G = W.callGrip;
+    if (U && ug > 0) gripCurl(W.handR, U, ug, b0);
+    else if (G && call > 0) gripCurl(W.handR, G, call, b0, FIST.map((f, j) => lerp(f, FLAT_WRAP[j], call))); else W.handR.curl(b0);
+    const B = W.bagGrip, bg = bag * (1 - s5(T.final - 0.25, T.final + 0.05, t)); if (B && bg > 0) gripCurl(W.handL, B, bg, 0.2); else W.handL.curl(0.2); }
+  clearArms(R);   // no arm through the trunk, in any pose or between poses
   for (const Side of ['Right', 'Left']) legIK(R, Side, b.feet[Side].ankle, b.feet[Side].q);
   R.root.updateMatrixWorld(true);
   return b;
@@ -534,6 +644,23 @@ function fallAt(t, t0, P0, Q0, P1, Q1, h = 0.1) {   // let go at t0, drop under 
   const q = Q0.clone().slerp(Q1, s5(0, 1, clamp01((t - t0) / (tf + 0.12))));
   return { p, q };
 }
+// the bag hangs from the left hand's grip, its rope handles along the hand's knuckles (through the closed fingers); it
+// grows in and shrinks away about its own middle, so the handles never pass through the hand
+const BAG_MID = 0.25;
+function bagPose(t) {
+  const s = s5(T.shop - 0.35, T.shop - 0.05, t) * (1 - s5(T.final - 0.2, T.final + 0.3, t));
+  const W2 = W.wristL.g, hp = W.handL.handle.clone().applyMatrix4(W2.matrixWorld), a = W.handL.across.clone().applyQuaternion(W2.getWorldQuaternion(new THREE.Quaternion()));
+  const q = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.05 * Math.sin(t * 3), Math.atan2(-a.z, a.x), 0, 'YXZ'));
+  return { s, q, p: hp.add(new THREE.Vector3(0, -BAG_MID * (1 - s), 0)) };
+}
+// the carrot comes off on "need": it pops up off the crown, tipping to its right, then falls beside the hill
+const CAR = { td: T.need - 0.05, tr: T.need + 0.11, x: -0.85, lq: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), -Math.PI / 2) };
+function carrotOnHead(t) {
+  const C = W.carrot, a = R_ATLAS(); if (C.g.parent !== a) a.add(C.g);
+  const k = s5(0, 1, clamp01((t - CAR.td) / (CAR.tr - CAR.td)));
+  C.g.position.copy(W.carHome); C.g.position.y += 0.1 * k; C.g.quaternion.setFromAxisAngle(new THREE.Vector3(0, 0, 1), 0.35 * k);
+}
+const R_ATLAS = () => W.rig.seg.Atlas.g;
 function update(S, t) {
   const scene = S.scene, R = W.rig; W.tNow = t;
   // ---- the body
@@ -557,13 +684,15 @@ function update(S, t) {
   // ---- the carrot: it bobs with the walk and swings; the card spins round on "slogan"; the whole thing falls off on "need"
   { const C = W.carrot, sw = Math.sin(t * 5.6) * 0.16 * (1 - standW(t) * 0.7) + Math.sin(t * 2.1) * 0.05;
     const spin = outBack(clamp01((t - (T.slogan - 0.12)) / 0.45), 1.4); C.spin.rotation.y = Math.PI * spin + 0.12 * Math.sin(t * 1.7);
-    const td = T.need - 0.05;
-    if (t < td) { if (C.g.parent !== R.seg.Atlas.g) R.seg.Atlas.g.add(C.g); C.swing.rotation.set(sw * 0.6, 0, sw * 0.25); }
+    if (t < CAR.tr) { carrotOnHead(t); const k = ss(CAR.td, CAR.tr, t); C.swing.rotation.set(sw * 0.6 * (1 - k), 0, sw * 0.25 * (1 - k)); }
     else {
       if (C.g.parent !== scene) scene.add(C.g);
-      const land = new THREE.Vector3(-0.66, 0.02, W.carRelP.z + 0.1), lq = new THREE.Quaternion().setFromEuler(new THREE.Euler(-Math.PI / 2 + 0.25, 0.9, 0.2));
-      const f = fallAt(t, td, W.carRelP, W.carRelQ, land, lq, 0.04);
-      C.g.position.copy(f.p); C.g.quaternion.copy(f.q); C.swing.rotation.set(-1.2 * ss(td, td + 0.6, t), 0, 0.3 * ss(td, td + 0.6, t));
+      const L = W.carLand, P0 = W.carRelP, tf = Math.sqrt(2 * (P0.y - L.p.y) / 9.8), u = clamp01((t - CAR.tr) / tf), e = 1 - (1 - u) ** 2;   // out to the side first, then down
+      C.g.position.set(lerp(P0.x, L.p.x, e), Math.max(L.p.y, P0.y - 4.9 * (t - CAR.tr) ** 2), lerp(P0.z, L.p.z, u));
+      if (t > CAR.tr + tf) { const b = t - CAR.tr - tf; C.g.position.y = L.p.y + (b < 0.2 ? 0.03 * 4 * (b / 0.2) * (1 - b / 0.2) : 0); }
+      C.g.quaternion.copy(W.carRelQ).slerp(L.q, s5(0, 1, clamp01((t - CAR.tr) / (tf + 0.1))));
+      const k = s5(0, 1, clamp01((t - CAR.tr) / (tf + 0.15))); C.swing.rotation.set(-L.swing * k, 0, 0);
+      C.spin.rotation.y = Math.PI * spin + 0.12 * Math.sin(t * 1.7) * (1 - k);
     } }
 
   // ---- the pedometer: on the hip, the needle reads the count; unclipped and dropped on "anything"; face up, it becomes the logo
@@ -606,9 +735,8 @@ function update(S, t) {
   for (const m of W.hips) { m.material.emissive.set(0xffb27a); m.material.emissiveIntensity = fl * 0.22; }
 
   // ---- the bag in the left hand (hanging straight down), the phone in the right
-  { const bagOn = ss(T.shop - 0.35, T.shop - 0.05, t) * (1 - ss(T.final - 0.2, T.final + 0.3, t));
-    W.bag.g.visible = bagOn > 0.01; W.bag.g.scale.setScalar(Math.max(0.001, outBack(bagOn, 1.6)));
-    if (W.bag.g.visible) { const hp = W.handL.handle.clone().applyMatrix4(W.wristL.g.matrixWorld); W.bag.g.position.copy(hp); W.bag.g.rotation.set(0.05 * Math.sin(t * 3), Math.PI / 2, 0); }
+  { const bp = bagPose(t); W.bag.g.visible = bp.s > 0.01; W.bag.g.scale.setScalar(Math.max(0.001, bp.s));
+    if (W.bag.g.visible) { W.bag.g.position.copy(bp.p); W.bag.g.quaternion.copy(bp.q); }
     const callOn = pulse(t, T.phone - 0.3, T.your3 + 0.1, 0.25);
     W.phone.g.visible = callOn > 0.01; W.phone.g.scale.setScalar(Math.max(0.001, callOn));
     W.phone.screenMat.color.setScalar(0.9 * callOn); }

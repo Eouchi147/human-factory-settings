@@ -7,7 +7,7 @@
 // SLEEP HORMONE DELAYED, ALARM ON TIME, then the settings in orange. Morning: he sits up. The clock becomes the logo.
 import { THREE, ORANGE, AMBER, ss, s5, lerp, clamp01, hash, camTrack, phys, glowMat, shadows, spot, RoundedBoxGeometry,
   loadAnatomy, V3, place, logoEnd, makeFilm, outBack, stamp, stampCanvas, stampSpot, noiseTex, TIME, keys } from '../kit.js';
-import { buildRig, skeletonKind, legIK, bendSpine, poseArm, worldVerts, avgV } from '../rig.js';
+import { buildRig, skeletonKind, legIK, bendSpine, poseArm, worldVerts, avgV, clearArms } from '../rig.js';
 import { makeClock, makeCup, makePhone, makeLamp, makeLogoRing, tickAngle } from '../props.js';
 
 // ------------------------------------------------------------------ a wrist, and hands that can hold (from film 11, on the wrist)
@@ -28,7 +28,7 @@ function rigHand(R, Side, Wr) {
   const mcpI = top(F[0].P), mcpL = top(F[3].P), fdir = bot(F[1].D).sub(top(F[1].P)).normalize();
   const across = mcpL.clone().sub(mcpI); across.sub(fdir.clone().multiplyScalar(across.dot(fdir))).normalize();
   const n = new THREE.Vector3().crossVectors(fdir, across).normalize(); if (n.z < 0) n.negate();
-  const axis = new THREE.Vector3().crossVectors(fdir, n).dot(across) > 0 ? across.clone().negate() : across.clone();
+  const axis = new THREE.Vector3().crossVectors(fdir, n).normalize();   // +angle turns each finger toward the palm (n): the way fingers close
   const joints = [];
   for (const f of F) { const pts = [top(f.P), top(f.M), top(f.D)], gs = []; let parent = eg, pp = EL;
     [f.P, f.M, f.D].forEach((m, i) => { const g = new THREE.Group(); g.position.copy(pts[i]).sub(pp); parent.add(g); m.parent.remove(m); m.position.copy(m.userData.home).sub(pts[i]); g.add(m); gs.push(g); parent = g; pp = pts[i]; }); joints.push(gs); }
@@ -38,18 +38,38 @@ function rigHand(R, Side, Wr) {
   { let parent = eg, pp = EL; [tP, tD].forEach((m, i) => { const g = new THREE.Group(); g.position.copy(tpt[i]).sub(pp); parent.add(g); m.parent.remove(m); m.position.copy(m.userData.home).sub(tpt[i]); g.add(m); tg.push(g); parent = g; pp = tpt[i]; }); }
   const mid = mcpI.clone().add(mcpL).multiplyScalar(0.5);
   const handle = mid.clone().addScaledVector(fdir, 0.03).addScaledVector(n, 0.024).sub(EL);
-  function curl(k) {
-    joints.forEach((gs, i) => { const s = 1 + 0.06 * i; gs[0].quaternion.setFromAxisAngle(axis, 1.25 * k * s); gs[1].quaternion.setFromAxisAngle(axis, 1.5 * k * s); gs[2].quaternion.setFromAxisAngle(axis, 0.95 * k * s); });
-    tg[0].quaternion.setFromAxisAngle(taxis, 0.55 * k); tg[1].quaternion.setFromAxisAngle(taxis, 0.7 * k);
+  // prof: how a finger shares its closing between knuckle, middle and end joint (a fist by default; a hand flat on a
+  // phone's back that wraps its far edge bends mostly at the middle joints)
+  const PROF = [1.25, 1.5, 0.95];
+  const setF = (gs, kk, s, pr) => { gs[0].quaternion.setFromAxisAngle(axis, pr[0] * kk * s); gs[1].quaternion.setFromAxisAngle(axis, pr[1] * kk * s); gs[2].quaternion.setFromAxisAngle(axis, pr[2] * kk * s); };
+  function curl(k, per = null, tk = null, prof = PROF) {   // per: each finger's own closing [index, middle, ring, little]; tk: the thumb's
+    joints.forEach((gs, i) => setF(gs, per ? per[i] : k, 1 + 0.06 * i, prof));
+    const t = tk ?? k; tg[0].quaternion.setFromAxisAngle(taxis, 0.55 * t); tg[1].quaternion.setFromAxisAngle(taxis, 0.7 * t);
+  }
+  // close each finger (and the thumb) on an object until it is `need` off it: sdf(world point) is the distance to the object
+  // (+ outside). Returns { per, tk } for curl(); a finger that never meets it closes to kmax
+  function fit(sdf, { need = 0.003, kmin = 0.05, kmax = 0.95, prof = PROF, tmin = kmin } = {}) {   // tmin < 0 lets the thumb stand off, away from the palm
+    const v = new THREE.Vector3(), samp = (ms) => ms.map((m) => { const P = m.geometry.attributes.position, st = Math.max(1, Math.floor(P.count / 200)), pts = []; for (let i = 0; i < P.count; i += st) pts.push(new THREE.Vector3().fromBufferAttribute(P, i)); return { m, pts }; });
+    const gap = (S) => { eg.updateMatrixWorld(true); let g = 9; for (const { m, pts } of S) for (const p of pts) g = Math.min(g, sdf(v.copy(p).applyMatrix4(m.matrixWorld))); return g; };
+    // the first contact on the way from open to closed (a finger can pass an object's edge and curl clear of it again,
+    // so the whole sweep is scanned, then the contact is found finely)
+    const search = (S, set, k0 = kmin) => { set(k0); if (gap(S) < need) return k0; let lo = k0, hi = null;
+      for (let j = 1; j <= 24; j++) { const k = k0 + (kmax - k0) * (j / 24); set(k); if (gap(S) < need) { hi = k; break; } lo = k; }
+      if (hi === null) return kmax;
+      for (let j = 0; j < 12; j++) { const m = (lo + hi) / 2; set(m); if (gap(S) >= need) lo = m; else hi = m; } set(lo); return lo; };
+    const per = joints.map((gs, i) => search(samp(gs.map((g) => g.children.find((c) => c.isMesh)).filter(Boolean)), (kk) => setF(gs, kk, 1 + 0.06 * i, prof)));
+    const tk = search(samp(tg.map((g) => g.children.find((c) => c.isMesh)).filter(Boolean)), (kk) => { tg[0].quaternion.setFromAxisAngle(taxis, 0.55 * kk); tg[1].quaternion.setFromAxisAngle(taxis, 0.7 * kk); }, tmin);
+    return { per, tk };
   }
   const hand = new THREE.Vector3().crossVectors(fdir, across).dot(n) > 0 ? 1 : -1;   // n = hand * (fdir x across)
-  return { curl, handle, across: across.clone(), n: n.clone(), fdir: fdir.clone(), eg, hand };
+  return { curl, fit, handle, across: across.clone(), n: n.clone(), fdir: fdir.clone(), eg, hand };
 }
-function solveHand(R, Side, H, at, init, aims = []) {   // an arm and wrist pose that puts the hand's grip at a world point, with hand directions (local v) turned toward world ones
+function solveHand(R, Side, H, at, init, aims = [], extra = null, starts = null) {   // starts: other initial poses to try (default: a spread for a standing body)   // an arm and wrist pose that puts the hand's grip at a world point, with hand directions (local v) turned toward world ones; extra(A) adds a posture cost
   R.root.updateMatrixWorld(true);
   const A = R.arms[Side], Wr = H.wr, h = new THREE.Vector3(), q = new THREE.Quaternion(), pn = new THREE.Vector3();
   const err = (p) => { poseArm(A, p); setWrist(Wr, p); A.girdle.updateMatrixWorld(true); h.copy(H.handle).applyMatrix4(Wr.g.matrixWorld); let E = h.distanceTo(at);
     if (aims.length) { Wr.g.getWorldQuaternion(q); for (const a of aims) E += a.w * (1 - pn.copy(a.v).applyQuaternion(q).dot(a.to)); }
+    if (extra) E += extra(A);
     E += 0.01 * ((p.wf || 0) ** 2 + 2 * (p.wd || 0) ** 2 + 0.5 * (p.wr || 0) ** 2); return E; };
   const descend = (start) => {
     let best = { dir: [...start.dir], twist: start.twist, elbow: start.elbow, wf: start.wf || 0, wd: start.wd || 0, wr: start.wr || 0, retract: 0, elevate: 0 }, bestE = err(best);
@@ -64,13 +84,44 @@ function solveHand(R, Side, H, at, init, aims = []) {   // an arm and wrist pose
     return { best, bestE };
   };
   let out = descend(init);
-  for (const dir of [[0.6, 0.8, 0.2], [0.35, 0.7, 0.45], [0.9, 0.35, 0.1], [0.5, 0.5, -0.3], [0.2, -0.2, 0.9]]) for (const twist of [-1.2, -0.4, 0.4, 1.2]) for (const elbow of [1.3, 1.9, 2.4]) {
-    if (out.bestE < 0.004) break; const r = descend({ dir, twist, elbow }); if (r.bestE < out.bestE) out = r; }
+  const tries = starts || [[0.6, 0.8, 0.2], [0.35, 0.7, 0.45], [0.9, 0.35, 0.1], [0.5, 0.5, -0.3], [0.2, -0.2, 0.9]].flatMap((dir) => [-1.2, -0.4, 0.4, 1.2].flatMap((twist) => [1.3, 1.9, 2.4].map((elbow) => ({ dir, twist, elbow }))));
+  for (const st of tries) { if (out.bestE < 0.004) break; const r = descend(st); if (r.bestE < out.bestE) out = r; }
   poseArm(A, out.best); setWrist(Wr, out.best); A.girdle.updateMatrixWorld(true); h.copy(H.handle).applyMatrix4(Wr.g.matrixWorld); Wr.g.getWorldQuaternion(q);
   const dbg = { pos: +h.distanceTo(at).toFixed(4), dots: aims.map((a) => +pn.copy(a.v).applyQuaternion(q).dot(a.to).toFixed(3)), at: at.toArray().map((v) => +v.toFixed(3)) };
   return { ...out.best, err: out.bestE, dbg };
 }
-const mixArm = (a, b, k) => ({ dir: a.dir.map((v, i) => lerp(v, b.dir[i], k)), twist: lerp(a.twist, b.twist, k), elbow: lerp(a.elbow, b.elbow, k), wf: lerp(a.wf || 0, b.wf || 0, k), wd: lerp(a.wd || 0, b.wd || 0, k), wr: lerp(a.wr || 0, b.wr || 0, k), retract: 0, elevate: 0 });
+const FIST = [1.25, 1.5, 0.95], FLAT_WRAP = [0.35, 1.6, 1.25];   // how the fingers close: a fist; flat on a phone's back, bent round its edge
+// a hand closing on what it holds: each finger goes from `base` toward its fitted closing, and never further in than that fit
+// while the object is there (a finger more closed than its fit would be inside the object)
+function gripCurl(H, G, g, base, prof) { H.curl(0, G.per.map((k) => lerp(Math.min(base, k), k, g)), lerp(Math.min(base, G.tk), G.tk, g), prof); }
+// the phone (props.js makePhone): a rounded box, its long edges rounded to half its thickness; local y = 0 is the back, Th the
+// screen. Signed distance from a point in the phone's own frame (+ outside)
+const PHONE = { W: 0.0716, L: 0.1476, Th: 0.0078 };
+function phoneSDF(p) {
+  const r = PHONE.Th / 2, qx = Math.abs(p.x) - (PHONE.W / 2 - r), qy = Math.abs(p.y - PHONE.Th / 2) - (PHONE.Th / 2 - r), qz = Math.abs(p.z) - (PHONE.L / 2 - r);
+  return Math.hypot(Math.max(qx, 0), Math.max(qy, 0), Math.max(qz, 0)) + Math.min(Math.max(qx, qy, qz), 0) - r;
+}
+// how far a hand's bones come inside their gap round an object (sdf: world point -> distance, + outside): fingers `finger`,
+// palm and wrist `palm` (the flesh that is not drawn). palmOnly skips the fingers (they are closed on the object after)
+function handGap(H, sdf, { palm = 0.006, finger = 0.003, palmOnly = false } = {}) {
+  if (!H._gapPts) { H._gapPts = []; H.wr.g.traverse((m) => { if (!m.isMesh) return; const P = m.geometry.attributes.position, st = Math.max(1, Math.floor(P.count / 40)), fing = /phalanx/i.test(m.userData.name);
+    for (let i = 0; i < P.count; i += st) H._gapPts.push({ m, p: new THREE.Vector3().fromBufferAttribute(P, i), fing }); }); }
+  const v = new THREE.Vector3(); let E = 0, worst = 0, who = '';
+  for (const q of H._gapPts) { if (palmOnly && q.fing) continue; const d = (q.fing ? finger : palm) - sdf(v.copy(q.p).applyMatrix4(q.m.matrixWorld)); if (d > 0) { E += d; if (d > worst) { worst = d; who = q.m.userData.name; } } }
+  return { E, worst, who };
+}
+// a posture cost that keeps an arm out of ellipsoids (world centre c, semi-axes r, the bone's own thickness included):
+// samples the upper arm (from a quarter of the way down, the shoulder itself sits where it sits), the forearm and the hand
+function keepOut(R, Side, H, zones, w = 3) {
+  const A = R.arms[Side], s = new THREE.Vector3(), e = new THREE.Vector3(), wr = new THREE.Vector3(), g = new THREE.Vector3(), p = new THREE.Vector3();
+  const f = (arm) => { A.arm.getWorldPosition(s); A.elbow.getWorldPosition(e); H.wr.g.getWorldPosition(wr); g.copy(H.handle).applyMatrix4(H.wr.g.matrixWorld);
+    let E = 0;
+    for (const [a, b, n, u0] of [[s, e, 10, 0.25], [e, wr, 10, 0], [wr, g, 4, 0]]) for (let i = 0; i <= n; i++) { p.lerpVectors(a, b, u0 + (1 - u0) * i / n);
+      for (const z of zones) { const q = Math.hypot((p.x - z.c.x) / z.r.x, (p.y - z.c.y) / z.r.y, (p.z - z.c.z) / z.r.z); if (q < 1) E += w * (1 - q); } }
+    return E; };
+  return f;
+}
+const mixArm = (a, b, k) => ({ dir: a.dir.map((v, i) => lerp(v, b.dir[i], k)), twist: lerp(a.twist, b.twist, k), elbow: lerp(a.elbow, b.elbow, k), wf: lerp(a.wf || 0, b.wf || 0, k), wd: lerp(a.wd || 0, b.wd || 0, k), wr: lerp(a.wr || 0, b.wr || 0, k), retract: 0, elevate: 0, mix: [a, b, k] });
 
 
 
@@ -476,13 +527,44 @@ async function build(S, cfg) {
   // the face, lying: where the phone is held and where it lands
   { const face = bb(/frontal bone|nasal bone|maxilla|zygomatic bone/i); W.faceTop = face.max.y; W.faceC = face.getCenter(new THREE.Vector3());
     const nose = bb(/nasal bone/i), brow = bb(/frontal bone/i); W.noseTop = nose.max.y; W.noseC = nose.getCenter(new THREE.Vector3()); W.browTop = brow.max.y; }
+  // where the dropped phone comes to rest: on the face, just touching it (1.5 mm off the bone: the skin)
+  { const qL = new THREE.Quaternion().setFromEuler(new THREE.Euler(0.18, 0, Math.PI + 0.05)), x = W.noseC.x, z = (W.noseC.z + W.faceC.z) / 2 - 0.01, pts = [];
+    R.seg.Atlas.g.traverse((m) => { if (!m.isMesh || !['bone', 'tooth', 'cartilage'].includes(m.userData.tissue)) return; m.updateMatrixWorld(true);
+      const P = m.geometry.attributes.position, st = Math.max(1, Math.floor(P.count / 500)); for (let i = 0; i < P.count; i += st) pts.push(new THREE.Vector3().fromBufferAttribute(P, i).applyMatrix4(m.matrixWorld)); });
+    const M = new THREE.Matrix4(), v = new THREE.Vector3(), one = new THREE.Vector3(1, 1, 1);
+    const clear = (y) => { M.compose(v.set(x, y, z), qL, one).invert(); let mn = 9; for (const p of pts) mn = Math.min(mn, phoneSDF(v.copy(p).applyMatrix4(M))); return mn; };
+    let lo = W.noseTop - 0.03, hi = W.noseTop + 0.08; for (let i = 0; i < 30; i++) { const m = (lo + hi) / 2; if (clear(m) >= 0.0015) hi = m; else lo = m; }
+    W.land = new THREE.Vector3(x, hi, z); W.landQ = qL; }
   W.holdAt = new THREE.Vector3(0.0, W.faceTop + 0.26, W.faceC.z + 0.07);
-  // the hands round the phone: solved once, lying
-  { const half = 0.0358 + 0.003;
-    W.holdR = solveHand(R, 'Right', W.handR, W.holdAt.clone().add(new THREE.Vector3(-half, -0.004, -0.02)), { dir: [0.25, -0.45, 0.85], twist: 0.4, elbow: 1.9 },
-      [{ v: W.handR.n, to: new THREE.Vector3(1, 0, 0), w: 0.25 }, { v: W.handR.fdir, to: new THREE.Vector3(0, 1, 0), w: 0.2 }]);
-    W.holdL = solveHand(R, 'Left', W.handL, W.holdAt.clone().add(new THREE.Vector3(half, -0.004, -0.02)), { dir: [0.25, -0.45, 0.85], twist: 0.4, elbow: 1.9 },
-      [{ v: W.handL.n, to: new THREE.Vector3(-1, 0, 0), w: 0.25 }, { v: W.handL.fdir, to: new THREE.Vector3(0, 1, 0), w: 0.2 }]); }
+  // the phone in one hand, the way it is held in bed: palm on its back, fingers across it and round the far long edge, thumb
+  // on the near one (and the risk of dropping it on the face). Solved once, lying: the forearm rises from the chest, clear
+  // of the head and the trunk; then the fingers close until they meet the phone, a few millimetres off it (the flesh not drawn)
+  { const zone = (re, m) => { const b = bb(re); return { c: b.getCenter(new THREE.Vector3()), r: b.getSize(new THREE.Vector3()).multiplyScalar(0.5).addScalar(m) }; };
+    W.zHead = zone(/frontal bone|parietal bone|occipital bone|temporal bone|sphenoid|maxilla|zygomatic|nasal bone|mandible|tooth/i, 0.035);
+    W.zChest = zone(/\brib\b|sternum|manubrium|xiphoid|costal/i, 0.02);
+    const held = new THREE.Vector3(W.holdAt.x, W.holdAt.y + 0.004, W.holdAt.z), qp = new THREE.Quaternion().setFromEuler(new THREE.Euler(0, 0, Math.PI + PHONE_TILT));
+    W.phoneHold = new THREE.Matrix4().compose(held, qp, new THREE.Vector3(1, 1, 1)); const toPhone = W.phoneHold.clone().invert(), v = new THREE.Vector3();
+    W.phoneSlip = new THREE.Vector3(-1, 0, 0).applyQuaternion(qp);   // the way it slips out of the hand when let go
+    const Side = 'Right', H = W.handR, A = R.arms[Side], pts = [];
+    H.wr.g.traverse((m) => { if (!m.isMesh) return; const P = m.geometry.attributes.position, st = Math.max(1, Math.floor(P.count / 40)), fing = /phalanx/i.test(m.userData.name), need = fing ? 0.003 : 0.007;
+      for (let i = 0; i < P.count; i += st) pts.push({ m, p: new THREE.Vector3().fromBufferAttribute(P, i), need, fing }); });
+    // how far the hand's bones come inside their gap round the phone (fingers 3 mm, palm 7 mm)
+    const pen = (palmOnly = false) => { let E = 0, worst = 0, who = ''; for (const q of pts) { if (palmOnly && q.fing) continue; v.copy(q.p).applyMatrix4(q.m.matrixWorld).applyMatrix4(toPhone); const d = q.need - phoneSDF(v); if (d > 0) { E += d; if (d > worst) { worst = d; who = q.m.userData.name; } } } return { E, worst, who }; };
+    const ko = keepOut(R, Side, H, [W.zHead, W.zChest]);
+    // the grip point (phone local; +x is the right hand's side, +y the screen side): the palm ~9 mm above the back, the
+    // knuckles over the far half, so the fingers bend round the far long edge at their middle joints
+    const target = new THREE.Vector3(-0.021, 0.011, 0.02).applyQuaternion(qp).add(held);
+    const aims = [{ v: H.n, to: new THREE.Vector3(0, 1, 0).applyQuaternion(qp), w: 0.3 }, { v: H.fdir, to: new THREE.Vector3(-1, 0, 0).applyQuaternion(qp), w: 0.2 }];
+    const init = { dir: [0.35, 0.1, 1], twist: -0.6, elbow: 1.6 };
+    H.curl(0.08, null, 0.08, HOLD_PROF);
+    const sol = solveHand(R, Side, H, target, init, aims, () => ko() + 2 * pen(true).E,   // the palm clear of it; the fingers are closed on it after
+      [init, { dir: [0.6, 0.3, 0.8], twist: -1.2, elbow: 1.4 }, { dir: [0.2, 0.0, 1], twist: 0.4, elbow: 1.8 }, { dir: [0.5, -0.2, 0.9], twist: -1.8, elbow: 1.2 }]);
+    poseArm(A, sol); setWrist(H.wr, sol); A.girdle.updateMatrixWorld(true);
+    // each finger and the thumb close until they are 3 mm off the phone
+    const g = H.fit((p) => phoneSDF(v.copy(p).applyMatrix4(toPhone)), { need: 0.003, kmin: 0.05, kmax: 0.95, prof: HOLD_PROF, tmin: -0.8 });
+    H.curl(0, g.per, g.tk, HOLD_PROF); A.girdle.updateMatrixWorld(true); const left = pen(); H.curl(0.12);
+    W.holdR = { ...sol, per: g.per, tk: g.tk }; W.holdL = null;
+    W.holdInfo = { dbg: sol.dbg, per: g.per.map((k) => +k.toFixed(2)), tk: +g.tk.toFixed(2), worst: +(left.worst * 1000).toFixed(1), who: left.who, keep: +ko().toFixed(4) }; }
   poseRig(restPose()); W.body.updateMatrixWorld(true);
   // the grains, settled for the body as it lies
   W.grains = makeGrains(R); settleGrains(W.grains);
@@ -509,7 +591,7 @@ async function build(S, cfg) {
   W.fill = spot(scene, { color: 0xc8d6ff, pos: new THREE.Vector3(-1.8, 1.4, 1.6), target: new THREE.Vector3(0, 0.5, -0.1), angle: 0.6, penumbra: 1 });
   W.tableLight = spot(scene, { color: 0xdfe6ff, pos: new THREE.Vector3(1.4, 1.6, -0.25), target: new THREE.Vector3(0.82, TBL.top + 0.1, -0.85), angle: 0.32, penumbra: 0.8 });
   W.headLight = spot(scene, { color: 0xc4d2ff, pos: new THREE.Vector3(-0.35, 1.35, -0.55), target: new THREE.Vector3(0, 0.62, -0.88), angle: 0.26, penumbra: 0.9 });
-  return { stamp: W.stampSpot, lieP: W.lieP.toArray(), faceTop: W.faceTop, holdAt: W.holdAt.toArray(), holdR: W.holdR.dbg, holdL: W.holdL.dbg, grainsE: [W.grains.E.c.toArray(), W.grains.E.r.toArray()], levelLo: W.grains.levelY[0], levelHi: W.grains.levelY[W.grains.N - 1] };
+  return { stamp: W.stampSpot, lieP: W.lieP.toArray(), faceTop: W.faceTop, holdAt: W.holdAt.toArray(), hold: W.holdInfo, grainsE: [W.grains.E.c.toArray(), W.grains.E.r.toArray()], levelLo: W.grains.levelY[0], levelHi: W.grains.levelY[W.grains.N - 1] };
 }
 
 // ------------------------------------------------------------------ the body over time
@@ -519,9 +601,13 @@ function restPose() { return { up: 0, swivel: 0, move: 0, knee: 0, ik: 0, cer: 0
 function sitPose() { return { ...restPose(), up: 1, swivel: 1, move: 1, knee: 1, ik: 1, cer: 0.12, tho: 0.12, rest: 1 }; }
 function footTarget(Side) { const G = W.rig.legs[Side], ah = G.A.y - G.ground; return new THREE.Vector3(W.sitP.x + 0.43, ah + 0.002, W.sitP.z + (Side === 'Right' ? 0.11 : -0.11)); }
 const DROP = { t0: T.lets - 0.35, hit: T.fix - 0.02 };
+const PHONE_TILT = 0.32;   // the phone is held tilted toward the bedside
+const HOLD_PROF = FLAT_WRAP;
 function bodyAt(t) {
   const o = restPose();
   o.hold = 1 - s5(DROP.t0 + 0.05, DROP.t0 + 1.3, t);
+  o.grip = 1 - s5(DROP.t0 - 0.3, DROP.t0 + 0.02, t);   // the fingers open first, then it slips
+  o.thumbOut = s5(DROP.t0 - 0.3, DROP.t0, t) * (1 - s5(DROP.hit + 0.2, DROP.hit + 0.7, t));
   o.jaw = 0.46 * pulse(t, T.always - 0.35, T.lets - 0.2, 0.45);
   o.cer = 0.3 - 0.35 * pulse(t, T.always - 0.35, T.lets - 0.2, 0.45);
   const G0 = T.if1 - 0.1;   // morning: he sits up on the edge of the bed
@@ -530,7 +616,7 @@ function bodyAt(t) {
   o.cer = lerp(o.cer, 0.12, o.up); o.tho = lerp(0, 0.12, o.up);
   return o;
 }
-const mixA = (a, b, k) => ({ dir: a.dir.map((v, i) => lerp(v, b.dir[i], k)), twist: lerp(a.twist, b.twist, k), elbow: lerp(a.elbow, b.elbow, k), wf: lerp(a.wf || 0, b.wf || 0, k), wd: lerp(a.wd || 0, b.wd || 0, k), wr: lerp(a.wr || 0, b.wr || 0, k) });
+const mixA = (a, b, k) => ({ dir: a.dir.map((v, i) => lerp(v, b.dir[i], k)), twist: lerp(a.twist, b.twist, k), elbow: lerp(a.elbow, b.elbow, k), wf: lerp(a.wf || 0, b.wf || 0, k), wd: lerp(a.wd || 0, b.wd || 0, k), wr: lerp(a.wr || 0, b.wr || 0, k), mix: [a, b, k] });
 const _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _qc = new THREE.Quaternion();
 function poseRig(o) {
   const R = W.rig;
@@ -543,7 +629,13 @@ function poseRig(o) {
     if (Hs && hk > 0) a = mixA(a, Hs, hk);
     poseArm(R.arms[Side], a); if (W.wristR) setWrist(Side === 'Right' ? W.wristR : W.wristL, a);
   }
-  if (W.handR) { W.handR.curl(0.12 + 0.48 * hk); W.handL.curl(0.12 + 0.48 * hk); }
+  if (W.handR) { const g = s5(0, 1, o.grip ?? o.hold ?? 0), hkP = s5(0, 1, o.hold || 0), Hh = W.holdR;
+    // letting go: the fingers relax (keeping their flat shape while the phone is near), the thumb swings out from under it
+    const tb = lerp(0.12, -0.8, o.thumbOut || 0);
+    const fb = lerp(0.12, -0.2, o.thumbOut || 0);
+    if (Hh) W.handR.curl(0, Hh.per.map((k) => lerp(Math.min(fb, k), k, g)), lerp(Math.min(tb, Hh.tk), Hh.tk, g), FIST.map((f, j) => lerp(f, HOLD_PROF[j], hkP))); else W.handR.curl(0.12);
+    W.handL.curl(0.12); }
+  if (W.handR) clearArms(R);   // no arm through the trunk, in any pose or between poses
   for (const Side of ['Right', 'Left']) {
     const G = R.legs[Side], s = G.s, lie = 1 - o.up;
     _qa.setFromAxisAngle(X, -(Math.PI / 2) * o.up); _qb.setFromAxisAngle(Z, 0.1 * s * o.knee); _qc.setFromAxisAngle(Y, 0.22 * s * lie);
@@ -645,14 +737,16 @@ function update(S, t) {
     const s = clockAt(t), hh = Math.floor((s / H) % 24), mm = Math.floor((s % H) / 60), clockTxt = `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`;
     const flicks = [3.2, 3.75, 4.3, 4.85, 5.5, 6.1]; let sc = 0; for (const f of flicks) sc += 640 * s5(f, f + 0.32, t);
     if (t < 11) drawFeed(P, sc, clockTxt);
-    const tilt = 0.32;   // held tilted toward the bedside
+    const tilt = PHONE_TILT;   // held tilted toward the bedside
     const held = new THREE.Vector3(W.holdAt.x, W.holdAt.y + 0.004, W.holdAt.z);
-    const land = new THREE.Vector3(W.noseC.x, W.noseTop + 0.004, (W.noseC.z + W.faceC.z) / 2 - 0.01);
+    const land = W.land;
     const off = new THREE.Vector3(0.25, BED.top + 0.006, W.faceC.z + 0.2);
     const fall = clamp01((t - DROP.t0) / (DROP.hit - DROP.t0)), slide = s5(T.all - 0.1, T.all + 0.85, t);
     const pos = new THREE.Vector3(), q = new THREE.Quaternion(), e = new THREE.Euler();
-    if (t < DROP.t0) { pos.copy(held); e.set(0, 0, Math.PI + tilt); pos.x += 0.004 * Math.sin(t * 1.3); }
-    else if (t < DROP.hit) { pos.lerpVectors(held, land, fall * fall); e.set(0.18 * fall, 0, Math.PI + tilt * (1 - fall) + 0.05 * fall); }
+    if (t < DROP.t0) { pos.copy(held); e.set(0, 0, Math.PI + tilt); }
+    else if (t < DROP.hit) {   // it slips sideways out of the hand (clear of the thumb under it), then drops, turning as it falls
+      const fd = Math.max(0, (fall - 0.25) / 0.75), f2 = fd * fd, side = 0.027 * s5(0, 0.25, fall) * (1 - f2);
+      pos.lerpVectors(held, land, f2).addScaledVector(W.phoneSlip, side); e.set(0.18 * f2, 0, Math.PI + tilt * (1 - f2) + 0.05 * f2); }
     else { const b = Math.exp(-(t - DROP.hit) * 9) * Math.abs(Math.sin((t - DROP.hit) * 22)) * 0.012; pos.copy(land); pos.y += b; e.set(0.18, 0, Math.PI + 0.05); }
     if (slide > 0) { pos.lerpVectors(pos, off, slide); pos.y += 0.12 * Math.sin(Math.PI * Math.min(1, slide * 1.15)); e.set(lerp(0.18, 0, slide), lerp(0, 0.7, slide), lerp(Math.PI + 0.05, Math.PI * 2, slide)); }
     q.setFromEuler(e); g.position.copy(pos); g.quaternion.copy(q);

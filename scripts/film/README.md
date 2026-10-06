@@ -82,6 +82,26 @@ funny, in full sentences. Films 1 to 3 were rebuilt as `films/film01.src.js`, `f
   `content/films/later/`). Their pictures will be rebuilt for the new scripts; the table below describes the old ones.
 
 
+## 6 October: no bone through anything
+- `audit_film.py FILM [--dt 0.1]` poses a film through its whole timeline without rendering and reports every moment a bone
+  goes into another bone, into a prop or into the ground, and how deep. Voxels find the candidates; each is then measured
+  exactly (a ray's crossings say inside or out, the nearest triangle says how deep), and anything 1.5 mm or more inside is
+  reported. A film can add furniture to the check (`W.auditSolids`). **Every film passes it with 0 problems before it is
+  rendered.**
+- `rig.js`: `clearArms(rig)`, called after the arms are posed, swings each arm out just enough to keep it 3 mm off the trunk,
+  and lifts it forward just enough to keep it 6 mm off the thighs; it is continuous, so movement stays smooth. A blend of two
+  arm poses (`mixArm`) now takes the shortest turn between them, so a forearm never swings round behind the back. The toes
+  bend about the slanted line of their joints and stay on `rig.ground(x, z)`; a walking foot pitches to the ground under heel
+  and ball. The floating cartilages (the nose's alar cartilages, the larynx) are no longer part of the skeleton.
+- `hands_block.js`: the fingers close toward the palm (they used to close backwards). `H.fit(sdf)` closes each finger and the
+  thumb on an object until it is just off it (the flesh that is not drawn); `gripCurl` blends toward that fit and never
+  closes a finger past it while the object is held. `phoneSDF`, `handGap` and `keepOut` help solve a hold.
+- Film 1: the phone is held in one hand, palm on its back; it slips out sideways, then drops on the face, resting exactly on
+  it. Film 2: both hands take the phone's long edges; the hands come back over the desk before going down; he stands further
+  from the desk (the chair rolls back) so his knees clear it. Film 3: the headband is fitted round the skull; the carrot pops
+  off the crown and falls clear of him; the phone at the ear sits off the skull and the hand holds it; the bag's handles run
+  through the closed fingers.
+
 ## Films 4 to 8, and what each added
 - **Film 4** (belly fat): `soft.js`, soft tissue skinned to the rig: muscle that spans a joint and a layer of fat, built
   in the standing frame and bent with the bones every frame (`skinned`, `spineBinder`, `armBinder`, fat fields).

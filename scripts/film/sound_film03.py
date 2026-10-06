@@ -126,9 +126,9 @@ register(T['slogan'] + 0.38, 0.06, 0.15)
 
 # ---------------------------------------------------------------- he stops; the contraption drops; the hill gathers
 m.pad([38, 50, 57, 62], 18.0, 23.0, 0.3, 1000)
-TD = T['need'] - 0.05; TF = math.sqrt(2 * (1.754 - 0.02) / 9.8)
-m.snip(TD, 0.05, -0.1); slide(TD + 0.02, 86, 62, TF, 0.03, -0.1)
-clatter(TD + TF, 0.07, -0.1); m.tock(TD + TF + 0.22, 0.02, -0.1, f=620)
+TD = T['need'] - 0.05; TRc = T['need'] + 0.11; TF = math.sqrt(2 * (1.8539 - 0.011) / 9.8)   # it pops off the crown, then falls from there (film03 CAR)
+m.snip(TD, 0.05, -0.1); slide(TD + 0.02, 86, 62, TRc - TD + TF - 0.02, 0.03, -0.1)
+clatter(TRc + TF, 0.07, -0.1); m.tock(TRc + TF + 0.22, 0.02, -0.1, f=620)
 rr = np.random.default_rng(57)
 for i in range(57):   # 57 points of light: each appears, flies, and settles on the line (as the picture times them)
     k = i / 56; a0 = H0 - 0.3 + k * 0.8 + 0.1; land = H0 + 2.2 + k * 0.9 - 0.15
@@ -168,7 +168,7 @@ m.whoosh(40.0, 1.0, 260, 1500, 0.012, -0.1); m.whoosh(41.0, 0.9, 260, 1500, 0.01
 
 # ---------------------------------------------------------------- the pedometer: unclipped and dropped
 m.pad([46, 53, 58, 62], 40.2, 45.4, 0.28, 1200)
-TR = T['anything'] - 0.25; TP = math.sqrt(2 * (2.112 - 1.116) / 9.8)
+TR = T['anything'] - 0.25; TP = math.sqrt(2 * (2.1082 - 1.1215) / 9.8)
 m.tick(T['owe'] + 0.12, 0.02, -0.1, hi=2600, lo=900)                                 # fingers on the case
 m.tick(TR - 0.03, 0.05, -0.1, hi=3600, lo=1200); m.tick(TR, 0.03, -0.1, hi=2200, lo=800)   # the clip lets go
 m.swish(TR + 0.02, TP, 0.012, -0.1, f=1800)
@@ -214,4 +214,4 @@ m.room(0.005)
 tt = np.arange(m.N) / SR; g = 1.35 - 0.35 * ss(64.5, 66.0, tt)
 for c in range(2): m.M[c] *= g; m.X[c] *= g
 m.finish(REPORT, VOICE, OUT, 'film03')
-print('steps', len(steps), len(steps1), len(steps2), [round(x, 2) for x in steps2[:4]], 'fall', round(TD + TF, 2), 'drop', round(TR + TP, 2))
+print('steps', len(steps), len(steps1), len(steps2), [round(x, 2) for x in steps2[:4]], 'fall', round(TRc + TF, 2), 'drop', round(TR + TP, 2))
