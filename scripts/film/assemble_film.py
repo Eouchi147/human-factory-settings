@@ -6,7 +6,7 @@ import json, subprocess, os, sys, asyncio, argparse, base64
 HERE = os.path.dirname(os.path.abspath(__file__)); os.chdir(HERE)
 ap = argparse.ArgumentParser(); ap.add_argument('n', type=int); ap.add_argument('frames'); ap.add_argument('snd'); ap.add_argument('--mb', type=float, default=27.0)
 a = ap.parse_args()
-REPO = '/home/claude/human-factory-settings'
+REPO = os.environ.get('HFS_REPO', '/home/claude/human-factory-settings')   # the site repo (fonts, film specs)
 spec = next(json.load(open(os.path.join(REPO, 'content/films', f))) for f in sorted(os.listdir(os.path.join(REPO, 'content/films'))) if f.startswith(f'{a.n:02d}-'))
 name = f"{spec['n']:02d}-{spec['slug']}"
 rep = json.load(open(f'../voice/guides/{name}-report.json'))
@@ -52,16 +52,18 @@ subprocess.run(base + ['-i', fx, '-map', '0:v', '-map', '1:a', '-af', loud, '-c:
 kbps = int(a.mb * 8e6 / dur / 1000) - 200
 P = ['-c:v', 'libx265', '-preset', 'medium', '-b:v', f'{kbps}k', '-pix_fmt', 'yuv420p', '-tag:v', 'hvc1']
 os.makedirs(f'{OUT}/tmp', exist_ok=True); stats = f'{OUT}/tmp/x265_{N}.log'
-subprocess.run(base + P + ['-x265-params', f'pass=1:stats={stats}:log-level=error', '-an', '-f', 'mp4', '/dev/null'], check=True)
+subprocess.run(base + P + ['-x265-params', f'pass=1:stats={stats}:log-level=error', '-r', '24', '-an', '-f', 'mp4', '/dev/null'], check=True)
 clean = f'{OUT}/Film {N}, music and effects (for your voice).mp4'
 subprocess.run(base + ['-i', fx, '-map', '0:v', '-map', '1:a'] + P + ['-x265-params', f'pass=2:stats={stats}:log-level=error', '-r', '24', '-af', loud] + aud + ['-movflags', '+faststart', '-shortest', clean], check=True)
-# 2. the guide cut: label, subtitles, the AI voice
+# 2. the guide cut: label, subtitles, the AI voice; HEVC two-pass too, sized to send
 ins = ['-i', f'{OV}/label.png'] + sum([['-i', f"{OV}/sub{r['line']:02d}.png"] for r in rep], []) + ['-i', gm]
 fc = ['[0][1]overlay=0:0[v0]']
 for k, r in enumerate(rep): fc.append(f"[v{k}][{k + 2}]overlay=0:0:enable='between(t,{r['start'] - 0.05:.2f},{r['end'] + 0.35:.2f})'[v{k + 1}]")
-fc.append(f"[{len(rep) + 2}:a]{loud}[a]")
 guide = f'{OUT}/Film {N} voice guide (AI voice, not for posting).mp4'
-subprocess.run(base + ins + ['-filter_complex', ';'.join(fc), '-map', f'[v{len(rep)}]', '-map', '[a]', '-c:v', 'libx264', '-preset', 'medium', '-crf', '25', '-pix_fmt', 'yuv420p', '-r', '24'] + aud + ['-movflags', '+faststart', '-shortest', guide], check=True)
+stats2 = f'{OUT}/tmp/x265_{N}g.log'
+subprocess.run(base + ins + ['-filter_complex', ';'.join(fc), '-map', f'[v{len(rep)}]'] + P + ['-x265-params', f'pass=1:stats={stats2}:log-level=error', '-r', '24', '-an', '-f', 'mp4', '/dev/null'], check=True)
+fc.append(f"[{len(rep) + 2}:a]{loud}[a]")
+subprocess.run(base + ins + ['-filter_complex', ';'.join(fc), '-map', f'[v{len(rep)}]', '-map', '[a]'] + P + ['-x265-params', f'pass=2:stats={stats2}:log-level=error', '-r', '24'] + aud + ['-movflags', '+faststart', '-shortest', guide], check=True)
 for f in (hq, clean, guide):
     d = subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', f], capture_output=True, text=True).stdout.strip()
     print(os.path.basename(f), d, 's', round(os.path.getsize(f) / 1e6, 1), 'MB')
