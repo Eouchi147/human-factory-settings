@@ -36,6 +36,7 @@ export function placeOf(name) {
   const disk = n.match(/^intervertebral disk of (\w+) (cervical|thoracic|lumbar) vertebra/);
   if (disk) return SPINE.find((s) => s.toLowerCase() === `${disk[1]} ${disk[2]} vertebra`) || 'pelvis';
   if (n === 'intervertebral disk of axis') return 'Axis';
+  if (n === 'intervertebral disk') return 'Twelfth thoracic vertebra';   // the atlas names the disk under T12 without its vertebra: it rides with T12, not the pelvis
   if (PELVIS.test(name)) return 'pelvis';
   if (THIGH.test(name)) return [side, 'hip'];
   if (SHANK.test(name)) return [side, 'knee'];
@@ -216,7 +217,17 @@ function toesOnGround(rig, G) {
   const lowest = (a) => { _tq.setFromAxisAngle(G.toeAxis || _X, -a); let mn = 9;
     for (const d of G.toeD) { _tv.copy(d).applyQuaternion(_tq).add(G.toeP).applyMatrix4(_M); mn = Math.min(mn, _tv.y - gy(_tv.x, _tv.z)); }
     return mn; };
-  if (lowest(0) >= -0.0005) return;
+  const l0 = lowest(0);
+  if (l0 >= -0.0005) {
+    // toes that rest (opt-in: rig.toeRest = the most they bend down, radians): standing on ground that falls away beyond the
+    // ball of the foot, the toes bend down onto it instead of hanging in the air; as the foot lifts they let go, gradually
+    if (rig.toeRest && l0 > 0.002) {
+      _tv.copy(G.toeP).applyMatrix4(_M); const w = 1 - s5(0.018, 0.034, _tv.y - gy(_tv.x, _tv.z));   // the ball's pivot sits ~12 mm up when the foot is down
+      if (w > 0) { let lo = -rig.toeRest, hi = 0;
+        if (lowest(lo) > 0.002) hi = lo; else for (let i = 0; i < 14; i++) { const m = (lo + hi) / 2; if (lowest(m) > 0.002) hi = m; else lo = m; }
+        G.toe.quaternion.setFromAxisAngle(G.toeAxis || _X, -hi * w); } }
+    return;
+  }
   let lo = 0, hi = 1.3; if (lowest(hi) < -0.0005) { G.toe.quaternion.setFromAxisAngle(G.toeAxis || _X, -hi); return; }
   for (let i = 0; i < 14; i++) { const m = (lo + hi) / 2; if (lowest(m) < 0) lo = m; else hi = m; }
   G.toe.quaternion.setFromAxisAngle(G.toeAxis || _X, -hi);
@@ -225,13 +236,16 @@ function toesOnGround(rig, G) {
 // ---------------------------------------------------------------- walking
 // A walk along +z over ground y = ground(z). s = distance walked (m). Returns what to pose; walkApply() poses it.
 // stride: one full cycle (two steps). The right heel strikes at s = k * stride.
-export function walkAt(rig, s, { stride = 1.1, ground = () => 0, slope = () => 0, drop = 0.03, bob = 0.012, sway = 0.014, yaw = 0.07, arms = 0.26, x0 = 0, z0 = 0 } = {}) {
+export function walkAt(rig, s, { stride = 1.1, ground = () => 0, slope = () => 0, drop = 0.03, slopeDrop = 0, bob = 0.012, sway = 0.014, yaw = 0.07, arms = 0.26, x0 = 0, z0 = 0 } = {}) {
   const out = { feet: {} };
   const phase = (u) => u - Math.floor(u);
   const zp = z0 + s;                                         // where the pelvis is
   const ph = phase(s / stride);
-  out.pelvis = new THREE.Vector3(rig.P0.x + x0 - sway * Math.sin(2 * Math.PI * ph), rig.P0.y - drop - bob * Math.cos(4 * Math.PI * ph) + ground(zp), rig.P0.z + zp);
-  out.pelvisRot = new THREE.Euler(0, yaw * Math.cos(2 * Math.PI * ph), -0.035 * Math.sin(2 * Math.PI * ph));
+  // (slopeDrop: on a climb the hips sit lower, by slopeDrop x the sine of the slope, so the trailing leg still reaches the ground)
+  const pelvisAt = (ss_) => { const z = z0 + ss_, p_ = phase(ss_ / stride);
+    return { p: new THREE.Vector3(rig.P0.x + x0 - sway * Math.sin(2 * Math.PI * p_), rig.P0.y - drop - slopeDrop * Math.max(0, Math.sin(slope(z))) - bob * Math.cos(4 * Math.PI * p_) + ground(z), rig.P0.z + z),
+      r: new THREE.Euler(0, yaw * Math.cos(2 * Math.PI * p_), -0.035 * Math.sin(2 * Math.PI * p_)) }; };
+  { const P = pelvisAt(s); out.pelvis = P.p; out.pelvisRot = P.r; }
   for (const Side of ['Right', 'Left']) {
     const G = rig.legs[Side], off = Side === 'Right' ? 0 : 0.5;
     const u = s / stride - off, k = Math.floor(u), f = u - k;
@@ -247,15 +261,26 @@ export function walkAt(rig, s, { stride = 1.1, ground = () => 0, slope = () => 0
       return { ankle, q };
     };
     const HS = 0.21, TO = 0.6;                                // toes up at heel strike, heel up at toe-off (radians)
+    // a planted foot the hip cannot reach (the trailing foot on a climb) rolls up onto its ball, the heel rising just enough,
+    // instead of leaving the ground
+    const hipAt = (P) => G.H.clone().sub(rig.P0).applyEuler(P.r).add(P.p), Lmax = (G.L1 + G.L2) * 0.99;
+    // (the heel rises at most to a 1 radian roll in all; rolling further only brings the ankle nearer the hip up to a point, so
+    //  the search stops there too; past that the leg reaches as far as it can and the foot lifts a little, as before)
+    const onBall = (p, pitch, hipW = hipAt({ p: out.pelvis, r: out.pelvisRot })) => { const at = (x) => pose(G.ball, G.ball, pitch - x, hs(k)); if (p.ankle.distanceTo(hipW) <= Lmax) return p;
+      const dist = (x) => at(x).ankle.distanceTo(hipW); let a0 = 0, a1 = Math.max(0, 1.0 + pitch);
+      for (let i = 0; i < 20; i++) { const m1 = a0 + (a1 - a0) * 0.382, m2 = a0 + (a1 - a0) * 0.618; if (dist(m1) <= dist(m2)) a1 = m2; else a0 = m1; }   // the nearest the roll can bring it
+      const xm = (a0 + a1) / 2; if (dist(xm) > Lmax) return at(xm);
+      let lo = 0, hi = xm; for (let i = 0; i < 16; i++) { const m = (lo + hi) / 2; if (dist(m) > Lmax) lo = m; else hi = m; }
+      return at(hi); };
     let r;
     if (f < 0.62) {
       if (f < 0.1) r = pose(G.heel, G.heel, HS * (1 - s5(0, 0.1, f)), hs(k));
-      else if (f < 0.45) r = pose(G.heel, G.heel, 0, hs(k));
-      else r = pose(G.ball, G.ball, -TO * s5(0.45, 0.62, f), hs(k));
+      else if (f < 0.45) r = onBall(pose(G.heel, G.heel, 0, hs(k)), 0);
+      else r = onBall(pose(G.ball, G.ball, -TO * s5(0.45, 0.62, f), hs(k)), -TO * s5(0.45, 0.62, f));
       r.stance = true;
     } else {
       const w = (f - 0.62) / 0.38;
-      const a = pose(G.ball, G.ball, -TO, hs(k)), b = pose(G.heel, G.heel, HS, hs(k + 1));
+      const a = onBall(pose(G.ball, G.ball, -TO, hs(k)), -TO, hipAt(pelvisAt((k + 0.62 + off) * stride))), b = pose(G.heel, G.heel, HS, hs(k + 1));   // the toe-off pose, as it was at toe-off
       const e = s5(0, 1, w);
       const ankle = a.ankle.clone().lerp(b.ankle, e); ankle.y += 0.055 * Math.sin(Math.PI * Math.pow(w, 0.75));
       r = { ankle, q: a.q.clone().slerp(b.q, s5(0.05, 0.95, w)), stance: false };

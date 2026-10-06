@@ -108,6 +108,17 @@ funny, in full sentences. Films 1 to 3 were rebuilt as `films/film01.src.js`, `f
   The thumb wraps over the dumbbell's bar (the hand closes before the dumbbell appears in it), the third two-arm press ends
   as the arms go down (no jump), and the remote's thumb moves before the remote appears. 0 problems at 0.1 s, and at 0.05 s
   through the crunches and the presses.
+- The audit also reports a part that rides with the wrong part: a bone or cartilage that, at rest, touches nothing in the
+  rigid group it moves with. It found the disk under the twelfth thoracic vertebra (the atlas names it only "Intervertebral
+  disk"), which rode with the pelvis and drifted out of the spine when the back bent (up to 9 mm in film 4's crunches); it
+  now rides with T12.
+- `jump_check.py FILM` poses every frame and reports a pop: a bone or prop that moves far more in one frame than in the
+  frames either side. It found film 4's old press ending (186 mm in one frame), and in film 3 the trailing foot leaving
+  the ground on the climb (the hip could not reach it) then slapping back, and the bag hand's little finger snapping as
+  the bag was taken and let go. Fixes: `walkAt` rolls a planted foot onto its ball when the hip cannot reach it (at most
+  a 1 radian roll), and takes the swing from the toe-off pose as it was at toe-off; `slopeDrop` lowers the hips on a climb
+  (film 3: 0.12); the bag hand opens to its fit before the bag is taken. Films 1 to 4 now have none.
+- `rig.toeRest` (off unless a film sets it): toes that bend down onto ground falling away beyond the ball of the foot.
 
 ## Films 4 to 8, and what each added
 - **Film 4** (belly fat): `soft.js`, soft tissue skinned to the rig: muscle that spans a joint and a layer of fat, built

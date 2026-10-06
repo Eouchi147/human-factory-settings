@@ -6,6 +6,7 @@ every moment where the skeleton goes through itself or through a prop, so it is 
   Limb bones (arms, hands, legs, feet, the shoulder girdle) and the film's props are tested against every other bone,
   except bones that ride together or meet at a joint (and spine against ribs, girdle against ribs, which slide by design).
 - Inside the head: limbs and props inside the convex hull of the skull (orbits, mouth and cranium included).
+- Rides with the wrong part: a bone or cartilage that, at rest, touches nothing in the rigid group it moves with.
 - Below the floor.
 Prints one line per problem stretch: time span, what goes into what, and how deep (mm). Exit code 1 if anything is found."""
 import asyncio, subprocess, sys, time, os, json, argparse
@@ -116,6 +117,14 @@ JS = r"""async ([t0, t1, dt, minDepth]) => {
   for (const p of propT) if (!p.m.geometry.boundingSphere) p.m.geometry.computeBoundingSphere();
   const limbBones = bones.map((m) => ({ m, name: m.userData.name }));   // every bone, the skull included (a phone on the nose)
   const events = []; const v = new THREE.Vector3(), w = new THREE.Vector3(), inv = new THREE.Matrix4(), sphA = new THREE.Sphere(), sphB = new THREE.Sphere();
+  // ---- a part that rides with the wrong part: at rest every bone or cartilage touches another of its own rigid group (a disk
+  //      its vertebra, a cartilage its rib); one 2 cm or more from all of its group mates moves with something it is not
+  //      part of, and drifts out of place as the body bends (reported once, at the start)
+  { const groups = new Map(); for (const m of bones) if (m.userData.home) { if (!groups.has(m.parent)) groups.set(m.parent, []); groups.get(m.parent).push(m); }
+    const restPts = (o) => { const P = o.geometry.attributes.position, h = o.userData.home, st = Math.max(1, Math.floor(P.count / 300)), a = []; for (let i = 0; i < P.count; i += st) a.push([P.getX(i) + h.x, P.getY(i) + h.y, P.getZ(i) + h.z]); return a; };
+    for (const [, L] of groups) { if (L.length < 2) continue; const P = L.map(restPts);
+      L.forEach((o, i) => { let best = 1e9; P.forEach((Q, j) => { if (j !== i) for (const a of P[i]) for (const b of Q) { const d = (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2 + (a[2] - b[2]) ** 2; if (d < best) best = d; } });
+        best = Math.sqrt(best); if (best > 0.02) events.push([t0, `${o.userData.name} -> rides with the wrong part (${(best * 100).toFixed(1)} cm from its group)`, 1, best * 1000]); }); } }
   const headBones = bones.filter((m) => underHead(m) || m.parent === headG), hs = new THREE.Sphere(), hInv = new THREE.Matrix4(), hl = new THREE.Vector3();
   const nearHeadBone = (pw, r) => { for (const b of headBones) { hs.copy(b.geometry.boundingSphere).applyMatrix4(b.matrixWorld); if (hs.distanceToPoint(pw) > r) continue;
     hInv.copy(b.matrixWorld).invert(); hl.copy(pw).applyMatrix4(hInv); if (surfDist(b.geometry, hl.x, hl.y, hl.z) < r) return true; } return false; };

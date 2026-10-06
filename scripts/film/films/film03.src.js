@@ -376,7 +376,7 @@ function sAt(t) {
   return S_STOP1 + easeDist(t, WALK2.t0, WALK2.t1, WALK2.d, 0.7);
 }
 function standW(t) { return ss(WALK1.t1 - 0.75, WALK1.t1 + 0.05, t) * (1 - ss(WALK2.t0 - 0.05, WALK2.t0 + 0.55, t)) + ss(WALK2.t1 - 0.75, WALK2.t1 + 0.05, t); }
-const gaitOpts = () => ({ stride: STRIDE, ground: hill, slope: slopeOf, z0: Z0 });
+const gaitOpts = () => ({ stride: STRIDE, ground: hill, slope: slopeOf, slopeDrop: 0.12, z0: Z0 });   // lower hips on the climb: the trailing foot stays planted
 function standPose(hsz) {
   const R = W.rig, out = { feet: {} };
   const zp = hsz + (R.P0.z - R.legs.Right.heel.z);
@@ -389,6 +389,7 @@ function standPose(hsz) {
   }
   out.armR = ARM0; out.armL = ARM0; out.twist = 0; return out;
 }
+W.gait = (t) => { const s = sAt(t), u = s / STRIDE; return { s, fR: u - Math.floor(u), fL: u - 0.5 - Math.floor(u - 0.5) }; };   // (for checks)
 function bodyAt(t) {
   const R = W.rig, s = sAt(t), w = walkAt(R, s, gaitOpts());
   const k = standW(t);
@@ -422,7 +423,9 @@ function applyBody(t, extra = {}) {
     const b0 = 0.2, G = W.callGrip;
     if (U && ug > 0) gripCurl(W.handR, U, ug, b0);
     else if (G && call > 0) gripCurl(W.handR, G, call, b0, FIST.map((f, j) => lerp(f, FLAT_WRAP[j], call))); else W.handR.curl(b0);
-    const B = W.bagGrip, bg = bag * (1 - s5(T.final - 0.25, T.final + 0.05, t)); if (B && bg > 0) gripCurl(W.handL, B, bg, 0.2); else W.handL.curl(0.2); }
+    // the bag's hand: fingers that close less than the open hand on its handles get there before it is taken, and leave after
+    const B = W.bagGrip, bg = bag * (1 - s5(T.final - 0.25, T.final + 0.05, t)), pre = ss(T.shop - 0.75, T.shop - 0.4, t) * (1 - ss(T.final + 0.05, T.final + 0.4, t));
+    if (B && bg > 0) gripCurl(W.handL, B, bg, 0.2); else if (B && pre > 0) W.handL.curl(0, B.per.map((k) => lerp(0.2, Math.min(0.2, k), pre)), lerp(0.2, Math.min(0.2, B.tk), pre)); else W.handL.curl(0.2); }
   clearArms(R);   // no arm through the trunk, in any pose or between poses
   for (const Side of ['Right', 'Left']) legIK(R, Side, b.feet[Side].ankle, b.feet[Side].q);
   R.root.updateMatrixWorld(true);
