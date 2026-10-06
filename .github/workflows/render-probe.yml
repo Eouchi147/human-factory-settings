@@ -1,0 +1,17 @@
+name: render-probe
+on:
+  push:
+    branches: ['render/probe']
+permissions:
+  contents: write
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Report the runner
+        run: |
+          mkdir out && cd out
+          { echo "runner: $(nproc) cores, $(free -g | awk '/Mem/{print $2}') GB"; lsb_release -ds; which ffmpeg || echo "no ffmpeg"; python3 --version; node --version; date -u; } > status.txt
+          echo '{"ignoreCommand": "exit 0"}' > vercel.json
+          git init -q -b render-out/probe && git add . && git -c user.name=render -c user.email=render@users.noreply.github.com commit -qm "probe result"
+          git push -q "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" HEAD:refs/heads/render-out/probe --force
