@@ -1,12 +1,15 @@
 # The render farm: every film in render/queue.json is split across GitHub's machines (its frames in interleaved parts,
 # two browsers per machine), then one machine per film makes the sound and the cuts and hands them back on a branch
-# render-out/<film>-r<run>. Runs on pushes to render/batch-* branches only (never main, so the site never redeploys).
+# render-out/<film> (each run replaces the last). Runs on pushes to render/batch-* branches only (never main, so the site never redeploys).
 name: render
 on:
   push:
     branches: ['render/batch-*']
 permissions:
   contents: write
+concurrency:
+  group: render-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   plan:
     runs-on: ubuntu-latest
