@@ -86,7 +86,7 @@ function solveHand(R, Side, H, at, init, aims = [], extra = null, starts = null)
     if (extra) E += extra(A);
     E += 0.01 * ((p.wf || 0) ** 2 + 2 * (p.wd || 0) ** 2 + 0.5 * (p.wr || 0) ** 2); return E; };
   const descend = (start) => {
-    let best = { dir: [...start.dir], twist: start.twist, elbow: start.elbow, wf: start.wf || 0, wd: start.wd || 0, wr: start.wr || 0, retract: 0, elevate: 0 }, bestE = err(best);
+    let best = { dir: [...start.dir], twist: start.twist, elbow: start.elbow, wf: start.wf || 0, wd: start.wd || 0, wr: start.wr || 0, pro: start.pro || 0, retract: 0, elevate: 0 }, bestE = err(best);   // pro (a pronating wrist) is carried as given, not searched
     for (const st of [0.25, 0.12, 0.06, 0.03, 0.015, 0.007]) for (let it = 0; it < 40; it++) {
       let improved = false;
       for (const key of ['d0', 'd1', 'd2', 'twist', 'elbow', 'wf', 'wd', 'wr']) for (const sg of [-1, 1]) {
@@ -608,7 +608,7 @@ function buildCam() {
   const BODY = { p: [0.325, 2.931, 4.681], l: [-0.004, 1.398, -0.027] };                  // the whole body, from the front
   const SPRING = { l: [-0.004, 1.478, -0.027] }; SPRING.p = toward(BODY.p, BODY.l, 1.1).map((v, i) => v + SPRING.l[i] - BODY.l[i]);   // up! a little wider, so the hop stays under the words
   const TRO = { p: [0.391, 2.402, 1.325], l: [-1.161, 1.25, -0.228] };                    // the trophy, its plate well above the bottom fifth
-  const LBX = { p: [-1.075, 2.415, 3.028], l: [1.244, 1.289, 0.453] };                    // the light box
+  const LBX = { p: [-1.075, 2.415, 3.028], l: [1.262, 1.289, 0.469] };                    // the light box, its words clear of the button column
   const HAIRV = { p: [0.12, 1.08, 0.62], l: [Bk.x, Bk.y + 0.02, Bk.z] };                  // grey hair on the spine
   const MOV = { p: orbit(BODY.p, BODY.l, -0.6), l: BODY.l };                               // built to move: three quarters from the front-left
   const CARDV = { p: [0.78, 1.25, 0.5], l: [0.24, 0.57, -0.61] };                         // the name card on the mattress, from the front-right, clear of the body
@@ -682,7 +682,8 @@ function update(S, t) {
     W.tufts.forEach((m, i) => { const g = clamp01(k * 1.25 - (i % 13) * 0.02) * (1 - off); m.visible = g > 0.01; m.geometry.setDrawRange(0, Math.max(6, Math.floor(m.userData.n * g / 30) * 30)); }); }
   // ---- the name card: PHYSIOTHERAPIST, flipped over: MATTRESS
   { const f = s5(T.not - 0.05, T.not + 0.35, t), bounce = t > T.not + 0.35 ? 0.08 * Math.exp(-(t - T.not - 0.35) * 8) * Math.sin((t - T.not - 0.35) * 30) : 0;
-    W.card.flip.rotation.y = Math.PI * f + bounce; W.card.g.visible = t > 15; }
+    const gone = s5(39.4, 39.85, t); W.card.g.scale.setScalar(Math.max(1e-3, 1 - gone));   // once the camera whips away it goes: no words left low in the frame
+    W.card.flip.rotation.y = Math.PI * f + bounce; W.card.g.visible = t > 15 && gone < 0.999; }
   // ---- the nerves: lit, plainly, for the emergency signs
   { const a = s5(T.emergency - 0.3, T.emergency + 0.8, t) * (1 - s5(73.9, 74.5, t)); W.nerveMat.opacity = 0.75 * a; W.nerveU.uT.value = t; W.nerves.visible = a > 0.005 && t > HOP[1]; }
   // ---- the disc model: up out of the floor; the logo

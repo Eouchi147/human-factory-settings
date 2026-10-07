@@ -288,7 +288,7 @@ const WEIGHS = [
 ];
 // the beam's angle: each change of load starts a damped swing toward the new balance (a step response)
 const TILT_K = 0.2;
-const BAL_CAM = { p: [1.12, 2.117, 2.315], l: [1.12, 0.928, 0.617] };
+const BAL_CAM = { p: [1.173, 2.379, 2.689], l: [1.173, 0.928, 0.617] };   // wide enough that the right pan's words stay clear of the button column
 function tiltAt(t) {
   const ev = new Set(); for (const q of WEIGHS) { ev.add(q.land); ev.add(q.off); }
   const load = (tt) => { let d = 0; for (const q of WEIGHS) if (tt >= q.land && tt < q.off) d += (q.pan === 0 ? 1 : -1) * q.w; return d; };
@@ -472,10 +472,10 @@ function buildCam() {
   const toward = (p, l, k) => p.map((v, i) => l[i] + (v - l[i]) * k);
   const orbit = (p, l, a) => { const dx = p[0] - l[0], dz = p[2] - l[2], c = Math.cos(a), s = Math.sin(a); return [l[0] + dx * c + dz * s, p[1], l[2] - dx * s + dz * c]; };
   const SIGNV = { p: [-0.833, 1.214, 0.674], l: [-0.22, 0.809, 0.06] };              // the sign, the plate, the drumming hand
-  const NOON = { p: [1.121, 1.946, 2.543], l: [0.144, 1.181, -0.143] };              // the skeleton, the pizza, the plate
+  const NOON = { p: [1.346, 2.031, 2.799], l: [0.261, 1.181, -0.185] };              // the skeleton, the pizza, the plate (the box's words clear of the button column)
   const WIN = { p: [0.101, 1.539, 0.504], l: [-0.008, 0.788, -0.117] };              // the plate from above: the window, the brand
   const HOURS = { p: [0.0, 2.496, 1.639], l: [0.0, 1.166, -0.259] };                 // the skeleton waiting, the hands flying round
-  const SWV = { p: [-0.613, 1.38, 0.144], l: [-0.543, 0.905, -0.249] };              // the switch
+  const SWV = { p: [-0.64, 1.493, 0.296], l: [-0.549, 0.876, -0.215] };              // the switch (its label above the bottom fifth)
   const PLUGV = { p: [-0.687, 1.996, -0.795], l: [-0.687, 0.477, -0.087] };            // down the cable to the plug, from behind
   const FRV = { p: [0.549, 2.301, 2.746], l: [-1.418, 0.935, 1.096] };               // the fridge
   const MEALV = { p: [1.289, 2.262, 2.216], l: [-0.055, 1.176, -0.113] };             // three meals; the warnings
