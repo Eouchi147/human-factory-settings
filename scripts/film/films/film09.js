@@ -194,7 +194,7 @@ function buildSegs() {
   for (let s = 17.4; s < 21.0; s += 3.6) add(s, 1.5, 2.0, 0.55);
   for (const g of SIGHS) segs.push({ sigh: true, ...g });
   for (let s = 24.8; s < 27.0; s += 3.8) add(s, 1.2, 1.4, 0.5);
-  for (let s = 32.0; s < 50.5; s += 4.6) add(s, 1.7, 2.6, 0.55);                                     // quiet
+  for (let s = 32.0; s < DRILL[0] - 4.6; s += 4.6) add(s, 1.7, 2.6, 0.55);                              // quiet (the last one is over before the drill starts)
   for (let s = DRILL[0]; s < DRILL[1] - 0.3; s += 0.92) add(s, 0.42, 0.46, 1.0);                     // the hard, fast drill
   for (let s = 55.6; s < 82; s += 4.9) add(s, 1.9, 2.9, 0.55);                                       // calm
   segs.sort((p, q) => p.t0 - q.t0); SEGS = [];
@@ -468,7 +468,7 @@ async function build(S, cfg) {
   // ---- seated on the stool
   W.stool = makeStool(scene);
   const hipB = new THREE.Box3(); for (const m of meshes) if (/hip bone/i.test(m.userData.name)) for (const v of worldVerts(m, 3)) hipB.expandByPoint(v);
-  W.sitP = new THREE.Vector3(0, SEAT - 0.012 + (R.P0.y - hipB.min.y), -0.02);
+  W.sitP = new THREE.Vector3(0, SEAT + 0.001 + (R.P0.y - hipB.min.y), -0.02);                       // the sitting bones rest on the seat, not in it
   // ---- the set
   W.sideG = makeSideTable(scene, SIDE); W.jarG = makeSideTable(scene, JAR, 0.32, 0.32);
   W.rec = makeRecorder(scene); W.jar = makeJar(scene); W.study = makeStudy(scene); W.wand = makeWand(scene); W.dial = makeDial(scene);
@@ -493,7 +493,7 @@ async function build(S, cfg) {
 }
 
 // ------------------------------------------------------------------ the body over time
-const ARM_REST = { dir: [0.02, -0.92, 0.4], twist: 0.8, elbow: 1.0 };   // hands resting on the belly
+const ARM_REST = { dir: [0.15, -0.92, 0.4], twist: 0.8, elbow: 1.0 };   // hands resting on the belly, fingertips a centimetre apart
 const WAND_T = { up: [45.95, 46.45], spark: [47.3, 47.95], fall: [48.0, 48.45] };
 const _qa = new THREE.Quaternion();
 function poseBody(t) {
