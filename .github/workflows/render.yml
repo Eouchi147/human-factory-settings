@@ -1,6 +1,6 @@
 # The render farm: every film in render/queue.json is split across GitHub's machines (its frames in interleaved parts,
 # two browsers per machine), then one machine per film makes the sound and the cuts and hands them back on a branch
-# render-out/<film> (each run replaces the last). Runs on pushes to render/batch-* branches only (never main, so the site never redeploys).
+# render-out/<film> (each run replaces the last), with the logs of the quality checks that ran alongside. Runs on pushes to render/batch-* branches only (never main, so the site never redeploys).
 name: render
 on:
   push:
@@ -63,8 +63,39 @@ jobs:
           retention-days: 3
           compression-level: 0
 
+  checks:
+    # the quality checks on GitHub's machines, not in Claude's workspace: bones through bones or props (audit), anything
+    # that jumps between frames (jump), captions that wrap (caps); their logs ride back with the film
+    needs: plan
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.films) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Set up the renderer
+        run: bash render/setup.sh
+      - name: Check the film
+        working-directory: scripts/film
+        run: |
+          mkdir -p qa
+          (timeout 3600 python3 audit_film.py ${{ matrix.film }} --dt 0.1 --port 8811 > qa/qa_audit.log 2>&1; echo "exit $?" >> qa/qa_audit.log) &
+          (timeout 3600 python3 jump_check.py ${{ matrix.film }} --port 8812 > qa/qa_jump.log 2>&1; echo "exit $?" >> qa/qa_jump.log) &
+          wait
+          (timeout 900 python3 check_caps.py ${{ matrix.film }} > qa/qa_caps.log 2>&1; echo "exit $?" >> qa/qa_caps.log) || true
+          tail -n 5 qa/*.log
+      - uses: actions/upload-artifact@v4
+        with:
+          name: qa-${{ matrix.film }}
+          path: scripts/film/qa/
+          retention-days: 3
+
   assemble:
-    needs: [plan, frames]
+    needs: [plan, frames, checks]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-latest
     timeout-minutes: 120
@@ -83,6 +114,11 @@ jobs:
           pattern: frames-${{ matrix.film }}-*
           path: scripts/film/frames${{ matrix.nn }}
           merge-multiple: true
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: qa-${{ matrix.film }}
+          path: scripts/film
       - name: Sound and cuts
         working-directory: scripts/film
         env:

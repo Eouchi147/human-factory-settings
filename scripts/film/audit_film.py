@@ -110,7 +110,7 @@ JS = r"""async ([t0, t1, dt, minDepth]) => {
   const process_name = (nm, o) => nm + ' (' + (o.geometry.type || 'mesh').replace('Geometry', '').replace('Buffer', '') + ')';   // which part of the prop
   const propRoots = [['phone', W.phone && W.phone.g], ['bag', W.bag && W.bag.g], ['carrot', W.carrot && W.carrot.g], ['cup', W.cup && W.cup.g], ['remote', W.remote && W.remote.g],
     ['dumbbell L', W.hand && W.hand.Left && W.hand.Left.db], ['dumbbell R', W.hand && W.hand.Right && W.hand.Right.db], ['pedometer', W.ped], ...(W.auditSolids || [])];
-  for (const [nm, g] of propRoots) if (g) g.traverse((o) => { if (o.isMesh && o.geometry && o.geometry.attributes.position) probes.push({ m: o, name: process_name(nm, o), prop: true }); });
+  for (const [nm, g, opt] of propRoots) if (g) g.traverse((o) => { if (o.isMesh && o.geometry && o.geometry.attributes.position) probes.push({ m: o, name: process_name(nm, o), prop: true, noFloor: !!(opt && opt.floor === false) }); });   // { floor: false }: the prop is itself the floor (a walking pad), so it is not tested against it
   const handBone = /phalanx|metacarpal|carpal|scaphoid|lunate|triquetr|pisiform|trapez|capitate|hamate|radius|ulna/i;
   // the props as solids (finer cells), so a finger that goes into the phone it holds is found too
   const propT = probes.filter((p) => p.prop && p.m.geometry.attributes.position.count >= 8).map((p) => ({ m: p.m, name: p.name, V: voxelise(p.m.geometry, true) }));
@@ -145,7 +145,7 @@ JS = r"""async ([t0, t1, dt, minDepth]) => {
       if (!(pr.bone && m.parent === headG)) for (let i = 0; i < Pp.count; i += st) { v.fromBufferAttribute(Pp, i).applyMatrix4(m.matrixWorld); w.copy(v).applyMatrix4(headInv); const d = headDepth(w);
         if (d * 1000 > (pr.prop ? 4 : 6) && !nearHeadBone(v, 0.006)) note(`${pr.name} -> inside the head`, d * 1000); }
       // below the floor
-      for (let i = 0; i < Pp.count; i += st * 3) { v.fromBufferAttribute(Pp, i).applyMatrix4(m.matrixWorld); const gy = R.ground ? R.ground(v.x, v.z) : 0; if (v.y - gy < -0.004) note(`${pr.name} -> below the floor`, (gy - v.y) * 1000); }
+      if (!pr.noFloor) for (let i = 0; i < Pp.count; i += st * 3) { v.fromBufferAttribute(Pp, i).applyMatrix4(m.matrixWorld); const gy = R.ground ? R.ground(v.x, v.z) : 0; if (v.y - gy < -0.004) note(`${pr.name} -> below the floor`, (gy - v.y) * 1000); }
       // through bones
       for (const b of bones) {
         if (b === m) continue;
