@@ -391,7 +391,9 @@ function makeJar(K) {
     for (let k = 0; k < 26; k++) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.0075, 12, 10), phys({ color: cols[k % 5], roughness: 0.25, clearcoat: 0.9 })); const a = rnd() * 6.28, rr = rnd() * r * 0.75; b.position.set(Math.cos(a) * rr, fillH + 0.002 + rnd() * 0.012, Math.sin(a) * rr); g.add(b); } }
   const lid = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.06, r * 1.06, 0.014, 48), phys({ color: 0xbfc3c8, metalness: 1, roughness: 0.3 })); lid.position.y = h + 0.007; g.add(lid);
   const lab = canvasTex(1024, 256, (x, w, hh) => { x.fillStyle = '#f6f4ee'; x.fillRect(0, 0, w, hh); x.fillStyle = '#16181c'; x.fillRect(0, hh - 22, w, 22);
-    txt(x, K.word, w / 2, hh * 0.46, { font: '800 92px Archivo', color: '#16181c', track: 8, maxW: w * 0.42 }); });
+    const ws = K.word.split(' ');
+    if (ws.length > 1) ws.forEach((wd, i) => txt(x, wd, w / 2, hh * (0.29 + 0.35 * i), { font: '800 72px Archivo', color: '#16181c', track: 6, maxW: w * 0.3 }));
+    else txt(x, K.word, w / 2, hh * 0.46, { font: '800 84px Archivo', color: '#16181c', track: 7, maxW: w * 0.3 }); });   // within the front 110 degrees of the jar
   const band = new THREE.Mesh(new THREE.CylinderGeometry(r * 1.004, r * 1.004, 0.032, 48, 1, true), phys({ map: lab, roughness: 0.6 })); band.rotation.y = Math.PI; band.position.y = 0.05; g.add(band);
   finish(g); shell.castShadow = false; base.castShadow = false;
   return { g, lid };
@@ -433,7 +435,7 @@ function makeCan() {
     txt(x, 'ORIGINAL · 330 ml', w * 0.25, hh * 0.84, { font: '700 40px Archivo', color: '#e0142c', track: 4, maxW: w * 0.3 });
   });
   const body = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h * 0.86, 64), [phys({ map: tex, roughness: 0.25, metalness: 0.55, clearcoat: 0.8 }), phys({ color: 0xc9cdd2, metalness: 1, roughness: 0.3 }), phys({ color: 0xc9cdd2, metalness: 1, roughness: 0.3 })]);
-  body.position.y = h * 0.5; g.add(body);
+  body.position.y = h * 0.5; body.rotation.y = -Math.PI / 2; g.add(body);   // a FIZZ (drawn a quarter of the way round) faces the front
   const alu = phys({ color: 0xd4d8dc, metalness: 1, roughness: 0.28 });
   const neck = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.84, r, h * 0.07, 64), alu); neck.position.y = h * 0.965; g.add(neck);
   const foot = new THREE.Mesh(new THREE.CylinderGeometry(r, r * 0.82, h * 0.07, 64), alu); foot.position.y = h * 0.035; g.add(foot);
@@ -649,7 +651,7 @@ async function build(S, cfg) {
   // ---- the jars, the packet and the can they make
   W.jars = JARS.map((p, j) => { const J = makeJar(JAR_KINDS[j]); J.g.position.copy(p); J.g.visible = false; scene.add(J.g); return J; });
   W.packet = makePacket(puffsTex(), 0.12, 0.16, 0.05, 0xff8a1e); W.packet.position.copy(PACKET); W.packet.rotation.y = -0.1; W.packet.visible = false; scene.add(W.packet);
-  W.can = makeCan(); W.can.position.copy(CAN); W.can.rotation.y = 0.6; W.can.visible = false; scene.add(W.can);
+  W.can = makeCan(); W.can.position.copy(CAN); W.can.rotation.y = 0.15; W.can.visible = false; scene.add(W.can);
   { const geo = new THREE.SphereGeometry(1, 10, 8), mat = new THREE.MeshPhysicalMaterial({ roughness: 0.4, clearcoat: 0.6 });
     W.parts = new THREE.InstancedMesh(geo, mat, N_PART); W.parts.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(N_PART * 3), 3);
     const c = new THREE.Color(), beadCols = [0xff4d6d, 0x3fa7ff, 0x46d27a, 0xffd23f, 0xb06bff];
@@ -660,7 +662,7 @@ async function build(S, cfg) {
   W.trays = TRAYS.map((p) => { const g = makeTray(); g.position.copy(p); g.visible = false; scene.add(g); return g; });
   { const U = W.trays[0], F = W.trays[1], y = 0.012;
     const add = (tray, obj, x, z, ry = 0, s = 1) => { obj.position.set(x, y, z); obj.rotation.y = ry; obj.scale.setScalar(s); obj.userData.s = s; tray.add(obj); return obj; };
-    W.upf = [add(U, makePacket(puffsTex(), 0.12, 0.16, 0.05, 0xff8a1e), -0.07, -0.02, 0.1, 0.55), add(U, makeCan(), 0.0, -0.03, 0.5, 0.8), add(U, makeReadyMeal(), 0.055, 0.03, -0.1)];
+    W.upf = [add(U, makePacket(puffsTex(), 0.12, 0.16, 0.05, 0xff8a1e), -0.07, -0.02, 0.1, 0.55), add(U, makeCan(), 0.0, -0.03, 0.1, 0.8), add(U, makeReadyMeal(), 0.055, 0.03, -0.1)];
     W.upfMore = [add(U, makeBar(), -0.06, 0.05, 0.2, 0.7), add(U, makePacket(crispsTex(), 0.12, 0.16, 0.05, 0xf2cf2e), 0.075, -0.035, -0.25, 0.5)];
     W.fresh = [add(F, makePotato(), -0.07, 0.02, 0.4), add(F, makeFillet(), 0.0, 0.02, 0.3), add(F, makeCarrot(), -0.02, -0.045, 0.1, 0.9), add(F, makeApple(), 0.07, -0.03), add(F, makeEgg(), 0.075, 0.045, 0.6)];
     for (const o of W.upfMore) o.visible = false; }
@@ -732,8 +734,8 @@ function buildCam() {
     { t: 8.7, p: V3(0.87, 1.25, 1.34), l: V3(0.86, 0.99, 0.05), fov: 32, tens: 0.4 },
     { t: 9.9, p: V3(1.33, 1.37, 1.08), l: V3(1.32, 0.97, 0.0), fov: 30 },             // the pot
     { t: 14.2, p: V3(1.34, 1.35, 1.02), l: V3(1.32, 0.97, 0.0), fov: 30, tens: 0.4 },
-    { t: 15.4, p: V3(1.79, 1.33, 1.86), l: V3(1.78, 1.0, -0.02), fov: 32 },           // the jars
-    { t: 22.0, p: V3(1.79, 1.32, 1.78), l: V3(1.78, 1.0, 0.0), fov: 32, tens: 0.4 },
+    { t: 15.4, p: V3(1.79, 1.34, 1.96), l: V3(1.78, 1.0, -0.02), fov: 32, tens: 0.15 },   // the jars
+    { t: 22.0, p: V3(1.79, 1.33, 1.9), l: V3(1.78, 1.0, 0.0), fov: 32, tens: 0.15 },
     { t: 23.3, p: V3(1.19, 1.43, 1.8), l: V3(1.18, 0.96, -0.04), fov: 32 },           // twenty pawns, two trays
     { t: 33.4, p: V3(1.19, 1.41, 1.72), l: V3(1.18, 0.96, -0.02), fov: 32, tens: 0.3 },
     { t: 35.2, p: V3(1.06, 1.3, 1.12), l: V3(1.04, 0.95, 0.1), fov: 30 },             // the packaged tray: second helpings
@@ -830,7 +832,7 @@ function update(S, t) {
     W.junk.forEach((o, i) => { const t0 = JUNK_T[i], k = pop(t, t0 - 0.35, 0.3), u = s5(t0, t0 + 0.5, t), out = sinkK(t, JUNK_OUT, JUNK_OUT + 0.4);
       o.visible = k > 0.001 && out > 0.001; if (!o.visible) return;
       const inX = CRATE.x + [-0.05, 0.03, 0.0][i], inZ = CRATE.z + [-0.02, -0.02, 0.035][i], hop = 0.06 * Math.sin(Math.PI * u);
-      o.position.set(lerp(SLIDE_X, inX, u), CT.y + 0.008 * u + hop - 0.1 * (1 - out), lerp(0.12, inZ, u)); o.rotation.set(0, [-0.2, 0.5, 0.15][i] * u, 0);
+      o.position.set(lerp(SLIDE_X, inX, u), CT.y + 0.008 * u + hop - 0.1 * (1 - out), lerp(0.12, inZ, u)); o.rotation.set(0, [-0.2, 0.15, 0.15][i] * u, 0);
       o.scale.setScalar([0.7, 0.9, 1][i] * Math.max(0.001, k)); }); }
   // ---- the dials rise; cook from food turned up, the exception turned down; the second becomes the logo
   W.dials.forEach((d, i) => {
