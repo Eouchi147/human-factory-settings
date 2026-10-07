@@ -1,0 +1,5 @@
+film16: 1873 frames, 421 objects tracked
+    4.333s    2 objects pop, largest 126 mm (bucket #8; steps either side 0 mm)
+    4.542s    2 objects pop, largest 127 mm (bucket #13; steps either side 0 mm)
+    4.750s    2 objects pop, largest 127 mm (bucket #9; steps either side 0 mm)
+pops: 3
