@@ -505,8 +505,8 @@ function buildCam() {
     { t: 29.9, p: V3(4.57, 1.45, 3.25), l: V3(-0.303, 0.932, -0.162), fov: 34, tens: 0.3 },
     { t: 31.6, p: V3(0.248, 2.707, 3.182), l: V3(0.513, 0.575, 0.15), fov: 34, tens: 0.2 },                // the test, from high at the feet end
     { t: 43.4, p: V3(0.25, 2.69, 3.16), l: V3(0.513, 0.575, 0.15), fov: 34, tens: 0.3 },
-    { t: 45.0, p: V3(0.72, 1.22, 1.16), l: V3(0.07, 0.36, 0.12), fov: 34, tens: 0.2 },                       // sore thighs on the roller
-    { t: 47.0, p: V3(0.7, 1.2, 1.13), l: V3(0.07, 0.36, 0.11), fov: 34, tens: 0.4 },
+    { t: 45.0, p: V3(1.213, 0.958, 0.881), l: V3(0.099, 0.439, 0.237), fov: 34, tens: 0.2 },                 // sore thighs on the roller, from the side: the ribs stay out of frame
+    { t: 47.0, p: V3(1.2, 0.95, 0.87), l: V3(0.099, 0.439, 0.237), fov: 34, tens: 0.4 },
     { t: 48.4, ...WB, tens: 0.2 },                                                                         // the nerves, thigh to brain
     { t: 52.4, ...nudge(WB, [-0.03, -0.02, -0.03]), tens: 0.3 },
     { t: 53.8, ...TH, fov: 36, tens: 0.2 },                                                                // using it: the band, day after day
