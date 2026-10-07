@@ -779,13 +779,13 @@ function overlay(S, t) {
   place(S, OVL.study, new THREE.Vector3(1.0, CT.y + 0.06, -0.25), -120, -70, fade(T.adults, T.adults + 0.4, 26.6, 27.0));
   W.trays.forEach((g, i) => place(S, OVL.trays[i], g.position.clone().add(_v.set(-0.1, 0.0, 0.09)), 0, 14, fade([T.two1, T.two2][i] + 0.45, [T.two1, T.two2][i] + 0.85, 34.0, 34.4)));
   place(S, OVL.same, new THREE.Vector3(1.18, CT.y + 0.055, -0.27), -62, -66, fade(T.same, T.same + 0.35, 34.0, 34.4));
-  place(S, OVL.kcal, W.trays[0].position.clone().add(_v.set(0.0, 0.0, 0.09)), -70, 26, fade(T.five, T.five + 0.4, 38.6, 39.0));
-  place(S, OVL.kg, new THREE.Vector3(0.12, SCALE.h, W.scaleZ + SCALE.d / 2), 20, 30, fade(T.almost, T.almost + 0.4, 41.4, 41.8));
-  W.stacks.forEach((S2, i) => place(S, OVL.stacks[i], S2.g.position.clone().add(_v.set(0, 0.0, 0.05)), [-150, 6][i], 34, fade([T.lost + 0.4, T.half + 0.4][i], [T.lost + 0.8, T.half + 0.8][i], 54.0, 54.4)));
+  place(S, OVL.kcal, W.trays[0].position.clone().add(_v.set(0.0, 0.0, 0.085)), -70, 8, fade(T.five, T.five + 0.4, 38.6, 39.0));   // (tags stay clear of the bottom fifth, where the apps put their own text)
+  place(S, OVL.kg, new THREE.Vector3(0.12, SCALE.h, W.scaleZ + SCALE.d / 2), 24, -96, fade(T.almost, T.almost + 0.4, 41.4, 41.8));
+  W.stacks.forEach((S2, i) => place(S, OVL.stacks[i], S2.g.position.clone().add(_v.set([-0.06, 0.07][i], 0.075, 0)), [-(OVL.stacks[i].offsetWidth || 220) - 4, 10][i], -20, fade([T.lost + 0.4, T.half + 0.4][i], [T.lost + 0.8, T.half + 0.8][i], 54.0, 54.4)));
   place(S, OVL.trial, new THREE.Vector3(0.79, CT.y + 0.2, 0.06), -90, -40, fade(T.both, T.both + 0.4, 49.4, 49.8));
   W.dials.forEach((d, i) => place(S, OVL.dial[i], d.g.position.clone().add(_v.set(0, 0.0, 0.1)), [-170, -70][i], 18, fade([T.cook, T.exception][i] + 0.3, [T.cook, T.exception][i] + 0.7, [58.6, 74.3][i], [59.0, 74.7][i])));
-  place(S, OVL.meds[0], MEDS.clone().add(_v.set(0, 0.0, 0.05)), -70, 24, fade(T.medicine + 0.3, T.medicine + 0.7, 74.3, 74.7));
-  place(S, OVL.meds[1], PLATE.clone().add(_v.set(0, 0.0, 0.1)), -50, 24, fade(T.better + 0.6, T.better + 1.0, 74.3, 74.7));
+  place(S, OVL.meds[0], MEDS.clone().add(_v.set(0, 0.105, 0)), -70, -36, fade(T.medicine + 0.3, T.medicine + 0.7, 74.3, 74.7));
+  place(S, OVL.meds[1], PLATE.clone().add(_v.set(0, 0.05, 0)), -50, -40, fade(T.better + 0.6, T.better + 1.0, 74.3, 74.7));
   const d = W.dials[1], c = d.g.position.clone().add(new THREE.Vector3(0, (0.0665 + 0.0012) * DIAL_S, 0));
   logoEnd(S, t, { t0: T.logo, center: c, edge: c.clone().add(new THREE.Vector3(LOGO_R * DIAL_S, 0, 0)) });
 }
