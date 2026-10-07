@@ -607,7 +607,7 @@ function buildCam() {
   const OL = [-0.25, 0.7, -1.95];                                                            // the ghost in bed, from the foot end: the eyes, the ache, the candle
   const BODY = { p: [0.325, 2.931, 4.681], l: [-0.004, 1.398, -0.027] };                  // the whole body, from the front
   const SPRING = { l: [-0.004, 1.478, -0.027] }; SPRING.p = toward(BODY.p, BODY.l, 1.1).map((v, i) => v + SPRING.l[i] - BODY.l[i]);   // up! a little wider, so the hop stays under the words
-  const TRO = { p: [0.391, 2.402, 1.325], l: [-1.161, 1.424, -0.228] };                   // the trophy
+  const TRO = { p: [0.391, 2.402, 1.325], l: [-1.161, 1.25, -0.228] };                    // the trophy, its plate well above the bottom fifth
   const LBX = { p: [-1.075, 2.415, 3.028], l: [1.244, 1.289, 0.453] };                    // the light box
   const HAIRV = { p: [0.12, 1.08, 0.62], l: [Bk.x, Bk.y + 0.02, Bk.z] };                  // grey hair on the spine
   const MOV = { p: orbit(BODY.p, BODY.l, -0.6), l: BODY.l };                               // built to move: three quarters from the front-left
