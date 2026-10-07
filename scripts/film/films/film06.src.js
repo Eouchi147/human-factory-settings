@@ -443,8 +443,8 @@ function buildCam() {
     { t: 29.0, p: V3(-1.08, 0.27, -0.04), l: V3(0, 0.17, -0.09), fov: 30 },                           // the side: heel raises, barefoot
     { t: 32.5, p: V3(-1.09, 0.29, 0.0), l: V3(0, 0.17, -0.09), fov: 30, tens: 0.3 },
     { t: 33.7, p: V3(-1.25, 0.82, 1.1), l: V3(-0.35, 0.8, 0.0), fov: 32 },
-    { t: 34.7, p: V3(-0.9, 1.285, 1.9), l: V3(-0.68, 1.205, 0.05), fov: 32 },                        // up: 118 runners
-    { t: 40.1, p: V3(-0.89, 1.285, 1.93), l: V3(-0.68, 1.205, 0.05), fov: 32, tens: 0.3 },
+    { t: 34.7, p: V3(-0.91, 1.265, 2.12), l: V3(-0.675, 1.185, 0.05), fov: 32, tens: 0.15 },                        // up: 118 runners
+    { t: 40.1, p: V3(-0.9, 1.265, 2.15), l: V3(-0.675, 1.185, 0.05), fov: 32, tens: 0.15 },
     { t: 42.3, p: V3(-0.42, 0.52, 1.32), l: V3(0, 0.17, 0.0), fov: 32 },                              // down to the feet and the display: toe shoes
     { t: 44.7, p: V3(-0.36, 0.62, 1.14), l: V3(0, 0.15, -0.03), fov: 32 },
     { t: 46.95, p: V3(-0.37, 0.63, 1.17), l: V3(0, 0.15, -0.03), fov: 32, tens: 0.3 },
@@ -581,7 +581,7 @@ function overlayInit(S) {
   for (const e of OVL.arch) Object.assign(e.style, { background: 'rgba(8,9,11,.62)', padding: '6px 14px 5px', borderRadius: '22px' });
   OVL.grp = [tag('tag', 'Foot exercises<b>57 runners</b>', 26), tag('tag', 'No exercises<b>61 runners</b>', 26)];
   for (const e of OVL.grp) e.querySelector('b').style.fontSize = '40px';
-  OVL.risk = tag('tag', 'Injured within a year<b>2.42× as likely</b>', 26); OVL.risk.querySelector('b').style.fontSize = '44px';
+  OVL.risk = tag('tag', 'Injured within<br>a year<b>2.42× as likely</b>', 26); OVL.risk.querySelector('b').style.fontSize = '44px'; OVL.risk.style.textAlign = 'right';
   OVL.toe = tag('tag', 'Toe shoes, 10 weeks<b>10 of 19</b>', 26); OVL.toe.querySelector('b').style.fontSize = '44px';
   OVL.dial = [tag('tag', 'Weeks 1 to 2<b>2,500 steps a day</b>', 30), tag('tag', 'Weeks 3 to 4<b>5,000 steps a day</b>', 30), tag('tag', 'Weeks 5 to 8<b>7,000 steps a day</b>', 30)];
   for (const e of OVL.dial) e.querySelector('b').style.fontSize = '54px';
@@ -590,13 +590,13 @@ function overlay(S, t) {
   const R = W.rig, ank = R.legs.Right.ankle;
   W.arches.forEach((m, i) => { const mid = ank.localToWorld(m.userData.mid.clone()); const t0 = T.three + 0.05 + i * 0.22;
     place(S, OVL.arch[i], mid, [40, -210, -65][i], [-70, 87, -77][i], ss(t0 + 0.3, t0 + 0.6, t) * (1 - ss(13.9, 14.3, t))); });
-  const g1 = ss(T.runners2 + 1.2, T.runners2 + 1.7, t) * (1 - ss(40.4, 40.9, t));
+  const g1 = ss(34.75, 35.2, t) * (1 - ss(39.85, 40.2, t));   // only while the camera holds on the dots
   place(S, OVL.grp[0], new THREE.Vector3(-0.773, 1.33, 0.05), -6, -112, g1);
-  place(S, OVL.grp[1], new THREE.Vector3(-0.773, 1.045, 0.05), -6, -112, g1 * ss(T.runners2 + 1.5, T.runners2 + 2.0, t));
-  place(S, OVL.risk, new THREE.Vector3(-0.773, 0.845, 0.05), -6, 26, ss(T.fewer, T.injuries + 0.3, t) * (1 - ss(40.4, 40.9, t)));
+  place(S, OVL.grp[1], new THREE.Vector3(-0.773, 1.045, 0.05), -6, -112, g1 * ss(35.0, 35.45, t));
+  place(S, OVL.risk, new THREE.Vector3(-0.76, 1.045, 0.05), -(OVL.risk.offsetWidth || 280) - 44, -14, ss(T.fewer, T.injuries + 0.3, t) * (1 - ss(39.85, 40.2, t)));   // left of the untrained block, clear of the dots and of the apps' buttons (right) and text (bottom fifth)
   place(S, OVL.toe, new THREE.Vector3(0, PAD.h + 0.01, 0.105), -130, 52, ss(T.half, T.half + 0.4, t) * (1 - ss(T.stress - 0.35, T.stress, t)));
   W.dials.forEach((d, i) => { const ts = [T.two, T.five, T.seven][i], e = OVL.dial[i];
-    place(S, e, d.g.position.clone().add(new THREE.Vector3(0, 0.0, 0.2)), -(e.offsetWidth || 200) / 2, 10, ss(ts, ts + 0.4, t) * (1 - ss(T.if - 0.3, T.if + 0.2, t))); });
+    place(S, e, d.g.position.clone().add(new THREE.Vector3(0, 0.0, -0.17)), -(e.offsetWidth || 200) / 2, -62, ss(ts, ts + 0.4, t) * (1 - ss(T.if - 0.3, T.if + 0.2, t))); });
   const d = W.dials[2], c = d.g.position.clone().add(new THREE.Vector3(0, 0.0665 + 0.0012, 0));
   logoEnd(S, t, { t0: T.logo, center: c, edge: c.clone().add(new THREE.Vector3(LOGO_R, 0, 0)) });
 }
