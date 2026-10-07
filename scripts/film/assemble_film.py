@@ -45,9 +45,9 @@ base = ['ffmpeg', '-y', '-loglevel', 'error', '-framerate', '24', '-i', f'{a.fra
 loud = 'loudnorm=I=-14:TP=-1.5:LRA=11,alimiter=limit=0.66:level=false:latency=true,aresample=48000'   # the limiter keeps true peaks under -1 dBTP after AAC
 aud = ['-c:a', 'aac', '-b:a', '192k', '-ar', '48000']
 N = spec['n']
-# the high-quality master, kept here (for the final mix with Sam's voice)
+# the high-quality master (for the final mix with Sam's voice)
 hq = f'{OUT}/hq/Film {N}, music and effects, master.mp4'
-subprocess.run(base + ['-i', fx, '-map', '0:v', '-map', '1:a', '-af', loud, '-c:v', 'libx264', '-preset', 'slow', '-crf', '16', '-pix_fmt', 'yuv420p', '-r', '24'] + aud + ['-movflags', '+faststart', '-shortest', hq], check=True)
+subprocess.run(base + ['-i', fx, '-map', '0:v', '-map', '1:a', '-af', loud, '-c:v', 'libx265', '-preset', 'medium', '-crf', '18', '-pix_fmt', 'yuv420p', '-tag:v', 'hvc1', '-x265-params', 'log-level=error', '-r', '24'] + aud + ['-movflags', '+faststart', '-shortest', hq], check=True)   # HEVC: the same look at about a third of the size
 # 1. the clean cut, HEVC two-pass, sized to send
 kbps = int(a.mb * 8e6 / dur / 1000) - 200
 P = ['-c:v', 'libx265', '-preset', 'medium', '-b:v', f'{kbps}k', '-pix_fmt', 'yuv420p', '-tag:v', 'hvc1']
