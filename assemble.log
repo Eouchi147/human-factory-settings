@@ -1,0 +1,23 @@
+[image2 @ 0x560915df51c0] Could not open file : frames13/f00010.jpg
+    Last message repeated 1 times
+[in#0/image2 @ 0x560915df50c0] Error during demuxing: Input/output error
+[in#0/image2 @ 0x560915df50c0] Error retrieving a packet from demuxer: Input/output error
+[image2 @ 0x55c5711ab080] Could not open file : frames13/f00010.jpg
+    Last message repeated 1 times
+[in#0/image2 @ 0x55c5711aaf80] Error during demuxing: Input/output error
+[in#0/image2 @ 0x55c5711aaf80] Error retrieving a packet from demuxer: Input/output error
+[image2 @ 0x5600f8041200] Could not open file : frames13/f00010.jpg
+    Last message repeated 1 times
+[in#0/image2 @ 0x5600f8041100] Error during demuxing: Input/output error
+[in#0/image2 @ 0x5600f8041100] Error retrieving a packet from demuxer: Input/output error
+[image2 @ 0x55cac48b3c00] Could not open file : frames13/f00010.jpg
+    Last message repeated 1 times
+[in#0/image2 @ 0x55cac48ae140] Error during demuxing: Input/output error
+[in#0/image2 @ 0x55cac48ae140] Error retrieving a packet from demuxer: Input/output error
+[image2 @ 0x55b3c3167900] Could not open file : frames13/f00010.jpg
+    Last message repeated 1 times
+[in#0/image2 @ 0x55b3c3181500] Error during demuxing: Input/output error
+[in#0/image2 @ 0x55b3c3181500] Error retrieving a packet from demuxer: Input/output error
+Film 13, music and effects, master.mp4 0.416667 s 1.1 MB
+Film 13, music and effects (for your voice).mp4 0.416667 s 1.4 MB
+Film 13 voice guide (AI voice, not for posting).mp4 0.490000 s 0.9 MB
