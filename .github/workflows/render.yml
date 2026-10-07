@@ -85,7 +85,9 @@ jobs:
           mkdir -p qa
           (timeout 3600 python3 audit_film.py ${{ matrix.film }} --dt 0.1 --port 8811 > qa/qa_audit.log 2>&1; echo "exit $?" >> qa/qa_audit.log) &
           (timeout 3600 python3 jump_check.py ${{ matrix.film }} --port 8812 > qa/qa_jump.log 2>&1; echo "exit $?" >> qa/qa_jump.log) &
+          (timeout 3600 python3 tags_check.py ${{ matrix.film }} --dt 0.1 --port 8813 > qa/qa_tags.log 2>&1; echo "exit $?" >> qa/qa_tags.log) &
           wait
+          (timeout 1800 python3 caps_clear.py ${{ matrix.film }} --dt 0.1 --port 8814 > qa/qa_clear.log 2>&1; echo "exit $?" >> qa/qa_clear.log) || true
           (timeout 900 python3 check_caps.py ${{ matrix.film }} > qa/qa_caps.log 2>&1; echo "exit $?" >> qa/qa_caps.log) || true
           tail -n 5 qa/*.log
       - uses: actions/upload-artifact@v4
