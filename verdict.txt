@@ -1,0 +1,3 @@
+PASS voice
+ok   voice guide: 18-cold-showers-voice-guide.wav
+ok   word times: 201 words timed; ends at 78.09 s

@@ -1,0 +1,15 @@
+[0;93m2026-10-13 23:40:59.836325799 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
+18-cold-showers duration 78.84 s, words 201
+   1   0.35   8.02  You scream through a cold shower every morning because a podcast promised it wou
+   2   8.92  16.05  In the biggest trial, Dutch adults ended their shower with thirty to ninety seco
+   3  16.80  25.58  They reported about thirty percent fewer days off sick, but no fewer days feelin
+   4  26.33  33.70  But across eleven trials, mostly of ice baths, there was no proof that cold wate
+   5  34.45  41.49  If you lift weights, skip the ice bath straight after training, because in trial
+   6  42.24  54.69  And for fat loss, one small trial found people lost about seven hundred grams of
+   7  55.44  75.09  Plunging into cold water triggers a gasp and a racing heart in the first minute,
+   8  75.99  78.09  Let's get you back to factory settings.
+42.24:And 42.68:for 42.96:fat 43.05:loss, 43.36:one 43.63:small 43.98:trial 44.54:found 44.96:people 45.41:lost 45.87:about 46.13:seven 46.57:hundred 46.94:grams 47.45:of 47.57:fat 47.81:in 48.03:six 48.42:weeks, 48.71:from 49.17:two 49.51:hours 50.04:a 50.18:day 50.40:at 50.48:seventeen 51.29:degrees 51.97:Celsius.
+52.99:I 53.44:hope 53.70:your 53.83:showers 54.23:are 54.35:shorter.
+55.44:Plunging 56.13:into 56.49:cold 56.66:water 56.95:triggers 57.36:a 57.61:gasp 57.81:and 58.09:a 58.29:racing 58.70:heart 59.00:in 59.27:the 59.48:first 59.82:minute, 60.18:and 60.65:that 60.86:shock 61.08:can 61.30:cause 61.69:heart 61.74:attacks, 62.39:even 62.93:in 63.19:fairly 63.60:young, 64.04:healthy 64.57:people.
+65.60:So 66.15:if 66.26:you 66.46:have 66.55:a 66.66:heart 66.87:condition, 67.37:high 67.76:blood 68.24:pressure, 68.71:diabetes 69.69:or 69.87:poor 70.02:circulation, 71.05:or 71.39:you're 71.54:pregnant, 72.24:talk 72.68:to 72.89:your 73.10:doctor 73.60:before 74.33:you 74.58:start.
+75.99:Let's 76.52:get 76.70:you 76.88:back 77.03:to 77.20:factory 77.58:settings.
