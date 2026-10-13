@@ -580,7 +580,7 @@ const CAPS = [
   { t0: T.like, t1: 5.05, top: 300, size: 92, html: 'like a<br><em>Victorian ghost</em>.' },
   { t0: T.lets, t1: 6.95, top: 300, size: 92, html: 'Let’s <em>get you up</em>.' },
   { t0: T.lower, t1: 11.05, top: 292, size: 82, html: 'Lower back pain is<br>the <em>number one</em> cause<br>of disability on Earth,' },
-  { t0: T.yet, t1: 17.2, top: 292, size: 82, html: 'yet about <em>9 times in 10</em>,<br>doctors can’t pin it<br>on any disease<br>or damage.' },
+  { t0: T.yet, t1: 17.2, top: 268, size: 78, html: 'yet about <em>9 times in 10</em>,<br>doctors can’t pin it<br>on any disease<br>or damage.' },
   { t0: T.worn, t1: 19.8, top: 292, size: 86, html: 'Worn discs on a scan<br>are <em>normal</em>:' },
   { t0: T.over, t1: 23.25, top: 292, size: 84, html: 'over a third of<br>pain-free <em>20-year-olds</em><br>have them,' },
   { t0: T.and, t1: 26.8, top: 292, size: 86, html: 'and almost every<br>pain-free <em>80-year-old</em>.' },
@@ -588,7 +588,7 @@ const CAPS = [
   { t0: T.your2, t1: 33.6, top: 292, size: 82, html: 'Your back was built<br>to <em>move</em>, and the pain<br>usually eases<br>in a few weeks,' },
   { t0: T.so, t1: 36.2, top: 300, size: 92, html: 'so <em>stay active</em><br>and carry on.' },
   { t0: T.your3, t1: 39.4, top: 292, size: 86, html: 'Your mattress is not<br>a <em>physiotherapist</em>.' },
-  { t0: T.see, t1: 43.95, top: 292, size: 82, html: 'See a <em>doctor</em> if it’s<br>not better in<br>a few weeks, it stops<br>your daily life,' },
+  { t0: T.see, t1: 43.95, top: 268, size: 74, html: 'See a <em>doctor</em> if it’s not<br>better in a few weeks,<br>it stops your daily life,' },
   { t0: T.its2, t1: 47.3, top: 292, size: 86, html: 'it’s worse at night,<br>you lose weight<br>without trying,' },
   { t0: T.theres, t1: 50.6, top: 292, size: 86, html: 'there’s a lump<br>or swelling,<br>or you’re worried.' },
   { t0: T.get2, t1: 54.55, top: 292, size: 84, html: 'Get an <em>urgent</em><br>appointment if you feel<br>hot, shivery or unwell,' },
@@ -606,6 +606,7 @@ function overlay(S, t) {
 
 makeFilm({
   T, caps: CAPS, subs: [], build, update, pose: camPose, overlay, overlayInit, focus: focusAt,
+  shade: [[26.94, 29.95], [73.85, 74.55]],   // the deep scrim behind the words: the spine close-up runs up the middle of the frame (and the pull back out of it), then the last pull back carries the skull up
   stage: { bg: 0x07080a, reflSize: 8, env: 0.12, far: 30 },
   aperture: [[0, 0.003], [7.75, 0.003], [11.7, 0.002], [27.35, 0.003], [29.9, 0.002], [36.75, 0.003], [40.3, 0.002], [60.0, 0.002], [75.2, 0.003]],
   bloom: [[0, 0.45], [75, 0.55]],
