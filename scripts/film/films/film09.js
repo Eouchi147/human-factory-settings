@@ -1,33 +1,161 @@
-// Human Factory Settings · Film 9 "The breath that calms you down" · one continuous shot, 9:16.
-// A skeleton sits on a stool and breathes: glass lungs fill around their airways, the diaphragm drops, the ribs open, and
-// the heart beats a little faster on each breath in and slower on each breath out (a chart recorder prints it). A sigh:
-// two breaths in; under a bell jar, air sacs a hundred times life size fold shut and open again. The Stanford trial:
-// 108 people in four groups, five minutes a day for a month; good mood rises more with cyclic sighing than with
-// meditation, anxiety falls the same; and the fifth place, the do-nothing group, is empty (the gag). Twelve trials: small
-// to medium. Longer out-breaths: no clear gain. Fast drills: carbon dioxide drops, the room sways; never near water.
-// See a doctor. A dial for breaths a minute (12 to 18 at rest) becomes the logo.
-import { THREE, ORANGE, COLD, ss, s5, lerp, clamp01, hash, camTrack, phys, glowMat, shadows, spot, RoundedBoxGeometry,
-  loadAnatomy, tissueMat, V3, place, logoEnd, makeFilm, outBack, stamp, stampCanvas, stampSpot, noiseTex, TIME } from '../kit.js';
-import { buildRig, skeletonKind, legIK, bendSpine, poseArm, worldVerts } from '../rig.js';
+// Human Factory Settings · Film 9 "The breath that calms you down" (new direction, 6 Oct 2026) · one continuous shot, 9:16.
+// A skeleton sits on a stool, breathing like something is chasing it, while sticky notes slap onto its skull: CALM DOWN,
+// CALM DOWN., CALM DOWN!! (the gag). "Your body has a better way": the notes peel off and flutter away. Glass lungs fill
+// round their airways, the heart beats a little faster on each breath in and slower on each breath out, and a chart
+// recorder beside it prints both. Under a bell jar, air sacs a hundred times life size fold shut; a sigh, a second breath
+// on top of the first, opens them again. The sigh on purpose: in, in, one long breath out. The Stanford study: good mood
+// rises more with sighing than with meditation; twelve trials: stress down by a small to medium amount. A magic wand
+// sparks and falls over: a useful tool, not a magic one. Fast drills make the room sway. See a doctor; get help now if
+// you need it. A dial set to five minutes a day becomes the logo.
+import { THREE, ORANGE, ss, s5, lerp, clamp01, hash, camTrack, phys, glowMat, shadows, spot, RoundedBoxGeometry,
+  loadAnatomy, tissueMat, V3, place, logoEnd, makeFilm, outBack, stamp, stampCanvas, stampSpot, noiseTex } from '../kit.js';
+import { buildRig, skeletonKind, legIK, bendSpine, poseArm, worldVerts, avgV, clearArms } from '../rig.js';
 import { makeLogoRing } from '../props.js';
 import { ConvexHull } from 'three/addons/math/ConvexHull.js';
 
+// ------------------------------------------------------------------ a wrist, and hands that can hold (from film 11, on the wrist)
+const HANDBONE = /scaphoid|lunate|triquetral|pisiform|trapezium|trapezoid|capitate|hamate|metacarpal|phalanx of/i;
+function makeWrist(R, Side, { pronate = false } = {}) {
+  const A = R.arms[Side], low = (m) => { const vs = worldVerts(m); let mn = 9; for (const v of vs) mn = Math.min(mn, v.y); return avgV(vs.filter((v) => v.y < mn + 0.012)); };
+  const rad = R.byName.get(`${Side} radius`), uln = R.byName.get(`${Side} ulna`);
+  const P = low(rad).lerp(low(uln), 0.5);
+  // pronate: the forearm turns as a real one does. The radius, and the hand on it, turn about the line from the middle of
+  // the radial head to the middle of the ulnar head; the ulna stays. setWrist's p.pro turns it (radians, + = pronation)
+  let host = A.elbow, hp = A.EL, pro = null, proAxis = null;
+  if (pronate) {
+    const rv = worldVerts(rad), uv = worldVerts(uln); let rt = -9, ub = 9; for (const v of rv) rt = Math.max(rt, v.y); for (const v of uv) ub = Math.min(ub, v.y);
+    const RH = avgV(rv.filter((v) => v.y > rt - 0.012)), UH = avgV(uv.filter((v) => v.y < ub + 0.016));
+    proAxis = UH.clone().sub(RH).normalize();
+    pro = new THREE.Group(); pro.position.copy(RH).sub(A.EL); A.elbow.add(pro); R.pivots.set(pro, RH.clone());
+    A.elbow.remove(rad); rad.position.copy(rad.userData.home).sub(RH); pro.add(rad);
+    host = pro; hp = RH;
+  }
+  const g = new THREE.Group(); g.position.copy(P).sub(hp); host.add(g);
+  for (const m of [...A.elbow.children]) if (m.isMesh && HANDBONE.test(m.userData.name) && m.userData.name.toLowerCase().includes(Side.toLowerCase())) { A.elbow.remove(m); m.position.copy(m.userData.home).sub(P); g.add(m); }
+  return { g, P, s: Side === 'Right' ? -1 : 1, pro, proAxis };
+}
+const setWrist = (Wr, p) => { Wr.g.rotation.set(p.wf || 0, (p.wr || 0) * Wr.s, (p.wd || 0) * Wr.s, 'YXZ'); if (Wr.pro) Wr.pro.quaternion.setFromAxisAngle(Wr.proAxis, (p.pro || 0) * Wr.s); };   // roll (forearm turn), then flex, then tilt; a pronating forearm turns too
+function rigHand(R, Side, Wr) {
+  const A = R.arms[Side], side = Side.toLowerCase(), eg = Wr.g, EL = Wr.P, by = (n) => R.byName.get(n);
+  const top = (m) => { const vs = worldVerts(m); let mx = -9, mn = 9; for (const v of vs) { mx = Math.max(mx, v.y); mn = Math.min(mn, v.y); } return avgV(vs.filter((v) => v.y > mx - 0.12 * (mx - mn))); };
+  const bot = (m) => { const vs = worldVerts(m); let mx = -9, mn = 9; for (const v of vs) { mx = Math.max(mx, v.y); mn = Math.min(mn, v.y); } return avgV(vs.filter((v) => v.y < mn + 0.12 * (mx - mn))); };
+  const F = ['index', 'middle', 'ring', 'little'].map((f) => ({ P: by(`Proximal phalanx of ${side} ${f} finger`), M: by(`Middle phalanx of ${side} ${f} finger`), D: by(`Distal phalanx of ${side} ${f} finger`) }));
+  const mcpI = top(F[0].P), mcpL = top(F[3].P), fdir = bot(F[1].D).sub(top(F[1].P)).normalize();
+  const across = mcpL.clone().sub(mcpI); across.sub(fdir.clone().multiplyScalar(across.dot(fdir))).normalize();
+  const n = new THREE.Vector3().crossVectors(fdir, across).normalize(); if (n.z < 0) n.negate();
+  const axis = new THREE.Vector3().crossVectors(fdir, n).normalize();   // +angle turns each finger toward the palm (n): the way fingers close
+  const joints = [];
+  for (const f of F) { const pts = [top(f.P), top(f.M), top(f.D)], gs = []; let parent = eg, pp = EL;
+    [f.P, f.M, f.D].forEach((m, i) => { const g = new THREE.Group(); g.position.copy(pts[i]).sub(pp); parent.add(g); m.parent.remove(m); m.position.copy(m.userData.home).sub(pts[i]); g.add(m); gs.push(g); parent = g; pp = pts[i]; }); joints.push(gs); }
+  const tP = by(`Proximal phalanx of ${side} thumb`), tD = by(`Distal phalanx of ${side} thumb`), tpt = [top(tP), top(tD)];
+  const ttip = bot(tD), tdir = ttip.clone().sub(tpt[0]).normalize(), aim = mcpI.clone().lerp(mcpL, 0.6).add(n.clone().multiplyScalar(0.03)).sub(ttip);
+  const taxis = new THREE.Vector3().crossVectors(tdir, aim).normalize(), tg = [];
+  { let parent = eg, pp = EL; [tP, tD].forEach((m, i) => { const g = new THREE.Group(); g.position.copy(tpt[i]).sub(pp); parent.add(g); m.parent.remove(m); m.position.copy(m.userData.home).sub(tpt[i]); g.add(m); tg.push(g); parent = g; pp = tpt[i]; }); }
+  const mid = mcpI.clone().add(mcpL).multiplyScalar(0.5);
+  const handle = mid.clone().addScaledVector(fdir, 0.03).addScaledVector(n, 0.024).sub(EL);
+  // prof: how a finger shares its closing between knuckle, middle and end joint (a fist by default; a hand flat on a
+  // phone's back that wraps its far edge bends mostly at the middle joints)
+  const PROF = [1.25, 1.5, 0.95];
+  const setF = (gs, kk, s, pr) => { gs[0].quaternion.setFromAxisAngle(axis, pr[0] * kk * s); gs[1].quaternion.setFromAxisAngle(axis, pr[1] * kk * s); gs[2].quaternion.setFromAxisAngle(axis, pr[2] * kk * s); };
+  function curl(k, per = null, tk = null, prof = PROF) {   // per: each finger's own closing [index, middle, ring, little]; tk: the thumb's
+    joints.forEach((gs, i) => setF(gs, per ? per[i] : k, 1 + 0.06 * i, prof));
+    const t = tk ?? k; tg[0].quaternion.setFromAxisAngle(taxis, 0.55 * t); tg[1].quaternion.setFromAxisAngle(taxis, 0.7 * t);
+  }
+  // close each finger (and the thumb) on an object until it is `need` off it: sdf(world point) is the distance to the object
+  // (+ outside). Returns { per, tk } for curl(); a finger that never meets it closes to kmax
+  function fit(sdf, { need = 0.003, kmin = 0.05, kmax = 0.95, prof = PROF, tmin = kmin } = {}) {   // tmin < 0 lets the thumb stand off, away from the palm
+    const v = new THREE.Vector3(), samp = (ms) => ms.map((m) => { const P = m.geometry.attributes.position, st = Math.max(1, Math.floor(P.count / 200)), pts = []; for (let i = 0; i < P.count; i += st) pts.push(new THREE.Vector3().fromBufferAttribute(P, i)); return { m, pts }; });
+    const gap = (S) => { eg.updateMatrixWorld(true); let g = 9; for (const { m, pts } of S) for (const p of pts) g = Math.min(g, sdf(v.copy(p).applyMatrix4(m.matrixWorld))); return g; };
+    // the first contact on the way from open to closed (a finger can pass an object's edge and curl clear of it again,
+    // so the whole sweep is scanned, then the contact is found finely)
+    const search = (S, set, k0 = kmin) => { set(k0); if (gap(S) < need) return k0; let lo = k0, hi = null;
+      for (let j = 1; j <= 24; j++) { const k = k0 + (kmax - k0) * (j / 24); set(k); if (gap(S) < need) { hi = k; break; } lo = k; }
+      if (hi === null) return kmax;
+      for (let j = 0; j < 12; j++) { const m = (lo + hi) / 2; set(m); if (gap(S) >= need) lo = m; else hi = m; } set(lo); return lo; };
+    const per = joints.map((gs, i) => search(samp(gs.map((g) => g.children.find((c) => c.isMesh)).filter(Boolean)), (kk) => setF(gs, kk, 1 + 0.06 * i, prof)));
+    const tk = search(samp(tg.map((g) => g.children.find((c) => c.isMesh)).filter(Boolean)), (kk) => { tg[0].quaternion.setFromAxisAngle(taxis, 0.55 * kk); tg[1].quaternion.setFromAxisAngle(taxis, 0.7 * kk); }, tmin);
+    return { per, tk };
+  }
+  const hand = new THREE.Vector3().crossVectors(fdir, across).dot(n) > 0 ? 1 : -1;   // n = hand * (fdir x across)
+  return { curl, fit, handle, across: across.clone(), n: n.clone(), fdir: fdir.clone(), eg, hand };
+}
+function solveHand(R, Side, H, at, init, aims = [], extra = null, starts = null) {   // starts: other initial poses to try (default: a spread for a standing body)   // an arm and wrist pose that puts the hand's grip at a world point, with hand directions (local v) turned toward world ones; extra(A) adds a posture cost
+  R.root.updateMatrixWorld(true);
+  const A = R.arms[Side], Wr = H.wr, h = new THREE.Vector3(), q = new THREE.Quaternion(), pn = new THREE.Vector3();
+  const err = (p) => { poseArm(A, p); setWrist(Wr, p); A.girdle.updateMatrixWorld(true); h.copy(H.handle).applyMatrix4(Wr.g.matrixWorld); let E = h.distanceTo(at);
+    if (aims.length) { Wr.g.getWorldQuaternion(q); for (const a of aims) E += a.w * (1 - pn.copy(a.v).applyQuaternion(q).dot(a.to)); }
+    if (extra) E += extra(A);
+    E += 0.01 * ((p.wf || 0) ** 2 + 2 * (p.wd || 0) ** 2 + 0.5 * (p.wr || 0) ** 2); return E; };
+  const descend = (start) => {
+    let best = { dir: [...start.dir], twist: start.twist, elbow: start.elbow, wf: start.wf || 0, wd: start.wd || 0, wr: start.wr || 0, retract: 0, elevate: 0 }, bestE = err(best);
+    for (const st of [0.25, 0.12, 0.06, 0.03, 0.015, 0.007]) for (let it = 0; it < 40; it++) {
+      let improved = false;
+      for (const key of ['d0', 'd1', 'd2', 'twist', 'elbow', 'wf', 'wd', 'wr']) for (const sg of [-1, 1]) {
+        const c = { ...best, dir: [...best.dir] }; if (key[0] === 'd') c.dir[+key[1]] += sg * st; else c[key] += sg * st * 2; c.elbow = Math.min(2.6, Math.max(0, c.elbow)); c.wf = Math.min(1.1, Math.max(-1.1, c.wf)); c.wd = Math.min(0.4, Math.max(-0.4, c.wd)); c.wr = Math.min(2.2, Math.max(-2.2, c.wr));
+        const E = err(c); if (E < bestE) { bestE = E; best = c; improved = true; }
+      }
+      if (!improved) break;
+    }
+    return { best, bestE };
+  };
+  let out = descend(init);
+  const tries = starts || [[0.6, 0.8, 0.2], [0.35, 0.7, 0.45], [0.9, 0.35, 0.1], [0.5, 0.5, -0.3], [0.2, -0.2, 0.9]].flatMap((dir) => [-1.2, -0.4, 0.4, 1.2].flatMap((twist) => [1.3, 1.9, 2.4].map((elbow) => ({ dir, twist, elbow }))));
+  for (const st of tries) { if (out.bestE < 0.004) break; const r = descend(st); if (r.bestE < out.bestE) out = r; }
+  poseArm(A, out.best); setWrist(Wr, out.best); A.girdle.updateMatrixWorld(true); h.copy(H.handle).applyMatrix4(Wr.g.matrixWorld); Wr.g.getWorldQuaternion(q);
+  const dbg = { pos: +h.distanceTo(at).toFixed(4), dots: aims.map((a) => +pn.copy(a.v).applyQuaternion(q).dot(a.to).toFixed(3)), at: at.toArray().map((v) => +v.toFixed(3)) };
+  return { ...out.best, err: out.bestE, dbg };
+}
+const FIST = [1.25, 1.5, 0.95], FLAT_WRAP = [0.35, 1.6, 1.25];   // how the fingers close: a fist; flat on a phone's back, bent round its edge
+// a hand closing on what it holds: each finger goes from `base` toward its fitted closing, and never further in than that fit
+// while the object is there (a finger more closed than its fit would be inside the object)
+function gripCurl(H, G, g, base, prof) { H.curl(0, G.per.map((k) => lerp(Math.min(base, k), k, g)), lerp(Math.min(base, G.tk), G.tk, g), prof); }
+// the phone (props.js makePhone): a rounded box, its long edges rounded to half its thickness; local y = 0 is the back, Th the
+// screen. Signed distance from a point in the phone's own frame (+ outside)
+const PHONE = { W: 0.0716, L: 0.1476, Th: 0.0078 };
+function phoneSDF(p) {
+  const r = PHONE.Th / 2, qx = Math.abs(p.x) - (PHONE.W / 2 - r), qy = Math.abs(p.y - PHONE.Th / 2) - (PHONE.Th / 2 - r), qz = Math.abs(p.z) - (PHONE.L / 2 - r);
+  return Math.hypot(Math.max(qx, 0), Math.max(qy, 0), Math.max(qz, 0)) + Math.min(Math.max(qx, qy, qz), 0) - r;
+}
+// how far a hand's bones come inside their gap round an object (sdf: world point -> distance, + outside): fingers `finger`,
+// palm and wrist `palm` (the flesh that is not drawn). palmOnly skips the fingers (they are closed on the object after)
+function handGap(H, sdf, { palm = 0.006, finger = 0.003, palmOnly = false } = {}) {
+  if (!H._gapPts) { H._gapPts = []; H.wr.g.traverse((m) => { if (!m.isMesh) return; const P = m.geometry.attributes.position, st = Math.max(1, Math.floor(P.count / 40)), fing = /phalanx/i.test(m.userData.name);
+    for (let i = 0; i < P.count; i += st) H._gapPts.push({ m, p: new THREE.Vector3().fromBufferAttribute(P, i), fing }); }); }
+  const v = new THREE.Vector3(); let E = 0, worst = 0, who = '';
+  for (const q of H._gapPts) { if (palmOnly && q.fing) continue; const d = (q.fing ? finger : palm) - sdf(v.copy(q.p).applyMatrix4(q.m.matrixWorld)); if (d > 0) { E += d; if (d > worst) { worst = d; who = q.m.userData.name; } } }
+  return { E, worst, who };
+}
+// a posture cost that keeps an arm out of ellipsoids (world centre c, semi-axes r, the bone's own thickness included):
+// samples the upper arm (from a quarter of the way down, the shoulder itself sits where it sits), the forearm and the hand
+function keepOut(R, Side, H, zones, w = 3) {
+  const A = R.arms[Side], s = new THREE.Vector3(), e = new THREE.Vector3(), wr = new THREE.Vector3(), g = new THREE.Vector3(), p = new THREE.Vector3();
+  const f = (arm) => { A.arm.getWorldPosition(s); A.elbow.getWorldPosition(e); H.wr.g.getWorldPosition(wr); g.copy(H.handle).applyMatrix4(H.wr.g.matrixWorld);
+    let E = 0;
+    for (const [a, b, n, u0] of [[s, e, 10, 0.25], [e, wr, 10, 0], [wr, g, 4, 0]]) for (let i = 0; i <= n; i++) { p.lerpVectors(a, b, u0 + (1 - u0) * i / n);
+      for (const z of zones) { const q = Math.hypot((p.x - z.c.x) / z.r.x, (p.y - z.c.y) / z.r.y, (p.z - z.c.z) / z.r.z); if (q < 1) E += w * (1 - q); } }
+    return E; };
+  return f;
+}
+const mixArm = (a, b, k) => ({ dir: a.dir.map((v, i) => lerp(v, b.dir[i], k)), twist: lerp(a.twist, b.twist, k), elbow: lerp(a.elbow, b.elbow, k), wf: lerp(a.wf || 0, b.wf || 0, k), wd: lerp(a.wd || 0, b.wd || 0, k), wr: lerp(a.wr || 0, b.wr || 0, k), pro: lerp(a.pro || 0, b.pro || 0, k), retract: 0, elevate: 0, mix: [a, b, k] });
+
+
+
 // ------------------------------------------------------------------ timing, from the voice guide (word starts)
 const T = {
-  end: 79.0,
-  q0: 0.35, in: 1.10, heart: 1.62, speeds: 1.94, little: 2.64, out: 3.41, out2: 4.16, slows: 4.62,                     // "Breathe in, and your heart speeds up a little. Breathe out, and it slows."
-  already: 6.38, sigh: 6.85, every: 7.09, minutes: 7.61, noticing: 8.36, second: 10.11, breath: 10.45, top: 10.90, first: 11.47,
-  reopen: 12.37, tiny: 12.91, air: 13.34, sacs: 13.60, fold: 14.29, shut: 14.90,                                     // "You already sigh ... to reopen tiny air sacs that fold shut."
-  stanford: 16.61, hundred: 17.58, people: 18.41, students: 19.61, given: 20.42, five: 20.88, minutes2: 21.52, day: 22.27,
-  breathing: 22.73, meditation: 23.69, month: 25.42,                                                                  // "In a Stanford trial, a hundred and eight people ... for a month."
-  sighing: 26.53, purpose: 27.44, two: 27.85, breaths: 28.16, one: 28.73, long: 29.08, out3: 29.80, lifted: 30.18, good: 30.74,
-  more: 31.18, meditation2: 31.94, did: 33.20,                                                                        // "Sighing on purpose, two breaths in, one long breath out, lifted good mood more than meditation did."
-  anxious: 35.39, dropped: 35.80, much: 36.77, meditation3: 37.20, and: 38.73, trial: 39.51, no: 39.88, nothing: 40.17, group: 40.69,
-  across: 42.08, twelve: 42.90, trials: 43.20, cut: 45.20, small: 46.40, medium: 47.01, amount: 47.51, useful: 48.68, not: 49.44, magic: 49.80,
-  longer: 51.08, outbreaths: 51.78, twelveweek: 53.71, notc: 54.84, better: 55.59, equal: 56.29, breaths2: 56.77,
-  skip: 58.29, hard: 58.85, fast: 59.22, drills: 60.11, drop: 61.61, carbon: 62.07, dizzy: 64.40, never: 65.03, water: 67.00,
-  struggling: 68.31, cope: 69.40, nothing2: 70.61, helping: 72.09, see: 72.84, doctor: 73.56,
-  final: 74.88, settings: 76.04, logo: 76.74,
+  end: 79.73, logo: 77.21,
+  you: 0.35, keep: 0.80, telling: 1.03, yourself: 1.26, calm: 1.84, down: 2.14, while: 2.41, breathing: 2.90, like: 3.28, something: 3.70, chasing: 4.48, you2: 4.94,
+  your: 5.71, body: 6.15, has: 6.45, better: 6.77, way: 7.03,
+  your2: 8.28, built: 9.33, brake: 9.78, reach: 10.52, when: 10.78, breathe: 11.51, in: 11.83, heart: 12.26, speeds: 12.69, up: 13.32, little: 13.72, when2: 14.17, breathe2: 14.56, out: 14.95, slows: 15.31, down2: 16.08,
+  your3: 17.23, already: 17.97, sighs: 18.49, every: 18.74, minutes: 19.19, noticing: 20.25, taking: 20.88, second: 21.59, breath: 21.97, reopen: 22.56, tiny: 23.05, air: 23.53, sacs: 23.90, lungs: 24.68,
+  so: 26.12, sigh: 26.66, purpose: 27.03, breathe3: 27.41, in2: 28.15, twice: 28.20, then: 28.65, let: 28.89, one: 29.13, long: 29.39, slow: 29.77, breath2: 30.22, out2: 30.67,
+  in3: 31.65, stanford: 32.26, study: 32.55, mostly: 33.02, students: 33.42, five: 33.98, minutes2: 34.49, day: 35.22, this: 35.58, month: 36.07, lifted: 36.39, mood: 37.02, more: 37.45, meditation: 37.89, did: 38.82,
+  and2: 39.05, across: 39.67, twelve: 40.25, trials: 40.56, breathing2: 41.10, exercises: 41.54, cut: 42.63, stress: 42.86, small: 43.87, medium: 44.51, amount: 44.96,
+  its: 45.86, useful: 46.49, tool: 46.76, not: 47.10, magic: 47.45, one2: 47.99,
+  do: 49.07, five2: 49.82, minutes3: 50.07, day2: 50.54, skip: 50.99, hard: 51.14, fast: 51.49, drills: 52.57, because: 53.12, dizzy: 54.80,
+  and3: 55.59, never: 56.03, practise: 56.34, holding: 57.59, near: 58.70, water: 59.08,
+  if: 60.31, stress2: 60.62, cope: 62.04, nothing: 62.79, helping: 64.20, talk: 64.48, doctor: 65.31,
+  if2: 66.42, someone: 67.24, needs: 67.96, help: 68.30, now: 68.91, harmed: 70.61, call: 71.69, emergency: 71.91, services: 73.07,
+  final: 74.95, factory: 76.16, settings: 76.53,
 };
 
 // ------------------------------------------------------------------ the set (metres; the skeleton faces +z; +x is its left)
@@ -35,8 +163,14 @@ const W = {}; window.HFS_W = W;
 const SEAT = 0.47;                                                     // the stool's top
 const SIDE = new THREE.Vector3(0.62, 0.62, 0.08);                      // the side table's top (the skeleton's left): the chart recorder
 const JAR = new THREE.Vector3(-0.62, 0.62, 0.1);                       // the bell jar's base top (its right)
-const PLINTH = { x: 0.0, z: 0.86, w: 0.6, d: 0.66, top: 0.36 };      // the low plinth in front: the trial
-const DIAL = new THREE.Vector3(0.71, SIDE.y, 0.165), DIAL_R = 0.062, LOGO_R = 0.048;
+// the low plinth in front: the study. It stands clear of the skeleton's feet, turned to face +x, so a camera on that side sees it
+// against the dark room and not against the legs; it rises out of the floor for the study and sinks after the wand
+const PLINTH = { x: 0.05, z: 1.15, ry: Math.PI / 2, w: 0.45, d: 0.4, top: 0.36 };
+const PL = (x, y, z) => new THREE.Vector3(PLINTH.x + x * Math.cos(PLINTH.ry) + z * Math.sin(PLINTH.ry), y, PLINTH.z - x * Math.sin(PLINTH.ry) + z * Math.cos(PLINTH.ry));
+const RISE = [31.3, 32.8], SINK = [49.6, 50.6];
+const plinthUp = (t) => s5(RISE[0], RISE[1], t) * (1 - s5(SINK[0], SINK[1], t));
+const pDyAt = (t) => -(PLINTH.top + 0.02) * (1 - plinthUp(t));
+const DIAL = new THREE.Vector3(0.7, SIDE.y, 0.175), DIAL_R = 0.062, LOGO_R = 0.048;
 const X = new THREE.Vector3(1, 0, 0), Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
 const pulse = (t, a, b, r = 0.35) => ss(a, a + r, t) * (1 - ss(b - r, b, t));
 function canvasTex(w, h, draw) {
@@ -48,53 +182,52 @@ function txt(x, s, px, py, { font = '800 100px Archivo', color = '#fff', align =
 }
 
 // ------------------------------------------------------------------ breathing: lung volume 0..1 over time, written to the words
-// a breath: in over `a` seconds, out over `b`; `k` = depth
-function breathAt(t) {
-  const segs = [];
-  const add = (t0, a, b, k = 1, hold = 0) => segs.push({ t0, a, b, k, hold });
-  // the first lines: one slow breath in on "Breathe in", out on "Breathe out"
-  add(0.55, 2.2, 0, 1.0, 0.55); add(3.3, 0, 2.4, 1.0);
-  // quiet breathing at about 12 a minute
-  for (let s = 6.0; s < 9.3; s += 4.6) add(s, 1.7, 2.6, 0.65);
-  // the sigh: a breath in, a second on top, a long breath out
-  segs.push({ sigh: true, t0: 9.55, a1: 0.9, a2: 0.75, b: 3.2 });
-  for (let s = 14.6; s < 26.6; s += 4.8) add(s, 1.8, 2.8, 0.6);
-  // cyclic sighing on purpose: two in, one long out, three times
-  for (const s of [27.7, 32.1]) segs.push({ sigh: true, t0: s, a1: 0.65, a2: 0.55, b: 3.0 });
-  for (let s = 36.4; s < 50.6; s += 4.8) add(s, 1.8, 2.8, 0.6);
-  // longer out-breaths, then equal ones
-  add(51.0, 1.6, 3.2, 0.7); add(55.9, 1.8, 1.8, 0.7);
-  // hard, fast breathing (the drill), then calm
-  for (let s = 59.0; s < 64.9; s += 0.92) add(s, 0.42, 0.46, 1.0);
-  for (let s = 65.6; s < 81; s += 4.9) add(s, 1.9, 2.9, 0.6);
-  let v = 0;
-  for (const g of segs) {
-    if (t < g.t0) continue;
-    const u = t - g.t0;
-    if (g.sigh) {
-      const i1 = s5(0, g.a1, u) * 0.72, i2 = s5(g.a1 + 0.08, g.a1 + 0.08 + g.a2, u) * 0.28, o = 1 - s5(g.a1 + g.a2 + 0.15, g.a1 + g.a2 + 0.15 + g.b, u);
-      if (u < g.a1 + g.a2 + 0.15 + g.b) v = (i1 + i2) * o * 1.15;
-    } else {
-      const up = g.a > 0 ? s5(0, g.a, u) : 1, dn = g.b > 0 ? 1 - s5(g.a + g.hold, g.a + g.hold + g.b, u) : 1;
-      if (g.b === 0) v = g.k * up; else if (g.a === 0) { if (u < g.b) v = g.k * (1 - s5(0, g.b, u)); }
-      else if (u < g.a + g.hold + g.b) v = g.k * up * dn;
-    }
+const PANIC = [0.4, 5.6], DRILL = [51.0, 54.9];
+const SIGHS = [{ t0: 21.25, a1: 0.7, a2: 0.55, b: 2.6 }, { t0: 27.3, a1: 0.85, a2: 0.5, b: 3.1 }];   // the body's own (in the jar), then on purpose
+let SEGS = null;
+function buildSegs() {
+  SEGS = []; const segs = [], add = (t0, a, b, k = 1, hold = 0) => segs.push({ t0, a, b, k, hold });
+  for (let s = PANIC[0]; s < PANIC[1] - 0.5; s += 0.95) add(s, 0.42, 0.48, 0.62);                    // like something is chasing you
+  add(6.0, 1.3, 2.3, 0.8);                                                                            // a better way
+  add(8.4, 1.4, 1.5, 0.55);
+  add(11.35, 2.4, 2.5, 1.0, 0.55);                                                                    // in: faster; out: slower
+  for (let s = 17.4; s < 21.0; s += 3.6) add(s, 1.5, 2.0, 0.55);
+  for (const g of SIGHS) segs.push({ sigh: true, ...g });
+  for (let s = 24.8; s < 27.0; s += 3.8) add(s, 1.2, 1.4, 0.5);
+  for (let s = 32.0; s < DRILL[0] - 4.6; s += 4.6) add(s, 1.7, 2.6, 0.55);                              // quiet (the last one is over before the drill starts)
+  for (let s = DRILL[0]; s < DRILL[1] - 0.3; s += 0.92) add(s, 0.42, 0.46, 1.0);                     // the hard, fast drill
+  for (let s = 55.6; s < 82; s += 4.9) add(s, 1.9, 2.9, 0.55);                                       // calm
+  segs.sort((p, q) => p.t0 - q.t0); SEGS = [];
+  for (const g of segs) { g.v0 = breathAt(g.t0); SEGS.push(g); }                                     // each breath starts where the last one is, so nothing jumps
+}
+function segAt(g, t) {                                                                                 // one breath's lung volume at t, or null once it is over
+  const u = t - g.t0;
+  if (g.sigh) {
+    if (u >= g.a1 + 0.08 + g.a2 + 0.15 + g.b) return null;
+    const i1 = s5(0, g.a1, u) * 0.72, i2 = s5(g.a1 + 0.08, g.a1 + 0.08 + g.a2, u) * 0.28, o = 1 - s5(g.a1 + g.a2 + 0.15, g.a1 + g.a2 + 0.15 + g.b, u);
+    return g.v0 * (1 - s5(0, g.a1, u)) + (i1 + i2) * o * 1.15;
   }
+  if (u >= g.a + g.hold + g.b) return null;
+  const up = g.a > 0 ? s5(0, g.a, u) : 1, dn = g.b > 0 ? 1 - s5(g.a + g.hold, g.a + g.hold + g.b, u) : 1;
+  return (g.v0 + (g.k - g.v0) * up) * dn;
+}
+function breathAt(t) {
+  let v = 0;
+  for (const g of SEGS) { if (t < g.t0) break; const x = segAt(g, t); if (x !== null) v = x; }
   return v;
 }
-// the heart: a little faster while the lungs fill, slower while they empty (respiratory sinus arrhythmia), faster in the drill
+// the heart: a little faster while the lungs fill, slower while they empty (respiratory sinus arrhythmia); faster in a panic and in the drill
 let BEATS = null;
 function buildBeats() {
   BEATS = []; let ph = 0, prev = breathAt(0);
   for (let t = 0; t < T.end + 1; t += 0.002) {
     const b = breathAt(t), db = (b - prev) / 0.002; prev = b;
-    const drill = ss(58.8, 59.6, t) * (1 - ss(64.6, 66.0, t));
-    const hr = 64 + 9 * Math.tanh(db * 1.4) + 14 * drill;           // beats a minute
+    const fast = ss(0.2, 0.9, t) * (1 - ss(5.8, 8.0, t)) + ss(50.8, 51.6, t) * (1 - ss(55.0, 57.0, t));
+    const hr = 64 + 9 * Math.tanh(db * 1.4) * (1 - 0.6 * fast) + 18 * fast;            // beats a minute
     ph += (hr / 60) * 0.002; if (ph >= 1) { ph -= 1; BEATS.push(t); }
   }
 }
 function beatEnv(t) { let e = 0; for (const b of BEATS) { if (b > t) break; const u = t - b; if (u < 0.5) e = Math.max(e, Math.exp(-u * 9) * Math.min(1, u * 40)); } return e; }
-function hrAt(t) { let i = 0; while (i < BEATS.length && BEATS[i] <= t) i++; if (i < 2) return 64; return 60 / (BEATS[i - 1] - BEATS[i - 2]); }
 
 // ------------------------------------------------------------------ the lungs: a rounded hull round each bronchial tree
 function softHull(pts, c, { k = 0.012, grow = 0.014, nu = 96, nv = 64, smooth = 3 } = {}) {
@@ -147,7 +280,6 @@ function makeRecorder(scene) {
   const lamp = new THREE.Mesh(new THREE.CircleGeometry(0.004, 20), glowMat(new THREE.Color(0x9fdcff))); lamp.position.set(0.065, 0.06, 0.0605); g.add(lamp);
   const label = canvasTex(512, 96, (x, w, h) => { x.fillStyle = '#1b1c20'; x.fillRect(0, 0, w, h); txt(x, 'HEART · BREATH', 24, h / 2, { font: '500 40px "Geist Mono"', color: '#8d9097', align: 'left', track: 6 }); });
   const lab = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 0.019), new THREE.MeshBasicMaterial({ map: label })); lab.position.set(-0.02, 0.06, 0.0606); g.add(lab);
-  // the trace: breath (top) and heartbeats (bottom), the whole film, 120 px a second
   const PX = 90, TT0 = -5, Wc = Math.ceil((T.end + 2 - TT0) * PX), Hc = 256;
   const tex = canvasTex(Wc, Hc, (x) => {
     x.fillStyle = '#efebe2'; x.fillRect(0, 0, Wc, Hc);
@@ -159,105 +291,114 @@ function makeRecorder(scene) {
     x.lineTo(Wc, 200); x.stroke();
   });
   tex.wrapS = THREE.ClampToEdgeWrapping;
-  // the paper: out of the slot, flat for 0.16 m, then over the edge and down
   const pts = [new THREE.Vector3(0, 0.025, 0.062), new THREE.Vector3(0, 0.02, 0.14), new THREE.Vector3(0, 0.004, 0.2), new THREE.Vector3(0, -0.01, 0.235), new THREE.Vector3(0, -0.06, 0.25), new THREE.Vector3(0, -0.2, 0.255)];
   const curve = new THREE.CatmullRomCurve3(pts), N = 120, Wp = 0.12, L = curve.getLength();
   const pos = new Float32Array((N + 1) * 2 * 3), uv = new Float32Array((N + 1) * 2 * 2), idx = [];
   for (let i = 0; i <= N; i++) { const p = curve.getPointAt(i / N); for (let s = 0; s < 2; s++) { const k = i * 2 + s; pos.set([p.x + (s ? Wp / 2 : -Wp / 2), p.y, p.z], k * 3); uv.set([i / N, s], k * 2); } }
   for (let i = 0; i < N; i++) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }
   const pg = new THREE.BufferGeometry(); pg.setAttribute('position', new THREE.BufferAttribute(pos, 3)); pg.setAttribute('uv', new THREE.BufferAttribute(uv, 2)); pg.setIndex(idx); pg.computeVertexNormals();
-  // the texture runs along the strip's length: u = 0 at the slot (now), u = 1 at the end (L / PAPER_V seconds ago); v across
   tex.rotation = 0; tex.center.set(0, 0);
   const paper = new THREE.Mesh(pg, new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.8, side: THREE.DoubleSide })); paper.castShadow = true; paper.receiveShadow = true; g.add(paper);
   shadows(g); paper.castShadow = false; g.traverse((o) => o.layers.enable(1));
-  return { g, tex, L, Wc, PX, TT0, paper };
+  return { g, tex, L, Wc, PX, TT0, paper, body };
 }
-function setPaper(R, t) {   // texture u maps to film time: the slot shows now
-  const span = R.L / PAPER_V; R.tex.repeat.set(-(span * R.PX) / R.Wc, 1); R.tex.offset.set(((t - R.TT0) * R.PX) / R.Wc, 0);
-}
+function setPaper(R, t) { const span = R.L / PAPER_V; R.tex.repeat.set(-(span * R.PX) / R.Wc, 1); R.tex.offset.set(((t - R.TT0) * R.PX) / R.Wc, 0); }
 // the bell jar: air sacs a hundred times life size, round the end of a small airway
 function makeJar(scene) {
   const g = new THREE.Group(); g.position.copy(JAR); scene.add(g);
   const base = new THREE.Mesh(new THREE.CylinderGeometry(0.13, 0.135, 0.03, 96), phys({ color: 0x15100c, roughness: 0.45, clearcoat: 0.5 })); base.position.y = 0.015; g.add(base);
   const prof = []; for (let i = 0; i <= 40; i++) { const a = (i / 40) * Math.PI / 2; prof.push(new THREE.Vector2(0.11 * Math.cos(a) + 0.0001, 0.03 + 0.17 + 0.11 * Math.sin(a))); }
-  const wall = []; wall.push(new THREE.Vector2(0.11, 0.03)); for (const p of prof) wall.push(p);
+  const wall = [new THREE.Vector2(0.11, 0.03), ...prof];
   const glass = new THREE.Mesh(new THREE.LatheGeometry(wall, 96), glassMat(0xdfe8ff, { alpha: 0.03, rim: 0.35, pow: 3 })); glass.renderOrder = 6; g.add(glass);
-  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.012, 24, 16), glassMat(0xdfe8ff, { alpha: 0.1, rim: 0.5 })); knob.position.y = 0.03 + 0.17 + 0.11 + 0.008; g.add(knob);
   const lab = canvasTex(512, 64, (x, w, h) => { x.fillStyle = '#15100c'; x.fillRect(0, 0, w, h); txt(x, 'AIR SACS × 100', w / 2, h / 2, { font: '500 34px "Geist Mono"', color: '#a39f97', track: 8 }); });
   const plate = new THREE.Mesh(new THREE.PlaneGeometry(0.11, 0.014), new THREE.MeshBasicMaterial({ map: lab })); plate.position.set(0, 0.015, 0.1352); g.add(plate);
-  // the airway: a small tube rising from the base, branching; the sacs cluster round its ends
   const pink = tissueMat('airway', { color: new THREE.Color(0xe7b2aa), roughness: 0.45, clearcoat: 0.3, sheen: 0.6, sheenColor: new THREE.Color(0xffd6cf) });
   const stem = new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3([new THREE.Vector3(0, 0.03, 0), new THREE.Vector3(0, 0.1, 0), new THREE.Vector3(0.01, 0.15, 0.005)]), 32, 0.008, 16), pink); g.add(stem);
-  const sacs = []; let s = 7;
+  const sacs = [], SAC = new THREE.SphereGeometry(0.02, 32, 24); let s = 7;   // real size (the collision audit voxelises each shape at its own size)
   const rnd = () => ((s = (s * 16807) % 2147483647) / 2147483647);
   for (let i = 0; i < 26; i++) {
     const a = rnd() * Math.PI * 2, e = (rnd() - 0.3) * 1.2, r = 0.045 + rnd() * 0.035, c = new THREE.Vector3(0.01 + Math.cos(a) * Math.cos(e) * r, 0.19 + Math.sin(e) * r * 0.8, 0.005 + Math.sin(a) * Math.cos(e) * r);
-    const m = new THREE.Mesh(new THREE.SphereGeometry(1, 32, 24), pink.clone()); m.position.copy(c); const rr = 0.016 + rnd() * 0.008; m.userData = { r: rr, ph: rnd(), shut: i % 2 === 0 }; m.scale.setScalar(rr); m.castShadow = true; g.add(m); sacs.push(m);
+    const m = new THREE.Mesh(SAC, pink.clone()); m.position.copy(c); const rr = 0.016 + rnd() * 0.008; m.userData = { r: rr / 0.02, ph: rnd(), shut: i % 2 === 0 }; m.scale.setScalar(rr / 0.02); m.castShadow = true; g.add(m); sacs.push(m);
   }
-  shadows(g); glass.castShadow = false; knob.castShadow = false; g.traverse((o) => o.layers.enable(1));
+  const shut = sacs.filter((m) => m.userData.shut); shut.forEach((m, j) => { m.userData.d = (((j * 7) % shut.length) / (shut.length - 1)) * 1.07; });   // they reopen one after another
+  shadows(g); glass.castShadow = false; g.traverse((o) => o.layers.enable(1));
   return { g, sacs };
 }
-// the trial: 108 people in four groups of 27; the fifth place (the do-nothing group) holds only a placard
-const GROUPS = ['Cyclic sighing', 'Box breathing', 'Fast breathing', 'Meditation'];
-const GP = (i) => (i < 4 ? new THREE.Vector3(PLINTH.x + (i % 2 ? 0.13 : -0.13), 0, PLINTH.z - 0.2 + Math.floor(i / 2) * 0.2) : new THREE.Vector3(PLINTH.x, 0, PLINTH.z + 0.22));   // two by two, the fifth in front
-const GX = (i) => GP(i).x, GZ_ = (i) => GP(i).z;
-function makeTrial(scene) {
-  const g = new THREE.Group(); scene.add(g);
+// the study: two white columns (good mood: sighing, meditation) on a low plinth; twelve trials drop into a bar against a scale.
+// Built in the plinth's own frame (its front is local +z), then turned with it.
+const GH = 0.3, GZ = -0.03;                                            // the scale: 0 at the plinth to 1 at GH; SMALL, MEDIUM, LARGE at 0.2, 0.5, 0.8
+const COLS = [{ x: -0.075, h: 0.2 }, { x: 0.075, h: 0.2 * 1.22 / 1.89 }];   // good mood, average daily change: cyclic sighing 1.89, meditation 1.22 (Balban 2023)
+function makeStudy(scene) {
+  const g = new THREE.Group(); g.position.set(PLINTH.x, 0, PLINTH.z); g.rotation.y = PLINTH.ry; scene.add(g);
   const black = phys({ color: 0x0d0e10, roughness: 0.32, clearcoat: 0.6, clearcoatRoughness: 0.25 });
-  const box = new THREE.Mesh(new RoundedBoxGeometry(PLINTH.w, PLINTH.top, PLINTH.d, 5, 0.012), black); box.position.set(PLINTH.x, PLINTH.top / 2, PLINTH.z); g.add(box);
-  const dotGeo = new THREE.SphereGeometry(0.0085, 20, 14), dots = [];
-  for (let i = 0; i < 108; i++) { const grp = Math.floor(i / 27), k = i % 27, cx = GX(grp), cz = GZ_(grp), col = k % 7, row = Math.floor(k / 7);
-    const m = new THREE.Mesh(dotGeo, new THREE.MeshPhysicalMaterial({ color: 0xeceef1, roughness: 0.35, emissive: new THREE.Color(0xeceef1), emissiveIntensity: 0.25, transparent: true, opacity: 0 }));
-    const home = new THREE.Vector3(cx + (col - 3) * 0.022, PLINTH.top + 0.0085, cz - 0.036 + row * 0.024); m.position.copy(home); m.userData = { grp, k, home, from: new THREE.Vector3(hash(i * 1.3) * 3 - 1.5, 1.5 + hash(i * 2.1) * 1.2, -1 + hash(i * 3.7) * 2.5) };
-    m.castShadow = true; m.visible = false; g.add(m); dots.push(m); }
-  // the empty fifth place: a dashed outline and a placard
-  const pts = []; const x0 = GX(4) - 0.085, x1 = GX(4) + 0.085, z0 = GZ_(4) - 0.06, z1 = GZ_(4) + 0.06, y = PLINTH.top + 0.001;
-  pts.push(new THREE.Vector3(x0, y, z0), new THREE.Vector3(x1, y, z0), new THREE.Vector3(x1, y, z1), new THREE.Vector3(x0, y, z1), new THREE.Vector3(x0, y, z0));
-  const outline = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineDashedMaterial({ color: 0x8d9097, dashSize: 0.008, gapSize: 0.006, transparent: true, opacity: 0 })); outline.computeLineDistances(); g.add(outline);
-  const cardTex = canvasTex(640, 420, (x, w, h) => { x.fillStyle = '#f2efe8'; x.fillRect(0, 0, w, h); x.strokeStyle = '#1b1b1d'; x.lineWidth = 4; x.strokeRect(24, 24, w - 48, h - 48);
-    txt(x, 'GROUP 5', w / 2, 120, { font: '500 40px "Geist Mono"', color: '#55524c', track: 10 }); txt(x, 'DO NOTHING', w / 2, 220, { font: '800 84px Archivo', color: '#151517', track: 2 });
-    txt(x, '0 people', w / 2, 320, { font: 'italic 400 56px "Instrument Serif", Georgia, serif', color: '#2a2928' }); });
-  const card = new THREE.Group(); card.position.set(GX(4), PLINTH.top, GZ_(4) + 0.01); card.rotation.y = 0; g.add(card);
-  const face = new THREE.Mesh(new THREE.PlaneGeometry(0.075, 0.049), new THREE.MeshPhysicalMaterial({ map: cardTex, roughness: 0.7 })); face.position.set(0, 0.03, 0); face.rotation.x = -0.2; card.add(face);
-  const back = new THREE.Mesh(new THREE.BoxGeometry(0.077, 0.051, 0.002), black); back.position.set(0, 0.03, -0.0015); back.rotation.x = -0.2; card.add(back);
-  // the effect: a vertical gauge, 0 at the plinth to 1 at the top (0.5 m), and a bar that rises to 0.35 (small to medium)
-  const GH = 0.5, GZ = PLINTH.z + 0.05;
-  const rulerTex = canvasTex(256, 1024, (x, w, h) => { x.clearRect(0, 0, w, h); x.strokeStyle = '#a8acb3'; x.lineWidth = 4;
+  const box = new THREE.Mesh(new RoundedBoxGeometry(PLINTH.w, PLINTH.top, PLINTH.d, 5, 0.012), black); box.position.set(0, PLINTH.top / 2, 0); g.add(box);
+  const white = (o = 0) => new THREE.MeshPhysicalMaterial({ color: 0xeceef1, roughness: 0.4, clearcoat: 0.4, emissive: new THREE.Color(0xeceef1), emissiveIntensity: 0.18, transparent: true, opacity: o });
+  const cols = COLS.map((c) => { const m = new THREE.Mesh(new RoundedBoxGeometry(0.08, 1, 0.08, 3, 0.008), white()); m.position.set(c.x, PLINTH.top, GZ); m.visible = false; m.castShadow = true; g.add(m); return m; });
+  const rulerTex = canvasTex(320, 1024, (x, w, h) => { x.clearRect(0, 0, w, h); x.strokeStyle = '#a8acb3'; x.lineWidth = 5;
     x.beginPath(); x.moveTo(40, 0); x.lineTo(40, h); x.stroke();
-    for (let i = 0; i <= 20; i++) { const py = h - (i / 20) * h, big = i % 5 === 0; x.beginPath(); x.moveTo(40, py); x.lineTo(big ? 84 : 62, py); x.stroke(); }
-    for (const [v, s2] of [[0.2, 'SMALL'], [0.5, 'MEDIUM'], [0.8, 'LARGE']]) txt(x, s2, 96, h - v * h, { font: '500 30px "Geist Mono"', color: '#c3c6cc', align: 'left', track: 5 }); });
-  const ruler = new THREE.Mesh(new THREE.PlaneGeometry(0.125, GH), new THREE.MeshBasicMaterial({ map: rulerTex, transparent: true, opacity: 0, depthWrite: false })); ruler.position.set(PLINTH.x + 0.045, PLINTH.top + GH / 2, GZ); g.add(ruler);
-  const barMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xeceef1), transparent: true, opacity: 0 });
-  const bar = new THREE.Mesh(new THREE.BoxGeometry(0.03, 1, 0.012), barMat); bar.position.set(PLINTH.x - 0.012, PLINTH.top, GZ); g.add(bar);
-  // columns of mood (up) and anxiety (down): for the sighing group and the meditation group
-  const colMat = (o) => new THREE.MeshBasicMaterial({ color: new THREE.Color(0xeceef1), transparent: true, opacity: o, depthWrite: false });
-  const cols = {}; for (const [key, gi] of [['moodS', 0], ['moodM', 3], ['anxS', 0], ['anxM', 3]]) { const m = new THREE.Mesh(new THREE.BoxGeometry(0.15, 1, 0.012), colMat(0)); m.position.set(GX(gi), 0, GZ_(gi) - 0.05); g.add(m); cols[key] = m; }
-  const twelve = []; for (let i = 0; i < 12; i++) { const m = new THREE.Mesh(dotGeo, new THREE.MeshPhysicalMaterial({ color: 0xeceef1, roughness: 0.35, emissive: new THREE.Color(0xeceef1), emissiveIntensity: 0.3, transparent: true, opacity: 0 }));
-    m.userData = { from: new THREE.Vector3(PLINTH.x - 0.3 + (i % 6) * 0.12, PLINTH.top + 0.42 + Math.floor(i / 6) * 0.06, GZ - 0.02), to: new THREE.Vector3(PLINTH.x - 0.012, PLINTH.top + 0.01 + i * 0.0072, GZ) }; m.visible = false; g.add(m); twelve.push(m); }
-  shadows(g); outline.castShadow = false; ruler.castShadow = bar.castShadow = false; g.traverse((o) => o.layers.enable(1));
-  return { g, dots, outline, card, ruler, bar, barMat, cols, twelve };
+    for (let i = 0; i <= 20; i++) { const py = Math.min(h - 3, Math.max(3, h - (i / 20) * h)), big = i % 5 === 0; x.beginPath(); x.moveTo(40, py); x.lineTo(big ? 88 : 64, py); x.stroke(); }
+    for (const [v, s2] of [[0.2, 'SMALL'], [0.5, 'MEDIUM'], [0.8, 'LARGE']]) txt(x, s2, 100, h - v * h, { font: '500 40px "Geist Mono"', color: '#c3c6cc', align: 'left', track: 5 }); });
+  const RW = GH * (320 / 1024);                                        // keeps the canvas's shape
+  const ruler = new THREE.Mesh(new THREE.PlaneGeometry(RW, GH), new THREE.MeshBasicMaterial({ map: rulerTex, transparent: true, opacity: 0, depthWrite: false })); ruler.position.set(0.0035 - RW * (40 / 320) + RW / 2, PLINTH.top + GH / 2, GZ); g.add(ruler);
+  const barMat = white(0);
+  const bar = new THREE.Mesh(new THREE.BoxGeometry(0.024, 1, 0.012), barMat); bar.position.set(-0.012, PLINTH.top, GZ); bar.visible = false; g.add(bar);
+  const dotGeo = new THREE.SphereGeometry(0.0075, 20, 14);
+  const twelve = []; for (let i = 0; i < 12; i++) { const m = new THREE.Mesh(dotGeo, white(0)); m.material.emissiveIntensity = 0.3;
+    m.userData = { from: new THREE.Vector3(-0.15 + (i % 4) * 0.034, PLINTH.top + 0.215 - Math.floor(i / 4) * 0.034, GZ), to: new THREE.Vector3(-0.012, PLINTH.top + 0.009 + i * 0.0075, GZ) }; m.visible = false; g.add(m); twelve.push(m); }
+  shadows(g); ruler.castShadow = bar.castShadow = false; g.traverse((o) => o.layers.enable(1));
+  return { g, box, cols, ruler, bar, barMat, twelve };
 }
-// the breaths-a-minute dial (rises on the side table at the end): 0 to 30 over 270 degrees, 12 to 18 at rest
-const ANG = (v) => ((-135 + 9 * v) * Math.PI) / 180;
+// a magic wand: it rises, sparks, the sparks fizzle, it falls over (to the camera's right)
+const WAND = PL(-0.02, PLINTH.top, 0.08);
+function makeWand(scene) {
+  const g = new THREE.Group(); g.position.copy(WAND); g.rotation.y = PLINTH.ry; scene.add(g);
+  const tip = new THREE.Group(); g.add(tip);   // pivots at its foot
+  const black = phys({ color: 0x0b0b0c, roughness: 0.25, clearcoat: 0.9 }), white = phys({ color: 0xf2f2ee, roughness: 0.35, clearcoat: 0.6 });
+  const L = 0.2, r = 0.0045;
+  const stick = new THREE.Mesh(new THREE.CylinderGeometry(r, r, L * 0.82, 24), black); stick.position.y = L * 0.41; tip.add(stick);
+  const end = new THREE.Mesh(new THREE.CylinderGeometry(r, r, L * 0.18, 24), white); end.position.y = L * 0.91; tip.add(end);
+  const cap = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), white); cap.position.y = L; tip.add(cap);
+  const foot = new THREE.Mesh(new THREE.SphereGeometry(r, 16, 12), black); tip.add(foot);
+  const sparks = []; for (let i = 0; i < 14; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(0.0032, 10, 8), glowMat(new THREE.Color(0xfff3c8).multiplyScalar(1.6))); m.material.transparent = true; m.visible = false;
+    const a = (i / 14) * Math.PI * 2 + hash(i * 1.7), e = 0.4 + hash(i * 2.3) * 0.9; m.userData = { d: new THREE.Vector3(Math.cos(a) * Math.cos(e), Math.sin(e), Math.sin(a) * Math.cos(e)), v: 0.06 + 0.05 * hash(i * 3.1), t: 0.05 * hash(i * 4.7) }; scene.add(m); sparks.push(m); }
+  shadows(g); g.traverse((o) => o.layers.enable(1)); g.visible = false;
+  return { g, tip, sparks, L };
+}
+// sticky notes: yellow squares, a little curved, stuck to the skull
+function makeNote(text, tilt) {
+  const tex = canvasTex(512, 512, (x, w, h) => {
+    x.fillStyle = '#f1dc69'; x.fillRect(0, 0, w, h);
+    const gr = x.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgba(120,90,0,0.10)'); gr.addColorStop(0.16, 'rgba(120,90,0,0)'); gr.addColorStop(1, 'rgba(255,255,255,0.05)'); x.fillStyle = gr; x.fillRect(0, 0, w, h);
+    x.save(); x.translate(w / 2, h / 2 + 10); x.rotate(tilt); const ls = text.split('\n');
+    ls.forEach((ln, i) => txt(x, ln, 0, (i - (ls.length - 1) / 2) * 128, { font: '800 118px Archivo', color: '#1b1c1f', track: 1 })); x.restore(); });
+  const S2 = 0.05, geo = new THREE.PlaneGeometry(S2, S2, 16, 16), P = geo.attributes.position;
+  for (let i = 0; i < P.count; i++) { const x = P.getX(i), y = P.getY(i); P.setZ(i, -(x * x) / (2 * 0.07) - (y * y) / (2 * 0.11) + (y < -0.012 ? 0.06 * (y + 0.012) * (y + 0.012) * 40 : 0)); }   // follows the brow; the free bottom edge lifts a little
+  geo.computeVertexNormals();
+  const m = new THREE.Mesh(geo, new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.85, side: THREE.DoubleSide, transparent: true }));
+  m.castShadow = true; m.layers.enable(1); m.renderOrder = 2;
+  return m;
+}
+// the dial: minutes a day, 0 to 10 over 270 degrees; at the end the setting, 5, in orange
+const ANG = (v) => ((-135 + 27 * v) * Math.PI) / 180;
 function makeDial(scene) {
   const g = new THREE.Group(); g.position.copy(DIAL); scene.add(g);
   const dark = phys({ color: 0x121316, roughness: 0.38, clearcoat: 0.6, clearcoatRoughness: 0.25 }), alu = phys({ color: 0xcdcac4, metalness: 1, roughness: 0.3, clearcoat: 0.4 });
   const plate = new THREE.Mesh(new THREE.CylinderGeometry(DIAL_R + 0.01, DIAL_R + 0.013, 0.012, 128), dark); plate.position.y = 0.006; g.add(plate);
   const bezel = new THREE.Mesh(new THREE.TorusGeometry(DIAL_R + 0.003, 0.003, 20, 160), alu); bezel.rotation.x = Math.PI / 2; bezel.position.y = 0.0125; g.add(bezel);
   const tex = canvasTex(1024, 1024, (x, w) => { const R = w / 2; x.fillStyle = '#0b0c0e'; x.fillRect(0, 0, w, w);
-    for (let v = 0; v <= 30; v++) { const a = ANG(v), big = v % 6 === 0, r0 = R * (big ? 0.78 : 0.83), r1 = R * 0.9; x.strokeStyle = big ? '#e7e9ec' : '#8d9097'; x.lineWidth = big ? 7 : 3.5; x.beginPath(); x.moveTo(R + Math.sin(a) * r0, R - Math.cos(a) * r0); x.lineTo(R + Math.sin(a) * r1, R - Math.cos(a) * r1); x.stroke();
-      if (v % 6 === 0) txt(x, String(v), R + Math.sin(a) * R * 0.64, R - Math.cos(a) * R * 0.64, { font: '600 74px Archivo', color: '#e7e9ec' }); }
-    txt(x, 'BREATHS', R, R * 1.42, { font: '500 40px "Geist Mono"', color: '#9a9da4', track: 9 }); txt(x, 'A MINUTE', R, R * 1.53, { font: '500 30px "Geist Mono"', color: '#6d7077', track: 7 }); });
+    for (let v = 0; v <= 20; v++) { const a = ANG(v / 2), big = v % 2 === 0, r0 = R * (big ? 0.78 : 0.83), r1 = R * 0.9; x.strokeStyle = big ? '#e7e9ec' : '#8d9097'; x.lineWidth = big ? 7 : 3.5; x.beginPath(); x.moveTo(R + Math.sin(a) * r0, R - Math.cos(a) * r0); x.lineTo(R + Math.sin(a) * r1, R - Math.cos(a) * r1); x.stroke();
+      if (v % 4 === 0) txt(x, String(v / 2), R + Math.sin(a) * R * 0.64, R - Math.cos(a) * R * 0.64, { font: '600 74px Archivo', color: '#e7e9ec' }); }
+    txt(x, 'MINUTES', R, R * 1.42, { font: '500 40px "Geist Mono"', color: '#9a9da4', track: 9 }); txt(x, 'A DAY', R, R * 1.53, { font: '500 30px "Geist Mono"', color: '#6d7077', track: 7 }); });
   const faceMat = new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.42, clearcoat: 0.5, emissive: new THREE.Color(0xffffff), emissiveMap: tex, emissiveIntensity: 0.08, transparent: true });
-  const face = new THREE.Mesh(new THREE.CircleGeometry(DIAL_R, 128), faceMat); face.rotation.x = -Math.PI / 2; face.position.y = 0.0122; g.add(face);
+  const face = new THREE.Mesh(new THREE.CircleGeometry(DIAL_R, 128), faceMat); face.rotation.x = -Math.PI / 2; face.position.y = 0.0122; face.renderOrder = 1; g.add(face);
   const flat = new THREE.Group(); flat.rotation.x = -Math.PI / 2; flat.position.y = 0.0128; g.add(flat);
-  const setM = new THREE.Mesh(new THREE.RingGeometry(DIAL_R * 0.905, DIAL_R * 0.965, 64, 1, Math.PI / 2 - ANG(18), ANG(18) - ANG(12)), new THREE.MeshBasicMaterial({ color: ORANGE.clone().multiplyScalar(1.6), transparent: true, opacity: 0, depthWrite: false })); flat.add(setM);
+  const setM = new THREE.Mesh(new THREE.RingGeometry(DIAL_R * 0.905, DIAL_R * 0.965, 64, 1, Math.PI / 2 - ANG(5), ANG(5) - ANG(0)), new THREE.MeshBasicMaterial({ color: ORANGE.clone().multiplyScalar(1.6), transparent: true, opacity: 0, depthWrite: false })); setM.renderOrder = 2; flat.add(setM);
   const n = new THREE.Group(); n.position.y = 0.0135; g.add(n);
   const nmat = new THREE.MeshPhysicalMaterial({ color: 0xf2f3f5, roughness: 0.35, clearcoat: 0.6, emissive: new THREE.Color(0xffffff), emissiveIntensity: 0.25, transparent: true });
-  const bar = new THREE.Mesh(new THREE.BoxGeometry(0.002, 0.0009, DIAL_R * 0.86), nmat); bar.position.z = -DIAL_R * 0.43 + 0.007; n.add(bar);
-  const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.0045, 0.0045, 0.002, 40), nmat); n.add(hub);
-  const logo = makeLogoRing(LOGO_R); logo.g.rotation.x = -Math.PI / 2; logo.g.position.y = 0.0142; g.add(logo.g);
-  shadows(g); face.castShadow = false; g.traverse((o) => o.layers.enable(1));
+  const bar = new THREE.Mesh(new THREE.BoxGeometry(0.002, 0.0009, DIAL_R * 0.86), nmat); bar.position.z = -DIAL_R * 0.43 + 0.007; bar.renderOrder = 3; n.add(bar);
+  const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.0045, 0.0045, 0.002, 40), nmat); hub.renderOrder = 3; n.add(hub);
+  const logo = makeLogoRing(LOGO_R); logo.g.rotation.x = -Math.PI / 2; logo.g.position.y = 0.0142; logo.g.traverse((o) => { o.renderOrder = 4; }); g.add(logo.g);
+  shadows(g); face.castShadow = false; g.traverse((o) => o.layers.enable(1)); g.visible = false;
   return { g, faceMat, setM, n, nmat, logo };
 }
 
@@ -266,33 +407,39 @@ function extraKind(p) {
   const n = p.name.toLowerCase();
   if (p.system === 'respiratory' && /bronchial tree|bronchus|trachea/.test(n)) return 'airway';
   if (p.system === 'cardiac' && /wall of|valve|leaflet|cusp/.test(n)) return 'heart';
-  if (n === 'diaphragm') return 'muscle';
   return undefined;
 }
+const NOTES = [
+  { text: 'CALM\nDOWN', at: [0.0, 0.012], rot: 0.05, slap: 1.12, peel: 6.15 },
+  { text: 'CALM\nDOWN.', at: [0.03, 0.036], rot: 0.22, slap: 1.96, peel: 6.42 },
+  { text: 'CALM\nDOWN!!', at: [-0.032, 0.03], rot: -0.18, slap: 2.72, peel: 6.7 },
+];
 async function build(S, cfg) {
   const scene = S.scene;
   S.fog.near = 4; S.fog.far = 14;
   S.table.scale.set(3, 3, 1); S.tableMat.clearcoat = 0.1; S.tableMat.specularIntensity = 0.3;
   for (const m of [S.tableMat.map, S.tableMat.roughnessMap]) if (m) { m.wrapS = m.wrapT = THREE.RepeatWrapping; m.repeat.multiplyScalar(3); }
-  buildBeats(); if (cfg.dbg && cfg.dbg.arm) W.armRest = cfg.dbg.arm;
+  buildSegs(); buildBeats();
   const meshes = await loadAnatomy(skeletonKind(extraKind));
-  const inside = (n) => /bronch|trachea|wall of|valve|leaflet|cusp|diaphragm/i.test(n);
+  const inside = (n) => /bronch|trachea|wall of|valve|leaflet|cusp/i.test(n);
   const R = W.rig = buildRig(meshes, { assign: (n) => (inside(n) ? 'Seventh thoracic vertebra' : undefined) });
   W.body = new THREE.Group(); scene.add(W.body); R.root.position.copy(R.P0).negate(); W.body.add(R.root);
   for (const m of meshes) { m.castShadow = true; m.receiveShadow = true; m.layers.enable(1); }
+  W.bones = meshes.filter((m) => ['bone', 'tooth', 'cartilage'].includes(m.userData.tissue));
   const T7 = R.seg['Seventh thoracic vertebra'];
+  // hands, a little closed, resting on the belly
+  W.hand = {}; for (const Side of ['Right', 'Left']) { const Wr = makeWrist(R, Side); W.hand[Side] = rigHand(R, Side, Wr); W.hand[Side].wr = Wr; }
   // ---- the ribs breathe: a group at the spine that widens and deepens
-  W.cage = new THREE.Group(); W.cage.position.set(0, 0, 0); T7.g.add(W.cage);
+  W.cage = new THREE.Group(); T7.g.add(W.cage);
   for (const m of meshes) if (/rib|costal|sternum|manubrium|xiphoid/i.test(m.userData.name) && m.parent === T7.g) { m.removeFromParent(); W.cage.add(m); }
-  // ---- inside: the airways, the heart, the diaphragm
+  // ---- inside: the airways and the heart, as soft glass
   W.airway = meshes.filter((m) => m.userData.tissue === 'airway');
-  for (const m of W.airway) { m.material = tissueMat('airway', { color: new THREE.Color(0xd9a59c), roughness: 0.45, clearcoat: 0.35, transparent: true, opacity: 0.85 }); m.castShadow = false; }
+  for (const m of W.airway) { m.material = tissueMat('airway', { color: new THREE.Color(0xe6d3cf), roughness: 0.45, clearcoat: 0.35, transparent: true, opacity: 0.7 }); m.castShadow = false; }
   W.heart = meshes.filter((m) => m.userData.tissue === 'heart' && /wall of/i.test(m.userData.name));
   for (const m of meshes) if (m.userData.tissue === 'heart' && !/wall of/i.test(m.userData.name)) m.visible = false;
+  for (const m of W.heart) { m.material = new THREE.MeshPhysicalMaterial({ color: 0xeed2cd, roughness: 0.32, clearcoat: 0.7, transparent: true, opacity: 0.78, emissive: new THREE.Color(0xff8f80), emissiveIntensity: 0.03, depthWrite: false }); m.castShadow = false; m.renderOrder = 4; }
   W.heartG = new THREE.Group(); const hb = new THREE.Box3(); for (const m of W.heart) hb.expandByPoint(m.userData.home); const hc = hb.getCenter(new THREE.Vector3());
   W.heartG.position.copy(hc).sub(T7.pivot); T7.g.add(W.heartG); for (const m of W.heart) { m.removeFromParent(); m.position.copy(m.userData.home).sub(hc); W.heartG.add(m); }
-  W.dia = meshes.find((m) => /^diaphragm$/i.test(m.userData.name));
-  if (W.dia) { W.dia.material = tissueMat('muscle', { transparent: true, opacity: 0.55 }); W.diaHome = W.dia.position.clone(); }
   // ---- the lungs: rounded hulls round each bronchial tree, as glass
   W.lungs = [];
   for (const side of [-1, 1]) {
@@ -300,42 +447,61 @@ async function build(S, cfg) {
     const pts = parts.flatMap((m) => worldVerts(m, 3));
     const c = pts.reduce((a, v) => a.add(v), new THREE.Vector3()).multiplyScalar(1 / pts.length);
     const geo = softHull(pts, c, { k: 0.014, grow: 0.018 });
-    const hil = parts.reduce((a, m) => (m.userData.home.y > a.y ? m.userData.home : a), new THREE.Vector3(0, -9, 0)).clone();   // the root of the tree: where it swells from
+    const hil = parts.reduce((a, m) => (m.userData.home.y > a.y ? m.userData.home : a), new THREE.Vector3(0, -9, 0)).clone();
     const piv = new THREE.Group(); piv.position.copy(hil).sub(T7.pivot); T7.g.add(piv);
-    const m = new THREE.Mesh(geo, glassMat(0xf3b9b2, { alpha: 0.13, rim: 0.8, pow: 2.0 })); m.position.copy(hil).negate(); m.renderOrder = 5; piv.add(m);
+    const m = new THREE.Mesh(geo, glassMat(0xeadcd9, { alpha: 0.05, rim: 0.42, pow: 2.4 })); m.position.copy(hil).negate(); m.renderOrder = 5; piv.add(m);
     W.lungs.push({ piv, m, side });
   }
   // ---- the factory stamp: on the front of the breastbone, across it
   { const st = R.byName.get('Body of sternum'); st.material = st.material.clone();
     W.stampSpot = stampSpot(st, { from: [0, 0.006, 0.12], dir: [0, 0, -1], spread: 0.004 });
     if (W.stampSpot) W.stamp = stamp(st, { canvas: stampCanvas(['HUMAN FACTORY', 'SETTINGS'], '', { frame: false }), center: W.stampSpot.center, normal: W.stampSpot.normal, up: [0, 1, 0], width: 0.04, depth: 0.03, opacity: 0.6 }); }
+  // ---- the sticky notes: on the forehead and either side of it, 1.5 mm off the bone
+  { const fb = R.byName.get('Frontal bone'); W.notes = [];
+    for (const N of NOTES) {
+      const sp = stampSpot(fb, { from: [N.at[0], N.at[1], 0.15], dir: [0, 0, -1], spread: 0.006 }) || { center: [N.at[0], N.at[1], 0.05], normal: [0, 0, 1] };
+      const m = makeNote(N.text, N.rot * 0.4), nrm = new THREE.Vector3(...sp.normal), up = new THREE.Vector3(0, 1, 0).sub(nrm.clone().multiplyScalar(nrm.y)).normalize();
+      const q = new THREE.Quaternion().setFromRotationMatrix(new THREE.Matrix4().makeBasis(new THREE.Vector3().crossVectors(up, nrm), up, nrm)).multiply(new THREE.Quaternion().setFromAxisAngle(Z, N.rot));
+      const home = new THREE.Vector3(...sp.center).addScaledVector(nrm, 0.0015);
+      m.position.copy(home); m.quaternion.copy(q); m.visible = false; fb.add(m);
+      W.notes.push({ m, home, q, nrm, N }); } }
   // ---- seated on the stool
-  makeStool(scene);
+  W.stool = makeStool(scene);
   const hipB = new THREE.Box3(); for (const m of meshes) if (/hip bone/i.test(m.userData.name)) for (const v of worldVerts(m, 3)) hipB.expandByPoint(v);
-  W.sitP = new THREE.Vector3(0, SEAT - 0.012 + (R.P0.y - hipB.min.y), -0.02);
+  W.sitP = new THREE.Vector3(0, SEAT + 0.001 + (R.P0.y - hipB.min.y), -0.02);                       // the sitting bones rest on the seat, not in it
   // ---- the set
-  makeSideTable(scene, SIDE); makeSideTable(scene, JAR, 0.32, 0.32);
-  W.rec = makeRecorder(scene); W.jar = makeJar(scene); W.trial = makeTrial(scene); W.dial = makeDial(scene);
+  W.sideG = makeSideTable(scene, SIDE); W.jarG = makeSideTable(scene, JAR, 0.32, 0.32);
+  W.rec = makeRecorder(scene); W.jar = makeJar(scene); W.study = makeStudy(scene); W.wand = makeWand(scene); W.dial = makeDial(scene);
   // ---- light
   W.key = spot(scene, { color: 0xffe9d2, pos: new THREE.Vector3(-1.4, 2.6, 1.8), target: new THREE.Vector3(0, 0.9, 0.1), angle: 0.42, penumbra: 0.8, shadow: true, size: cfg.shadow ?? 1024 });
   W.key.shadow.camera.far = 7;
   W.rim = spot(scene, { color: 0xa9c4ff, pos: new THREE.Vector3(1.2, 2.2, -1.8), target: new THREE.Vector3(0, 1.0, 0), angle: 0.5, penumbra: 0.9 });
   W.fill = spot(scene, { color: 0xc8d6ff, pos: new THREE.Vector3(1.8, 1.2, 1.4), target: new THREE.Vector3(0, 0.9, 0), angle: 0.55, penumbra: 1 });
-  W.plinthLight = spot(scene, { color: 0xfff1d8, pos: new THREE.Vector3(0.3, 1.9, 1.9), target: new THREE.Vector3(PLINTH.x, PLINTH.top, PLINTH.z), angle: 0.42, penumbra: 0.7 });
+  W.plinthLight = spot(scene, { color: 0xfff1d8, pos: PL(0.25, 1.95, 1.0), target: PL(0, PLINTH.top + 0.08, 0), angle: 0.3, penumbra: 0.75 });
   W.sideLight = spot(scene, { color: 0xffe9d2, pos: new THREE.Vector3(1.3, 1.6, 0.9), target: SIDE.clone(), angle: 0.3, penumbra: 0.8 });
   W.jarLight = spot(scene, { color: 0xffe9d2, pos: new THREE.Vector3(-1.2, 1.6, 1.0), target: JAR.clone().add(new THREE.Vector3(0, 0.15, 0)), angle: 0.25, penumbra: 0.8 });
-  W.heartLight = new THREE.PointLight(0xff9a8a, 0, 0.5, 2); W.heartG.add(W.heartLight);
-  return { stamp: W.stampSpot, sitP: W.sitP.toArray(), lungs: W.lungs.map((l) => l.m.geometry.attributes.position.count), heart: W.heart.length, airway: W.airway.length, dia: !!W.dia, beats: BEATS.length };
+  W.faceLight = spot(scene, { color: 0xfff1e2, pos: new THREE.Vector3(0.5, 1.6, 1.2), target: new THREE.Vector3(0, 1.15, 0.05), angle: 0.22, penumbra: 0.8 });
+  W.heartLight = new THREE.PointLight(0xffb2a6, 0, 0.22, 2); W.heartG.add(W.heartLight);
+  W.auditSolids = [['stool', W.stool], ['recorder', W.rec.g], ['jar', W.jar.g], ['plinth', W.study.box, { floor: false }], ['wand', W.wand.g], ['dial', W.dial.g]].filter((x) => x[1]);
+  W.timing = { slaps: NOTES.map((n) => n.slap), peels: NOTES.map((n) => n.peel), panic: PANIC, sighs: SIGHS.map((g) => [g.t0, g.a1, g.a2, g.b]), drill: DRILL,
+    beats: BEATS.filter((b) => b < T.end), cols: T.lifted, twelve: [T.twelve, T.trials], bar: [T.cut - 0.2, T.medium + 0.2], wandUp: WAND_T.up, sparks: WAND_T.spark, fall: WAND_T.fall,
+    dialUp: T.final - 0.6, needle: [T.final + 0.2, T.settings - 0.1], logo: T.logo, rise: RISE, sink: SINK, ruler: T.across - 0.2,
+    sacPops: W.jar.sacs.filter((m) => m.userData.shut).map((m) => +(T.second - 0.1 + m.userData.d + 0.3).toFixed(3)).sort((a, b) => a - b),
+    dotsIn: [...Array(12).keys()].map((i) => +(T.twelve - 0.1 + i * 0.05).toFixed(3)), dotsLand: [...Array(12).keys()].map((i) => +(T.cut + 0.1 + i * 0.06).toFixed(3)),
+    breathDt: 0.02, breath: [...Array(Math.ceil(T.end / 0.02) + 1).keys()].map((i) => +breathAt(i * 0.02).toFixed(3)) };
+  return { stamp: W.stampSpot, sitP: W.sitP.toArray(), lungs: W.lungs.map((l) => l.m.geometry.attributes.position.count), heart: W.heart.length, airway: W.airway.length, beats: BEATS.length, notes: W.notes.map((n) => n.home.toArray().map((v) => +v.toFixed(3))) };
 }
 
 // ------------------------------------------------------------------ the body over time
-const ARM_REST = { dir: [0.02, -0.92, 0.4], twist: 0.8, elbow: 1.0 };   // hands resting on the belly
+const ARM_REST = { dir: [0.15, -0.92, 0.4], twist: 0.8, elbow: 1.0 };   // hands resting on the belly, fingertips a centimetre apart
+const WAND_T = { up: [45.95, 46.45], spark: [47.3, 47.95], fall: [48.0, 48.45] };
 const _qa = new THREE.Quaternion();
 function poseBody(t) {
-  const R = W.rig, b = breathAt(t), dizzy = ss(T.drop, T.dizzy, t) * (1 - ss(T.never, T.water, t));
-  bendSpine(R.seg, { lum: -0.05, tho: 0.06 - 0.08 * b, cer: 0.05 + 0.04 * Math.sin(t * 2.1) * dizzy, side: 0.05 * Math.sin(t * 1.7) * dizzy });
-  const AR = W.armRest || ARM_REST; poseArm(R.arms.Right, AR); poseArm(R.arms.Left, AR);
-  R.arms.Right.girdle.rotation.z += -0.035 * b; R.arms.Left.girdle.rotation.z += 0.035 * b;   // the shoulders rise a little on the breath in
+  const R = W.rig, b = breathAt(t), dizzy = ss(53.0, T.dizzy, t) * (1 - ss(56.0, 57.4, t)), panic = ss(0.3, 0.8, t) * (1 - ss(5.7, 6.6, t));
+  bendSpine(R.seg, { lum: -0.05, tho: 0.06 - 0.08 * b + 0.04 * panic, cer: 0.05 + 0.04 * Math.sin(t * 2.1) * dizzy, side: 0.05 * Math.sin(t * 1.7) * dizzy });
+  for (const Side of ['Right', 'Left']) { poseArm(R.arms[Side], ARM_REST); setWrist(W.hand[Side].wr, { wf: 0.15 }); W.hand[Side].curl(0.22); }
+  R.arms.Right.girdle.rotation.z += -0.035 * b * (1 + 0.6 * panic); R.arms.Left.girdle.rotation.z += 0.035 * b * (1 + 0.6 * panic);   // the shoulders rise on the breath in (more in a panic)
+  clearArms(R);
   W.body.quaternion.identity(); W.body.position.copy(W.sitP); W.body.updateMatrixWorld(true);
   for (const Side of ['Right', 'Left']) {
     const G = R.legs[Side]; _qa.setFromAxisAngle(X, -Math.PI / 2); G.hip.quaternion.copy(_qa);
@@ -343,46 +509,44 @@ function poseBody(t) {
     legIK(R, Side, tgt, new THREE.Quaternion(), Z);
   }
   W.body.updateMatrixWorld(true);
-  // breathing: the ribs open, the lungs fill (mostly downward), the diaphragm drops
   W.cage.scale.set(1 + 0.03 * b, 1 + 0.008 * b, 1 + 0.045 * b);
   for (const L of W.lungs) L.piv.scale.set(1 + 0.05 * b, 1 + 0.1 * b, 1 + 0.06 * b);
-  if (W.dia) W.dia.position.copy(W.diaHome).add(new THREE.Vector3(0, -0.025 * b, 0));
-  // the heart beats
-  const e = beatEnv(t); W.heartG.scale.setScalar(1 - 0.05 * e); W.heartLight.intensity = 0.05 + 0.25 * e;
+  const e = beatEnv(t); W.heartG.scale.setScalar(1 - 0.05 * e); W.heartLight.intensity = 0.004 + 0.03 * e;
+  for (const m of W.heart) m.material.emissiveIntensity = 0.03 + 0.3 * e;
   return { b, e, dizzy };
 }
 
 // ------------------------------------------------------------------ the camera: one path, no cuts
 let CAM = null;
-const CHEST = V3(0, 0.9, 0.04);
+// framings found with tools/search_view.py: each subject sits under the captions (below 0.33 of the frame) and above the bottom fifth
+const FACE_L = V3(0, 1.3, 0.03), HEAD_L = V3(0, 1.28, 0.02), CHEST_L = V3(0, 1.02, 0.02), SIGH_L = V3(-0.1, 1.02, 0.02), REC_L = V3(0.6, 0.66, 0.06), JAR_L = V3(-0.62, 0.8, 0.1), STUDY_L = PL(0, 0.54, -0.03).toArray();
 function buildCam() {
-  const D = DIAL, J = JAR, P = PLINTH;
+  const D = DIAL, Wl = PL(0.06, 0.58, 0.08).toArray(), Wp = PL(0.06, 1.18, 1.119).toArray(), add = (a, b) => a.map((v, i) => v + b[i]);
   return camTrack([
-    { t: -3.0, p: V3(0.36, 1.04, 0.86), l: CHEST, fov: 30 },
-    { t: 0.0, p: V3(0.32, 1.02, 0.82), l: CHEST, fov: 30, tens: 0.5 },                             // the chest breathes; the heart
-    { t: 2.4, p: V3(0.4, 1.12, 0.86), l: V3(0.06, 0.9, 0.04), fov: 30, tens: 0.6 },
-    { t: 4.0, p: V3(0.98, 1.02, 0.7), l: V3(0.6, 0.64, 0.1), fov: 30, tens: 0.2 },                 // and the recorder beside it
-    { t: 5.6, p: V3(0.97, 0.97, 0.7), l: V3(0.6, 0.63, 0.11), fov: 30, tens: 0.4 },
-    { t: 7.1, p: V3(0.18, 1.0, 0.78), l: CHEST, fov: 30, tens: 0.2 },                               // a sigh
-    { t: 10.9, p: V3(0.17, 1.0, 0.76), l: CHEST, fov: 30, tens: 0.4 },
-    { t: 12.2, p: V3(-0.38, 0.95, 0.52), l: V3(J.x, J.y + 0.17, J.z), fov: 32, tens: 0.2 },        // air sacs under the bell jar
-    { t: 15.2, p: V3(-0.37, 0.95, 0.5), l: V3(J.x, J.y + 0.17, J.z), fov: 32, tens: 0.4 },
-    { t: 16.9, p: V3(0.04, 1.42, 1.82), l: V3(P.x, P.top, P.z + 0.02), fov: 32, tens: 0.2 },               // the trial
-    { t: 26.0, p: V3(0.05, 1.41, 1.8), l: V3(P.x, P.top, P.z + 0.02), fov: 32, tens: 0.3 },
-    { t: 27.6, p: V3(0.02, 0.94, 2.1), l: V3(0.0, 0.76, 0.45), fov: 36, tens: 0.2 },             // cyclic sighing; the mood
-    { t: 38.4, p: V3(0.03, 0.94, 2.08), l: V3(0.0, 0.75, 0.46), fov: 36, tens: 0.3 },
-    { t: 39.9, p: V3(0.12, 0.74, 1.62), l: V3(GX(4), P.top + 0.03, GZ_(4)), fov: 28, tens: 0.2 },  // the fifth place: empty
-    { t: 41.6, p: V3(0.13, 0.74, 1.6), l: V3(GX(4), P.top + 0.03, GZ_(4)), fov: 28, tens: 0.4 },
-    { t: 43.2, p: V3(0.1, 0.66, 1.72), l: V3(P.x, P.top + 0.24, P.z + 0.05), fov: 32, tens: 0.2 },   // twelve trials: small to medium
-    { t: 50.2, p: V3(0.11, 0.66, 1.7), l: V3(P.x, P.top + 0.24, P.z + 0.05), fov: 32, tens: 0.3 },
-    { t: 51.8, p: V3(0.98, 0.95, 0.72), l: V3(0.62, 0.58, 0.16), fov: 30, tens: 0.2 },              // longer out-breaths, on paper
-    { t: 57.4, p: V3(0.97, 0.94, 0.7), l: V3(0.62, 0.58, 0.16), fov: 30, tens: 0.3 },
-    { t: 58.9, p: V3(0.3, 1.02, 0.86), l: CHEST, fov: 32, tens: 0.2 },                               // the drill
-    { t: 67.2, p: V3(0.32, 1.02, 0.88), l: CHEST, fov: 32, tens: 0.3 },
-    { t: 69.0, p: V3(0.75, 1.15, 2.3), l: V3(0.0, 0.72, 0.2), fov: 34, tens: 0.2 },                 // calm: the whole room
-    { t: 74.0, p: V3(0.78, 1.16, 2.26), l: V3(0.05, 0.72, 0.2), fov: 34, tens: 0.3 },
+    { t: -3.0, p: V3(0.3, 1.5, 1.2), l: FACE_L, fov: 30 },
+    { t: 0.0, p: V3(0.28, 1.491, 1.076), l: FACE_L, fov: 30, tens: 0.15 },                    // the face: notes slapped on the skull
+    { t: 3.0, p: V3(0.275, 1.488, 1.06), l: FACE_L, fov: 30, tens: 0.15 },
+    { t: 4.9, p: V3(0.257, 1.54, 1.475), l: HEAD_L, fov: 30, tens: 0.15 },                    // back a little: the shoulders heave; the notes peel off
+    { t: 7.3, p: V3(0.25, 1.535, 1.455), l: HEAD_L, fov: 30, tens: 0.15 },
+    { t: 8.6, p: V3(0.208, 1.125, 1.197), l: CHEST_L, fov: 30, stop: true },                  // the chest: a brake you can reach
+    { t: 11.6, p: V3(0.2, 1.12, 1.18), l: CHEST_L, fov: 30, stop: true },
+    { t: 12.9, p: V3(0.996, 0.971, 1.149), l: REC_L, fov: 30, stop: true },                   // the recorder: faster in, slower out
+    { t: 16.7, p: V3(0.985, 0.968, 1.135), l: REC_L, fov: 30, stop: true },
+    { t: 17.9, p: V3(-0.34, 0.609, 1.146), l: JAR_L, fov: 30, stop: true },                   // air sacs under the bell jar, from a little below
+    { t: 25.1, p: V3(-0.345, 0.612, 1.13), l: JAR_L, fov: 30, stop: true },
+    { t: 26.4, p: V3(-0.847, 1.151, 1.314), l: SIGH_L, fov: 30, stop: true },                 // the sigh on purpose: the chest from its right, room for the words on the left
+    { t: 31.3, p: V3(-0.835, 1.148, 1.295), l: SIGH_L, fov: 30, stop: true },
+    { t: 32.6, p: V3(0.05, 1.45, 1.8), l: PL(0, 0.42, 0).toArray(), fov: 30 },                // passing in front, looking down at the plinth as it rises
+    { t: 34.0, p: PL(0, 1.311, 0.889).toArray(), l: STUDY_L, fov: 30, stop: true },            // the study, twelve trials: from the side, against the dark
+    { t: 45.6, p: PL(0, 1.3, 0.87).toArray(), l: STUDY_L, fov: 30, stop: true },
+    { t: 46.4, p: Wp, l: Wl, fov: 30, stop: true },                                            // the wand
+    { t: 48.6, p: add(Wp, [-0.012, -0.006, 0]), l: add(Wl, [0, -0.01, 0]), fov: 30, stop: true },
+    { t: 49.9, p: V3(0.257, 1.54, 1.475), l: HEAD_L, fov: 30, stop: true },                   // five minutes a day; the drill, the room sways
+    { t: 55.4, p: V3(0.25, 1.535, 1.455), l: HEAD_L, fov: 30, stop: true },
+    { t: 57.0, p: V3(1.283, 1.366, 4.141), l: V3(0.2, 1.0, 0.1), fov: 34, stop: true },          // calm: the whole figure, then slowly closer
+    { t: 73.6, p: V3(0.973, 1.361, 2.986), l: V3(0.2, 1.1, 0.1), fov: 34, stop: true },
     { t: 75.6, p: V3(0.85, 1.12, 0.78), l: V3(D.x, D.y + 0.01, D.z), fov: 30 },
-    { t: T.logo, p: V3(D.x, D.y + 0.5, D.z + 0.005), l: V3(D.x, D.y + 0.0142, D.z), fov: 30, stop: true },   // straight down on the dial: the logo
+    { t: T.logo, p: V3(D.x, D.y + 0.72, D.z + 0.005), l: V3(D.x, D.y + 0.0142, D.z), fov: 30, stop: true },   // straight down on the dial: the logo
   ]);
 }
 function camPose(S, t) {
@@ -390,102 +554,113 @@ function camPose(S, t) {
   if (!CAM) CAM = buildCam();
   let P;
   if (t <= T.logo) P = CAM(t); else { const Q = CAM(T.logo), k = ss(T.logo, T.end, t); P = { p: [Q.p[0], lerp(Q.p[1], Q.p[1] - 0.04, k), Q.p[2]], l: Q.l, fov: 30 }; }
-  // dizzy: the view sways a little in the drill
-  const dz = ss(T.drop, T.dizzy, t) * (1 - ss(T.never - 0.2, T.water - 0.6, t));
+  const dz = ss(53.0, T.dizzy, t) * (1 - ss(56.0, 57.4, t));   // dizzy: the view sways a little after the drill
   if (dz > 0) P = { ...P, l: [P.l[0] + 0.025 * dz * Math.sin(t * 1.9), P.l[1] + 0.012 * dz * Math.sin(t * 2.7 + 1), P.l[2]] };
   return P;
 }
 function focusAt(S, t, P) { return Math.hypot(P.p[0] - P.l[0], P.p[1] - P.l[1], P.p[2] - P.l[2]); }
 
 // ------------------------------------------------------------------ one moment of the film
+const _v = new THREE.Vector3(), _q = new THREE.Quaternion();
 function update(S, t) {
   const scene = S.scene, endDark = ss(T.final + 0.3, T.logo - 0.3, t);
   const o = poseBody(t);
   setPaper(W.rec, t);
-  // ---- the air sacs: some fold shut; the sigh opens them; two fold again
-  { const open = s5(T.reopen - 0.1, T.tiny + 0.5, t), refold = s5(T.fold - 0.1, T.shut + 0.5, t);
-    W.jar.sacs.forEach((m, i) => { const shut = m.userData.shut, ref = shut && i % 3 !== 1;
-      const k = shut ? Math.max(1 - open, ref ? refold : 0) : 0, br = 0.04 * o.b;
+  // ---- the notes: slapped on one by one; at "a better way" each peels off and flutters away, fading
+  for (const n of W.notes) {
+    const { m, home, q, nrm, N } = n, a = (t - N.slap) / 0.16;
+    if (t < N.slap - 0.16 || t > N.peel + 1.1) { m.visible = false; continue; }
+    m.visible = true;
+    if (t < N.slap) { const u = clamp01(1 + a); m.position.copy(home).addScaledVector(nrm, 0.25 * (1 - u) * (1 - u)); m.quaternion.copy(q); m.material.opacity = u; m.scale.setScalar(1); }
+    else if (t < N.peel) { const bnc = Math.exp(-(t - N.slap) * 22) * Math.sin((t - N.slap) * 60) * 0.06; m.position.copy(home); m.quaternion.copy(q); m.scale.set(1 + bnc, 1 - bnc, 1); m.material.opacity = 1; }
+    else { const u = (t - N.peel) / 1.1, f = s5(0, 1, u);
+      m.position.copy(home).addScaledVector(nrm, 0.01 + 0.2 * f).add(_v.set(0.03 * Math.sin(u * 7 + N.rot * 9), -0.16 * u * u, 0));
+      m.quaternion.copy(q).multiply(_q.setFromAxisAngle(X, -1.1 * f)).multiply(_q.setFromAxisAngle(Z, 0.6 * Math.sin(u * 5 + N.rot * 5)));
+      m.material.opacity = 1 - ss(0.45, 1, u); m.scale.setScalar(1); } }
+  // ---- the air sacs: some folded shut; the sigh, a second breath on top, opens them
+  { W.jar.sacs.forEach((m) => { const a0 = T.second - 0.1 + (m.userData.d || 0), k = m.userData.shut ? 1 - s5(a0, a0 + 0.6, t) : 0, br = 0.04 * o.b;
       const sx = lerp(1, 0.72, k), sy = lerp(1, 0.2, k); m.scale.set(m.userData.r * (sx + br), m.userData.r * (sy + br), m.userData.r * (sx + br));
       m.material.color.setHex(0xe7b2aa).multiplyScalar(lerp(1, 0.6, k)); }); }
-  // ---- the trial
-  { const Tr = W.trial, inA = (i) => ss(T.hundred - 0.4 + (i % 27) * 0.03 + Math.floor(i / 27) * 0.18, T.hundred + 0.6 + (i % 27) * 0.03 + Math.floor(i / 27) * 0.18, t);
-    const fadeOthers = ss(T.lifted - 0.4, T.lifted + 0.2, t) * (1 - ss(T.across - 0.6, T.across, t)), gone = ss(T.across - 0.5, T.across + 0.3, t);
-    Tr.dots.forEach((m, i) => { const a = inA(i); m.visible = a > 0.001 && gone < 0.999; m.position.lerpVectors(m.userData.from, m.userData.home, s5(0, 1, a));
-      const other = m.userData.grp === 1 || m.userData.grp === 2; m.material.opacity = a * (1 - (other ? 0.75 * fadeOthers : 0)) * (1 - gone); });
-    const mood = ss(T.good - 0.2, T.more + 0.3, t) * (1 - ss(T.anxious - 0.6, T.anxious, t)), anx = ss(T.anxious - 0.3, T.anxious + 0.3, t) * (1 - ss(T.across - 0.8, T.across, t)), drop = s5(T.dropped, T.much + 0.3, t);
-    const setCol = (m, h, o2) => { m.visible = o2 > 0.002 && h > 0.002; m.scale.y = Math.max(0.001, h); m.position.y = PLINTH.top + h / 2; m.material.opacity = o2; };
-    setCol(Tr.cols.moodS, 0.2 * s5(T.lifted, T.more, t), 0.7 * mood); setCol(Tr.cols.moodM, 0.11 * s5(T.lifted, T.more, t), 0.7 * mood);
-    setCol(Tr.cols.anxS, lerp(0.2, 0.09, drop), 0.45 * anx); setCol(Tr.cols.anxM, lerp(0.2, 0.09, drop), 0.45 * anx);
-    Tr.outline.material.opacity = 0.8 * pulse(t, T.trial - 0.2, T.across, 0.4); Tr.card.visible = t > T.no - 1.0 && t < T.across + 0.5; Tr.card.position.y = PLINTH.top - 0.06 * (1 - s5(T.no - 0.9, T.no - 0.2, t)) - 0.06 * s5(T.across - 0.2, T.across + 0.4, t);
-    const ru = pulse(t, T.across - 0.2, T.longer, 0.5); Tr.ruler.material.opacity = ru; const v = 0.35 * s5(T.cut - 0.2, T.medium + 0.2, t);
-    Tr.twelve.forEach((m, i) => { const a = ss(T.twelve - 0.3 + i * 0.05, T.twelve + 0.1 + i * 0.05, t), d = s5(T.trials + 0.6 + i * 0.06, T.cut + 0.1 + i * 0.06, t);
+  // ---- the study: good mood, sighing against meditation; twelve trials into a bar against small, medium, large
+  const pUp = plinthUp(t), pDy = pDyAt(t);
+  { const St = W.study, show = pulse(t, T.lifted - 0.3, T.across + 0.2, 0.4), grow = s5(T.lifted, T.more + 0.2, t);
+    St.g.position.y = pDy; St.g.visible = pUp > 0.001;
+    St.cols.forEach((m, i) => { const h = COLS[i].h * grow; m.visible = show > 0.002 && h > 0.002; m.scale.y = Math.max(0.001, h); m.position.y = PLINTH.top + h / 2; m.material.opacity = 0.85 * show; });
+    const ru = pulse(t, T.across - 0.2, 45.9, 0.5); St.ruler.material.opacity = ru; const v = 0.35 * s5(T.cut - 0.2, T.medium + 0.2, t);
+    St.twelve.forEach((m, i) => { const a = ss(T.twelve - 0.3 + i * 0.05, T.twelve + 0.1 + i * 0.05, t), d = s5(T.trials + 0.6 + i * 0.06, T.cut + 0.1 + i * 0.06, t);
       m.visible = a > 0.001 && d < 0.999; m.position.lerpVectors(m.userData.from, m.userData.to, d); m.material.opacity = a * (1 - ss(0.85, 1, d)); });
-    Tr.bar.scale.y = Math.max(0.001, v * 0.5); Tr.bar.position.y = PLINTH.top + (v * 0.5) / 2; Tr.barMat.opacity = ru * ss(T.cut - 0.3, T.cut, t); Tr.bar.visible = Tr.barMat.opacity > 0.002; }
-  // ---- the dial rises at the end; set to 12 to 18; the logo
+    St.bar.scale.y = Math.max(0.001, v * GH); St.bar.position.y = PLINTH.top + (v * GH) / 2; St.barMat.opacity = ru * ss(T.cut - 0.3, T.cut, t); St.bar.visible = St.barMat.opacity > 0.002; }
+  // ---- the wand: up out of the plinth, sparks that fizzle, then it falls over
+  { const Wd = W.wand, up = s5(WAND_T.up[0], WAND_T.up[1], t) * (1 - s5(49.3, 49.8, t)), fall = WAND_T.fall;
+    Wd.g.visible = up > 0.001; Wd.g.position.set(WAND.x, WAND.y - Wd.L * (1 - up) + pDy, WAND.z);
+    const f = clamp01((t - fall[0]) / (fall[1] - fall[0])), fa = f * f * (Math.PI / 2 - 0.03), bounce = f >= 1 ? 0.06 * Math.exp(-(t - fall[1]) * 9) * Math.abs(Math.sin((t - fall[1]) * 25)) : 0;
+    Wd.tip.rotation.set(0, 0, -(fa - bounce));
+    const tipW = Wd.tip.localToWorld(_v.set(0, Wd.L, 0)); Wd.g.updateMatrixWorld(true); Wd.tip.localToWorld(tipW.set(0, Wd.L, 0));
+    Wd.sparks.forEach((m) => { const u = (t - WAND_T.spark[0] - m.userData.t) / (WAND_T.spark[1] - WAND_T.spark[0]); m.visible = u > 0 && u < 1 && Wd.g.visible;
+      if (m.visible) { m.position.copy(tipW).addScaledVector(m.userData.d, m.userData.v * Math.sqrt(u)); m.position.y -= 0.03 * u * u; m.scale.setScalar(Math.max(0.001, 1 - u) * (1 + 0.5 * Math.sin(u * 30))); m.material.opacity = 1 - u; } }); }
+  // ---- the dial rises at the end; set to five minutes a day; the logo
   { const D = W.dial, up = s5(T.final - 0.6, T.final + 0.3, t); D.g.position.y = DIAL.y - 0.03 * (1 - up); D.g.visible = up > 0.001;
-    const v = lerp(0, 15, s5(T.final, T.settings, t)); D.n.rotation.y = -ANG(v); D.nmat.opacity = 1 - ss(T.logo - 0.6, T.logo - 0.2, t);
+    const v = lerp(0, 5, s5(T.final + 0.2, T.settings - 0.1, t)); D.n.rotation.y = -ANG(v); D.nmat.opacity = 1 - ss(T.logo - 0.6, T.logo - 0.2, t);
     D.setM.material.opacity = ss(T.settings - 0.2, T.settings + 0.3, t) * (1 - ss(T.logo - 0.6, T.logo - 0.2, t)); D.faceMat.opacity = 1 - 0.85 * ss(T.settings, T.logo - 0.2, t);
     const logoK = s5(T.final + 0.4, T.logo - 0.25, t); D.logo.set({ weight: logoK, white: logoK, hours: 0, hand: ss(T.logo - 0.4, T.logo - 0.15, t), handScale: outBack(clamp01((t - (T.logo - 0.4)) / 0.35), 1.8) }); }
   // ---- light
   const fig = 1 - endDark;
   W.key.intensity = 16 * fig; W.rim.intensity = 3.0 * fig; W.fill.intensity = 1.0 * fig;
-  W.plinthLight.intensity = 6 * ss(T.stanford - 0.8, T.stanford, t) * (1 - ss(T.longer - 0.4, T.longer + 0.4, t)) * fig;
-  W.sideLight.intensity = 3 * fig; W.jarLight.intensity = 4 * fig;
+  W.plinthLight.intensity = 6 * ss(T.in3 - 0.8, T.in3, t) * (1 - ss(49.3, 50.0, t)) * fig;
+  W.sideLight.intensity = 3 * fig; W.jarLight.intensity = 4 * fig; W.faceLight.intensity = 2.2 * pulse(t, -1, 8.4, 0.6) * fig;
   S.tableMat.color.setScalar(0.35 * (1 - endDark * 0.9)); scene.environmentIntensity = 0.12 * (1 - endDark); S.reflAmt = 0.6 * (1 - endDark);
 }
 
 // ------------------------------------------------------------------ the words on screen
 const CAPS = [
-  { t0: 0.35, t1: 3.2, top: 292, size: 84, html: 'Breathe in: your heart<br><em>speeds up</em> a little' },
-  { t0: 3.41, t1: 5.5, top: 300, size: 92, html: 'Breathe out: it <em>slows</em>' },
-  { t0: 5.87, t1: 9.4, top: 292, size: 80, html: 'You already <em>sigh</em><br>every few minutes' },
-  { t0: 9.61, t1: 12.2, top: 292, size: 80, html: 'A second breath<br><em>on top of the first</em>' },
-  { t0: 12.37, t1: 15.5, top: 292, size: 80, html: 'to reopen tiny air sacs<br>that <em>fold shut</em>' },
-  { t0: 15.86, t1: 20.3, top: 292, size: 78, html: 'A Stanford trial:<br><em>108 people</em>, mostly students' },
-  { t0: 20.42, t1: 26.2, top: 292, size: 76, html: '<em>5 minutes a day</em> of breathing<br>or meditation, for a month' },
-  { t0: 26.53, t1: 30.0, top: 292, size: 80, html: 'Sighing on purpose:<br>two in, <em>one long</em><br><em>breath out</em>' },
-  { t0: 30.18, t1: 34.2, top: 292, size: 80, html: 'lifted good mood<br><em>more than meditation</em>' },
-  { t0: 34.64, t1: 38.5, top: 292, size: 80, html: 'Anxiety dropped<br><em>just as much</em><br>with meditation' },
-  { t0: 38.73, t1: 41.6, top: 292, size: 84, html: 'No <em>do-nothing</em> group' },
-  { t0: 42.08, t1: 48.4, top: 292, size: 78, html: '12 trials: stress cut by a<br><em>small to medium</em> amount' },
-  { t0: 48.68, t1: 50.6, top: 300, size: 92, html: 'Useful. <em>Not magic.</em>' },
-  { t0: 51.08, t1: 52.8, top: 300, size: 92, html: 'Longer <em>out-breaths?</em>' },
-  { t0: 52.96, t1: 57.8, top: 292, size: 78, html: '12 weeks: not<br>clearly better than<br><em>equal breaths</em>' },
-  { t0: 58.29, t1: 60.9, top: 292, size: 84, html: 'Skip hard, fast<br><em>breathing drills</em>' },
-  { t0: 61.08, t1: 64.9, top: 292, size: 78, html: 'Less carbon dioxide,<br>and you can get <em>dizzy</em>' },
-  { t0: 65.03, t1: 67.9, top: 292, size: 84, html: 'Never in or<br><em>near water</em>' },
-  { t0: 68.31, t1: 72.7, top: 292, size: 76, html: 'Struggling to cope<br>with stress, or<br><em>nothing helps?</em>' },
-  { t0: 72.84, t1: 74.6, top: 300, size: 100, html: 'See a <em>doctor</em>' },
-  { t0: 74.88, t1: 99, top: 360, size: 96, html: 'Back to<br><em>factory settings.</em>' },
+  { t0: T.you, t1: 2.3, top: 292, size: 86, html: 'You keep telling<br>yourself to <em>calm down</em>' },
+  { t0: T.while, t1: 5.5, top: 292, size: 84, html: 'while you’re breathing<br>like something<br>is <em>chasing you</em>.' },
+  { t0: T.your, t1: 7.85, top: 300, size: 92, html: 'Your body has<br>a <em>better way</em>.' },
+  { t0: T.your2, t1: 11.3, top: 292, size: 86, html: 'Your body was built<br>with a <em>brake</em><br>you can reach:' },
+  { t0: T.when, t1: 13.95, top: 292, size: 84, html: 'when you breathe <em>in</em>,<br>your heart speeds up<br>a little,' },
+  { t0: T.when2 - 0.32, t1: 16.9, top: 292, size: 84, html: 'and when you<br>breathe <em>out</em>,<br>it slows down.' },
+  { t0: T.your3, t1: 20.7, top: 292, size: 86, html: 'Your body already<br><em>sighs</em> every few minutes<br>without you noticing,' },
+  { t0: T.taking, t1: 25.3, top: 292, size: 84, html: 'taking a <em>second breath</em><br>to reopen tiny<br>air sacs in your lungs.' },
+  { t0: T.so, t1: 28.55, top: 292, size: 88, html: 'So sigh on purpose:<br>breathe <em>in twice</em>,' },
+  { t0: T.then, t1: 31.3, top: 292, size: 88, html: 'then let one<br><em>long, slow</em><br>breath out.' },
+  { t0: T.in3, t1: 36.25, top: 292, size: 76, html: 'In a Stanford study<br>of mostly students,<br><em>5 minutes a day</em> of this<br>for a month' },
+  { t0: T.lifted, t1: 38.95, top: 292, size: 86, html: 'lifted mood <em>more</em><br>than meditation did,' },
+  { t0: T.and2, t1: 42.5, top: 292, size: 84, html: 'and across <em>12 trials</em>,<br>breathing exercises' },
+  { t0: T.cut, t1: 45.6, top: 292, size: 84, html: 'cut stress by<br>a <em>small to medium</em><br>amount.' },
+  { t0: T.its, t1: 48.6, top: 300, size: 92, html: 'It’s a useful tool,<br>not a <em>magic</em> one.' },
+  { t0: T.do, t1: 50.85, top: 300, size: 92, html: 'Do it for<br><em>5 minutes a day</em>,' },
+  { t0: T.skip - 0.35, t1: 55.3, top: 292, size: 80, html: 'and skip <em>hard, fast</em><br>breathing drills,<br>because they can<br>make you <em>dizzy</em>.' },
+  { t0: T.and3, t1: 59.9, top: 292, size: 82, html: 'And never practise<br>breathing drills or<br>breath-holding<br><em>in or near water</em>.' },
+  { t0: T.if, t1: 63.95, top: 292, size: 84, html: 'If stress is getting<br>too much to cope with,<br>or nothing you try' },
+  { t0: T.helping - 0.3, t1: 66.2, top: 300, size: 92, html: 'is helping,<br>talk to a <em>doctor</em>.' },
+  { t0: T.if2, t1: 69.4, top: 292, size: 82, html: 'If you or someone<br>you know needs help<br><em>right now</em>,' },
+  { t0: 69.5, t1: 74.4, top: 292, size: 82, html: 'or you’ve seriously<br>harmed yourself,<br>call <em>emergency services</em>.' },
+  { t0: T.final, t1: 99, top: 360, size: 92, html: 'Let’s get you back to<br><em>factory settings.</em>' },
 ];
 const OVL = {};
+const TAG = { hr: new THREE.Vector3(0.495, 0.624, 0.187), sacs: new THREE.Vector3(-0.702, 0.779, 0.1), sigh: new THREE.Vector3(-0.3, 1.2, 0.0) };   // world anchors, checked with campath.py
 function overlayInit(S) {
   const O = S.O, tag = (cls, txt2, size, bsize) => { const e = O.tag(cls, txt2); e.style.fontSize = size + 'px'; const b = e.querySelector('b'); if (b && bsize) b.style.fontSize = bsize + 'px'; return e; };
-  OVL.hr = tag('tag', 'Heart rate<b>speeding up</b>', 24, 44); OVL.hrB = OVL.hr.querySelector('b');
+  OVL.hr = tag('tag', 'Breathing in<b>heart rate up</b>', 24, 42); OVL.hrL = OVL.hr.firstChild; OVL.hrB = OVL.hr.querySelector('b');
   OVL.sacs = tag('tag', 'Air sacs<b>reopened</b>', 24, 40);
-  OVL.groups = GROUPS.map((g) => tag('tag', g, 18));
-  OVL.time = tag('tag', 'Each day<b>5 min · 30 days</b>', 22, 38);
+  OVL.sigh = tag('tag', 'In · in<b>one long breath out</b>', 22, 40);
+  OVL.time = tag('tag', 'Each day<b>5 min · 1 month</b>', 22, 38);
+  OVL.colS = tag('tag', 'Cyclic sighing', 22); OVL.colM = tag('tag', 'Meditation', 22);
   OVL.mood = tag('tag', 'Good mood<b>up more with sighing</b>', 22, 36);
-  OVL.anx = tag('tag', 'Anxiety<b>down the same</b>', 22, 36);
   OVL.twelve = tag('tag', 'Trials<b>12</b>', 22, 44);
-  OVL.ratio = tag('tag', 'Longer out-breaths<b>no clear gain</b>', 22, 36);
-  OVL.co2 = tag('tag', 'Carbon dioxide<b>down</b>', 22, 40);
-  OVL.rest = tag('tag', 'At rest<b>12 to 18 a minute</b>', 24, 40);
 }
 function overlay(S, t) {
-  const Hpos = W.heartG.getWorldPosition(new THREE.Vector3());
-  OVL.hrB.textContent = breathAt(t + 0.05) - breathAt(t - 0.05) >= 0 && t < T.out ? 'speeding up' : 'slowing';   // words, not numbers: the claim is the direction
-  place(S, OVL.hr, Hpos, 70, -40, pulse(t, T.heart - 0.2, T.already + 0.2));
-  place(S, OVL.sacs, new THREE.Vector3(JAR.x, JAR.y + 0.3, JAR.z), 30, -40, pulse(t, T.tiny, T.fold + 0.1));
-  GROUPS.forEach((g, i) => place(S, OVL.groups[i], new THREE.Vector3(GX(i), PLINTH.top, GZ_(i) + 0.06), -60, 4, pulse(t, T.people, T.across - 0.5) * (i === 1 || i === 2 ? 1 - 0.7 * ss(T.lifted - 0.4, T.lifted + 0.2, t) : 1)));
-  place(S, OVL.time, new THREE.Vector3(PLINTH.x + 0.45, PLINTH.top + 0.1, PLINTH.z - 0.1), -120, -100, pulse(t, T.five - 0.2, T.sighing - 0.3));
-  place(S, OVL.mood, new THREE.Vector3(GX(0), PLINTH.top + 0.22, GZ_(0) - 0.05), -60, -70, pulse(t, T.good, T.anxious - 0.4));
-  place(S, OVL.anx, new THREE.Vector3(GX(3), PLINTH.top + 0.22, GZ_(3) - 0.05), -60, -70, pulse(t, T.dropped, T.no - 1.2));
-  place(S, OVL.twelve, new THREE.Vector3(PLINTH.x - 0.3, PLINTH.top + 0.5, PLINTH.z + 0.03), -40, -80, pulse(t, T.trials - 0.2, T.cut + 0.6));
-  place(S, OVL.ratio, new THREE.Vector3(SIDE.x, SIDE.y + 0.1, SIDE.z + 0.1), -80, -120, pulse(t, T.twelveweek - 0.2, T.skip - 0.3));
-  place(S, OVL.co2, new THREE.Vector3(0.0, 1.45, 0.05), 60, -40, pulse(t, T.drop - 0.1, T.never));
-  place(S, OVL.rest, new THREE.Vector3(DIAL.x, DIAL.y + 0.02, DIAL.z), 60, -60, pulse(t, T.settings - 0.3, T.logo - 0.4));
+  const Hpos = W.heartG.getWorldPosition(new THREE.Vector3()), out = t > T.when2 - 0.4;
+  OVL.hrL.textContent = out ? 'Breathing out' : 'Breathing in'; OVL.hrB.textContent = out ? 'heart rate down' : 'heart rate up';   // words, not numbers: the claim is the direction
+  place(S, OVL.hr, TAG.hr, 24, -240, pulse(t, 12.8, 16.6));                                            // above the paper, left of the recorder
+  place(S, OVL.sacs, TAG.sacs, -90, 70, pulse(t, T.reopen, 25.0));                                    // left of the stem, under the sacs
+  place(S, OVL.sigh, TAG.sigh, -20, 116, pulse(t, T.in2, 31.2));                                       // in the dark, top left, above the shoulder
+  const pT = PLINTH.top + pDyAt(t);
+  place(S, OVL.time, PL(0, pT + 0.2, -0.03), -140, -40, pulse(t, 34.0, T.lifted - 0.2));       // over the empty plinth
+  place(S, OVL.colS, PL(COLS[0].x, pT, 0.03), -100, 14, pulse(t, T.lifted - 0.1, T.across + 0.2));
+  place(S, OVL.colM, PL(COLS[1].x, pT, 0.03), -70, 14, pulse(t, T.lifted - 0.1, T.across + 0.2));
+  place(S, OVL.mood, PL(COLS[0].x, pT + COLS[0].h + 0.02, -0.03), -110, -96, pulse(t, T.mood - 0.1, T.across + 0.1));
+  place(S, OVL.twelve, PL(-0.15, pT + 0.215, GZ), -20, -100, pulse(t, T.trials - 0.2, T.medium + 0.6));   // above the grid of dots
   const c = new THREE.Vector3(DIAL.x, DIAL.y + 0.0142, DIAL.z);
   logoEnd(S, t, { t0: T.logo, center: c, edge: c.clone().add(new THREE.Vector3(0, 0, LOGO_R)) });
 }
@@ -493,7 +668,7 @@ function overlay(S, t) {
 makeFilm({
   T, caps: CAPS, subs: [], build, update, pose: camPose, overlay, overlayInit, focus: focusAt,
   stage: { bg: 0x07080a, reflSize: 6, env: 0.12, far: 30 },
-  aperture: [[0, 0.003], [12.2, 0.003], [16.8, 0.002], [39.9, 0.004], [43.2, 0.002], [51.8, 0.003], [58.9, 0.003], [69, 0.0015], [75.6, 0.003]],
+  aperture: [[0, 0.003], [8.6, 0.003], [12.9, 0.003], [17.9, 0.003], [26.4, 0.003], [34.0, 0.002], [46.4, 0.004], [49.9, 0.003], [57.0, 0.0015], [75.6, 0.003]],
   bloom: [[0, 0.45], [74, 0.55]],
-  fast: [[58.9, 64.9, 2]],
+  fast: [[0.3, 5.6, 2], [7.2, 8.8, 2], [11.5, 13.1, 2], [16.6, 18.1, 2], [25.0, 26.6, 2], [31.2, 34.1, 2], [45.5, 46.6, 2], [48.5, 50.1, 2], [51.0, 57.2, 2], [73.5, 75.8, 2]],
 });

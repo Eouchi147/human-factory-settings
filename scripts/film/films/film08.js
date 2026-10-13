@@ -1,47 +1,174 @@
-// Human Factory Settings · Film 8 "How can I fall asleep faster?" · one continuous shot, 9:16.
-// A skeleton in bed at night. A timer on the bedside table measures the minutes to fall asleep: normal is 10 to 20; out
-// within a minute, the arm drops off the bed (sleep debt, not a talent). A cup of coffee adds 9 minutes and takes 45 off
-// the night on the clock; the clock spins back to the cut-off (8.8 hours before bed in one review, 6 for the NHS), and the
-// room turns to afternoon. Warmth from a bath rises off the bones. A busy head: the brain flickers; headphones play a
-// march and one foot keeps time (the gag); trying: 34 minutes, not trying: 22. After 20 minutes awake the skeleton gets
-// up, reads by the lamp, the phone turns itself face down, a yawn, back to bed. CBT for insomnia: 20 trials, 19 minutes
-// faster. Over 30 minutes, three nights a week, three months: a sleep diary; see a doctor. The timer becomes the logo.
-import { THREE, ORANGE, COLD, ss, s5, lerp, clamp01, hash, camTrack, phys, glowMat, shadows, spot, RoundedBoxGeometry,
-  loadAnatomy, V3, place, logoEnd, makeFilm, outBack, stamp, stampCanvas, stampSpot, noiseTex, motes, TIME } from '../kit.js';
-import { buildRig, skeletonKind, legIK, bendSpine, poseArm, worldVerts } from '../rig.js';
-import { makeClock, makeCup, makePhone, makeLamp, makeLogoRing, tickAngle } from '../props.js';
+// Human Factory Settings · Film 8 "How can I fall asleep faster?" (new direction, 6 Oct 2026) · one continuous shot, 9:16.
+// From the ceiling: a skeleton in bed at night, staring straight up at us. It orders itself to sleep the way you order
+// anything: it slaps the service bell on the bedside table, again and again. Nothing comes. The bell sinks into the table
+// and a sleep timer rises in its place: on its own, 10 to 20 minutes. A busy head flickers inside a glass skull;
+// headphones play a march and one foot keeps time (the gag); told to fall asleep fast: 34 minutes; not trying: 22. After
+// 20 minutes awake he gets up, sits on the edge of the bed and reads by the lamp; the phone turns itself face down; a yawn,
+// back to bed. The clock runs backwards on "backwards". Warmth rises off the bones (a bath, 9 to 10 p.m. on the clock).
+// Over 30 minutes, three nights a week, for three months: a sleep diary fills; see a doctor, and don't wait that long if
+// life is hard to cope with (the diary empties). The timer becomes the logo.
+import { THREE, ORANGE, ss, s5, lerp, clamp01, hash, camTrack, phys, shadows, spot, RoundedBoxGeometry,
+  loadAnatomy, V3, place, logoEnd, makeFilm, outBack, stamp, stampCanvas, stampSpot, noiseTex, TIME, keys } from '../kit.js';
+import { buildRig, skeletonKind, legIK, bendSpine, poseArm, worldVerts, avgV, clearArms } from '../rig.js';
+import { makeClock, makePhone, makeLamp, makeLogoRing, tickAngle } from '../props.js';
+
+// ------------------------------------------------------------------ a wrist, and hands that can hold (from film 11, on the wrist)
+const HANDBONE = /scaphoid|lunate|triquetral|pisiform|trapezium|trapezoid|capitate|hamate|metacarpal|phalanx of/i;
+function makeWrist(R, Side, { pronate = false } = {}) {
+  const A = R.arms[Side], low = (m) => { const vs = worldVerts(m); let mn = 9; for (const v of vs) mn = Math.min(mn, v.y); return avgV(vs.filter((v) => v.y < mn + 0.012)); };
+  const rad = R.byName.get(`${Side} radius`), uln = R.byName.get(`${Side} ulna`);
+  const P = low(rad).lerp(low(uln), 0.5);
+  // pronate: the forearm turns as a real one does. The radius, and the hand on it, turn about the line from the middle of
+  // the radial head to the middle of the ulnar head; the ulna stays. setWrist's p.pro turns it (radians, + = pronation)
+  let host = A.elbow, hp = A.EL, pro = null, proAxis = null;
+  if (pronate) {
+    const rv = worldVerts(rad), uv = worldVerts(uln); let rt = -9, ub = 9; for (const v of rv) rt = Math.max(rt, v.y); for (const v of uv) ub = Math.min(ub, v.y);
+    const RH = avgV(rv.filter((v) => v.y > rt - 0.012)), UH = avgV(uv.filter((v) => v.y < ub + 0.016));
+    proAxis = UH.clone().sub(RH).normalize();
+    pro = new THREE.Group(); pro.position.copy(RH).sub(A.EL); A.elbow.add(pro); R.pivots.set(pro, RH.clone());
+    A.elbow.remove(rad); rad.position.copy(rad.userData.home).sub(RH); pro.add(rad);
+    host = pro; hp = RH;
+  }
+  const g = new THREE.Group(); g.position.copy(P).sub(hp); host.add(g);
+  for (const m of [...A.elbow.children]) if (m.isMesh && HANDBONE.test(m.userData.name) && m.userData.name.toLowerCase().includes(Side.toLowerCase())) { A.elbow.remove(m); m.position.copy(m.userData.home).sub(P); g.add(m); }
+  return { g, P, s: Side === 'Right' ? -1 : 1, pro, proAxis };
+}
+const setWrist = (Wr, p) => { Wr.g.rotation.set(p.wf || 0, (p.wr || 0) * Wr.s, (p.wd || 0) * Wr.s, 'YXZ'); if (Wr.pro) Wr.pro.quaternion.setFromAxisAngle(Wr.proAxis, (p.pro || 0) * Wr.s); };   // roll (forearm turn), then flex, then tilt; a pronating forearm turns too
+function rigHand(R, Side, Wr) {
+  const A = R.arms[Side], side = Side.toLowerCase(), eg = Wr.g, EL = Wr.P, by = (n) => R.byName.get(n);
+  const top = (m) => { const vs = worldVerts(m); let mx = -9, mn = 9; for (const v of vs) { mx = Math.max(mx, v.y); mn = Math.min(mn, v.y); } return avgV(vs.filter((v) => v.y > mx - 0.12 * (mx - mn))); };
+  const bot = (m) => { const vs = worldVerts(m); let mx = -9, mn = 9; for (const v of vs) { mx = Math.max(mx, v.y); mn = Math.min(mn, v.y); } return avgV(vs.filter((v) => v.y < mn + 0.12 * (mx - mn))); };
+  const F = ['index', 'middle', 'ring', 'little'].map((f) => ({ P: by(`Proximal phalanx of ${side} ${f} finger`), M: by(`Middle phalanx of ${side} ${f} finger`), D: by(`Distal phalanx of ${side} ${f} finger`) }));
+  const mcpI = top(F[0].P), mcpL = top(F[3].P), fdir = bot(F[1].D).sub(top(F[1].P)).normalize();
+  const across = mcpL.clone().sub(mcpI); across.sub(fdir.clone().multiplyScalar(across.dot(fdir))).normalize();
+  const n = new THREE.Vector3().crossVectors(fdir, across).normalize(); if (n.z < 0) n.negate();
+  const axis = new THREE.Vector3().crossVectors(fdir, n).normalize();   // +angle turns each finger toward the palm (n): the way fingers close
+  const joints = [];
+  for (const f of F) { const pts = [top(f.P), top(f.M), top(f.D)], gs = []; let parent = eg, pp = EL;
+    [f.P, f.M, f.D].forEach((m, i) => { const g = new THREE.Group(); g.position.copy(pts[i]).sub(pp); parent.add(g); m.parent.remove(m); m.position.copy(m.userData.home).sub(pts[i]); g.add(m); gs.push(g); parent = g; pp = pts[i]; }); joints.push(gs); }
+  const tP = by(`Proximal phalanx of ${side} thumb`), tD = by(`Distal phalanx of ${side} thumb`), tpt = [top(tP), top(tD)];
+  const ttip = bot(tD), tdir = ttip.clone().sub(tpt[0]).normalize(), aim = mcpI.clone().lerp(mcpL, 0.6).add(n.clone().multiplyScalar(0.03)).sub(ttip);
+  const taxis = new THREE.Vector3().crossVectors(tdir, aim).normalize(), tg = [];
+  { let parent = eg, pp = EL; [tP, tD].forEach((m, i) => { const g = new THREE.Group(); g.position.copy(tpt[i]).sub(pp); parent.add(g); m.parent.remove(m); m.position.copy(m.userData.home).sub(tpt[i]); g.add(m); tg.push(g); parent = g; pp = tpt[i]; }); }
+  const mid = mcpI.clone().add(mcpL).multiplyScalar(0.5);
+  const handle = mid.clone().addScaledVector(fdir, 0.03).addScaledVector(n, 0.024).sub(EL);
+  // prof: how a finger shares its closing between knuckle, middle and end joint (a fist by default; a hand flat on a
+  // phone's back that wraps its far edge bends mostly at the middle joints)
+  const PROF = [1.25, 1.5, 0.95];
+  const setF = (gs, kk, s, pr) => { gs[0].quaternion.setFromAxisAngle(axis, pr[0] * kk * s); gs[1].quaternion.setFromAxisAngle(axis, pr[1] * kk * s); gs[2].quaternion.setFromAxisAngle(axis, pr[2] * kk * s); };
+  function curl(k, per = null, tk = null, prof = PROF) {   // per: each finger's own closing [index, middle, ring, little]; tk: the thumb's
+    joints.forEach((gs, i) => setF(gs, per ? per[i] : k, 1 + 0.06 * i, prof));
+    const t = tk ?? k; tg[0].quaternion.setFromAxisAngle(taxis, 0.55 * t); tg[1].quaternion.setFromAxisAngle(taxis, 0.7 * t);
+  }
+  // close each finger (and the thumb) on an object until it is `need` off it: sdf(world point) is the distance to the object
+  // (+ outside). Returns { per, tk } for curl(); a finger that never meets it closes to kmax
+  function fit(sdf, { need = 0.003, kmin = 0.05, kmax = 0.95, prof = PROF, tmin = kmin } = {}) {   // tmin < 0 lets the thumb stand off, away from the palm
+    const v = new THREE.Vector3(), samp = (ms) => ms.map((m) => { const P = m.geometry.attributes.position, st = Math.max(1, Math.floor(P.count / 200)), pts = []; for (let i = 0; i < P.count; i += st) pts.push(new THREE.Vector3().fromBufferAttribute(P, i)); return { m, pts }; });
+    const gap = (S) => { eg.updateMatrixWorld(true); let g = 9; for (const { m, pts } of S) for (const p of pts) g = Math.min(g, sdf(v.copy(p).applyMatrix4(m.matrixWorld))); return g; };
+    // the first contact on the way from open to closed (a finger can pass an object's edge and curl clear of it again,
+    // so the whole sweep is scanned, then the contact is found finely)
+    const search = (S, set, k0 = kmin) => { set(k0); if (gap(S) < need) return k0; let lo = k0, hi = null;
+      for (let j = 1; j <= 24; j++) { const k = k0 + (kmax - k0) * (j / 24); set(k); if (gap(S) < need) { hi = k; break; } lo = k; }
+      if (hi === null) return kmax;
+      for (let j = 0; j < 12; j++) { const m = (lo + hi) / 2; set(m); if (gap(S) >= need) lo = m; else hi = m; } set(lo); return lo; };
+    const per = joints.map((gs, i) => search(samp(gs.map((g) => g.children.find((c) => c.isMesh)).filter(Boolean)), (kk) => setF(gs, kk, 1 + 0.06 * i, prof)));
+    const tk = search(samp(tg.map((g) => g.children.find((c) => c.isMesh)).filter(Boolean)), (kk) => { tg[0].quaternion.setFromAxisAngle(taxis, 0.55 * kk); tg[1].quaternion.setFromAxisAngle(taxis, 0.7 * kk); }, tmin);
+    return { per, tk };
+  }
+  const hand = new THREE.Vector3().crossVectors(fdir, across).dot(n) > 0 ? 1 : -1;   // n = hand * (fdir x across)
+  return { curl, fit, handle, across: across.clone(), n: n.clone(), fdir: fdir.clone(), eg, hand };
+}
+function solveHand(R, Side, H, at, init, aims = [], extra = null, starts = null) {   // starts: other initial poses to try (default: a spread for a standing body)   // an arm and wrist pose that puts the hand's grip at a world point, with hand directions (local v) turned toward world ones; extra(A) adds a posture cost
+  R.root.updateMatrixWorld(true);
+  const A = R.arms[Side], Wr = H.wr, h = new THREE.Vector3(), q = new THREE.Quaternion(), pn = new THREE.Vector3();
+  const err = (p) => { poseArm(A, p); setWrist(Wr, p); A.girdle.updateMatrixWorld(true); h.copy(H.handle).applyMatrix4(Wr.g.matrixWorld); let E = h.distanceTo(at);
+    if (aims.length) { Wr.g.getWorldQuaternion(q); for (const a of aims) E += a.w * (1 - pn.copy(a.v).applyQuaternion(q).dot(a.to)); }
+    if (extra) E += extra(A);
+    E += 0.01 * ((p.wf || 0) ** 2 + 2 * (p.wd || 0) ** 2 + 0.5 * (p.wr || 0) ** 2); return E; };
+  const descend = (start) => {
+    let best = { dir: [...start.dir], twist: start.twist, elbow: start.elbow, wf: start.wf || 0, wd: start.wd || 0, wr: start.wr || 0, retract: 0, elevate: 0 }, bestE = err(best);
+    for (const st of [0.25, 0.12, 0.06, 0.03, 0.015, 0.007]) for (let it = 0; it < 40; it++) {
+      let improved = false;
+      for (const key of ['d0', 'd1', 'd2', 'twist', 'elbow', 'wf', 'wd', 'wr']) for (const sg of [-1, 1]) {
+        const c = { ...best, dir: [...best.dir] }; if (key[0] === 'd') c.dir[+key[1]] += sg * st; else c[key] += sg * st * 2; c.elbow = Math.min(2.6, Math.max(0, c.elbow)); c.wf = Math.min(1.1, Math.max(-1.1, c.wf)); c.wd = Math.min(0.4, Math.max(-0.4, c.wd)); c.wr = Math.min(2.2, Math.max(-2.2, c.wr));
+        const E = err(c); if (E < bestE) { bestE = E; best = c; improved = true; }
+      }
+      if (!improved) break;
+    }
+    return { best, bestE };
+  };
+  let out = descend(init);
+  const tries = starts || [[0.6, 0.8, 0.2], [0.35, 0.7, 0.45], [0.9, 0.35, 0.1], [0.5, 0.5, -0.3], [0.2, -0.2, 0.9]].flatMap((dir) => [-1.2, -0.4, 0.4, 1.2].flatMap((twist) => [1.3, 1.9, 2.4].map((elbow) => ({ dir, twist, elbow }))));
+  for (const st of tries) { if (out.bestE < 0.004) break; const r = descend(st); if (r.bestE < out.bestE) out = r; }
+  poseArm(A, out.best); setWrist(Wr, out.best); A.girdle.updateMatrixWorld(true); h.copy(H.handle).applyMatrix4(Wr.g.matrixWorld); Wr.g.getWorldQuaternion(q);
+  const dbg = { pos: +h.distanceTo(at).toFixed(4), dots: aims.map((a) => +pn.copy(a.v).applyQuaternion(q).dot(a.to).toFixed(3)), at: at.toArray().map((v) => +v.toFixed(3)) };
+  return { ...out.best, err: out.bestE, dbg };
+}
+const FIST = [1.25, 1.5, 0.95], FLAT_WRAP = [0.35, 1.6, 1.25];   // how the fingers close: a fist; flat on a phone's back, bent round its edge
+// a hand closing on what it holds: each finger goes from `base` toward its fitted closing, and never further in than that fit
+// while the object is there (a finger more closed than its fit would be inside the object)
+function gripCurl(H, G, g, base, prof) { H.curl(0, G.per.map((k) => lerp(Math.min(base, k), k, g)), lerp(Math.min(base, G.tk), G.tk, g), prof); }
+// the phone (props.js makePhone): a rounded box, its long edges rounded to half its thickness; local y = 0 is the back, Th the
+// screen. Signed distance from a point in the phone's own frame (+ outside)
+const PHONE = { W: 0.0716, L: 0.1476, Th: 0.0078 };
+function phoneSDF(p) {
+  const r = PHONE.Th / 2, qx = Math.abs(p.x) - (PHONE.W / 2 - r), qy = Math.abs(p.y - PHONE.Th / 2) - (PHONE.Th / 2 - r), qz = Math.abs(p.z) - (PHONE.L / 2 - r);
+  return Math.hypot(Math.max(qx, 0), Math.max(qy, 0), Math.max(qz, 0)) + Math.min(Math.max(qx, qy, qz), 0) - r;
+}
+// how far a hand's bones come inside their gap round an object (sdf: world point -> distance, + outside): fingers `finger`,
+// palm and wrist `palm` (the flesh that is not drawn). palmOnly skips the fingers (they are closed on the object after)
+function handGap(H, sdf, { palm = 0.006, finger = 0.003, palmOnly = false } = {}) {
+  if (!H._gapPts) { H._gapPts = []; H.wr.g.traverse((m) => { if (!m.isMesh) return; const P = m.geometry.attributes.position, st = Math.max(1, Math.floor(P.count / 40)), fing = /phalanx/i.test(m.userData.name);
+    for (let i = 0; i < P.count; i += st) H._gapPts.push({ m, p: new THREE.Vector3().fromBufferAttribute(P, i), fing }); }); }
+  const v = new THREE.Vector3(); let E = 0, worst = 0, who = '';
+  for (const q of H._gapPts) { if (palmOnly && q.fing) continue; const d = (q.fing ? finger : palm) - sdf(v.copy(q.p).applyMatrix4(q.m.matrixWorld)); if (d > 0) { E += d; if (d > worst) { worst = d; who = q.m.userData.name; } } }
+  return { E, worst, who };
+}
+// a posture cost that keeps an arm out of ellipsoids (world centre c, semi-axes r, the bone's own thickness included):
+// samples the upper arm (from a quarter of the way down, the shoulder itself sits where it sits), the forearm and the hand
+function keepOut(R, Side, H, zones, w = 3) {
+  const A = R.arms[Side], s = new THREE.Vector3(), e = new THREE.Vector3(), wr = new THREE.Vector3(), g = new THREE.Vector3(), p = new THREE.Vector3();
+  const f = (arm) => { A.arm.getWorldPosition(s); A.elbow.getWorldPosition(e); H.wr.g.getWorldPosition(wr); g.copy(H.handle).applyMatrix4(H.wr.g.matrixWorld);
+    let E = 0;
+    for (const [a, b, n, u0] of [[s, e, 10, 0.25], [e, wr, 10, 0], [wr, g, 4, 0]]) for (let i = 0; i <= n; i++) { p.lerpVectors(a, b, u0 + (1 - u0) * i / n);
+      for (const z of zones) { const q = Math.hypot((p.x - z.c.x) / z.r.x, (p.y - z.c.y) / z.r.y, (p.z - z.c.z) / z.r.z); if (q < 1) E += w * (1 - q); } }
+    return E; };
+  return f;
+}
+const mixArm = (a, b, k) => ({ dir: a.dir.map((v, i) => lerp(v, b.dir[i], k)), twist: lerp(a.twist, b.twist, k), elbow: lerp(a.elbow, b.elbow, k), wf: lerp(a.wf || 0, b.wf || 0, k), wd: lerp(a.wd || 0, b.wd || 0, k), wr: lerp(a.wr || 0, b.wr || 0, k), pro: lerp(a.pro || 0, b.pro || 0, k), retract: 0, elevate: 0, mix: [a, b, k] });
+
+
 
 // ------------------------------------------------------------------ timing, from the voice guide (word starts)
 const T = {
-  end: 81.3,
-  q0: 0.35, fall: 0.98, asleep: 1.24, heres: 2.16, measured: 3.30,                                                   // "Can't fall asleep? Here's what's been measured."
-  normal: 4.50, ten: 5.74, twenty: 6.26, minutes: 6.67, out: 7.53, within: 8.10, minute: 8.75, short: 9.47, sleep: 10.02,
-  not: 10.64, talent: 11.32,                                                                                          // "Normal is about ten to twenty minutes. Out within a minute can mean you're short on sleep. Not a talent."
-  inStudies: 12.65, caffeine: 13.63, added: 14.09, nine: 14.90, falling: 15.95, cut: 17.52, fortyfive: 18.25, sleep2: 19.91,   // "In studies, caffeine added about nine minutes to falling asleep, and cut about forty-five minutes of sleep."
-  regular: 21.88, cup: 22.30, review: 22.77, cutoff: 23.79, almost: 24.44, nineh: 25.13, before: 25.96, bed: 26.50,
-  nhs: 27.69, six: 28.81,                                                                                             // "For a regular cup, one review put the cut-off at almost nine hours before bed. The NHS says six."
-  warm: 30.26, bath: 30.65, shower: 31.06, oneTwo: 31.30, two: 32.10, before2: 32.70, bed2: 33.42, gets: 33.78, sooner: 34.84,   // "A warm bath or shower, one to two hours before bed, gets you there sooner."
-  trying: 36.17, backfires: 37.17, head: 38.30, busy: 38.74, students: 39.59, told: 40.43, fast: 41.52, marches: 42.46,
-  playing: 43.18, reported: 43.69, t34: 44.44, ones: 45.94, didnt: 46.64, try: 47.03, t22: 47.48,                     // "Trying hard backfires ... reported thirty-four minutes. The ones who didn't try: twenty-two."
-  notAsleep: 49.33, after: 50.32, twenty2: 50.65, getUp: 51.85, up: 52.42, quiet: 53.22, away: 53.64, screens: 54.36,
-  goBack: 55.02, sleepy: 56.19,                                                                                       // "Not asleep after twenty minutes? Get up. Do something quiet, away from screens. Go back when you're sleepy."
-  part: 58.01, cbt: 58.58, insomnia: 59.39, firstline: 60.46, across: 62.44, trials: 63.62, people: 63.92, withIns: 64.38,
-  fell: 65.49, nineteen: 66.73, faster: 67.96,                                                                        // "It's part of CBT for insomnia, the first-line treatment. Across twenty trials, ... nineteen minutes faster."
-  over: 69.36, thirty: 70.04, three: 70.67, nights: 70.95, week: 71.49, months: 72.50, may: 73.95, insomnia2: 74.37,
-  see: 74.99, doctor: 75.81,                                                                                          // "Over thirty minutes, three nights a week, for three months? That may be insomnia. See a doctor."
-  final: 77.17, settings: 78.33, logo: 79.0,                                                                          // "Back to factory settings."
+  end: 73.6, logo: 71.08,
+  you: 0.35, lie: 0.80, bed: 1.15, hour: 1.59, staring: 1.91, ceiling: 2.88, and1: 3.27, ordering: 3.56, yourself: 4.04, fall: 4.74, asleep: 5.02, as: 5.65, if: 6.31, sleep: 6.40, takes: 6.62, orders: 7.10,
+  lets: 8.18, fix: 8.70, that: 9.03,
+  your: 10.04, body: 10.48, built: 11.09, own: 12.24, and0: 12.57, most: 13.24, people: 13.65, takes2: 14.41, about: 14.82, ten: 15.22, twenty: 15.87, minutes: 16.26,
+  and2: 17.55, head: 18.41, busy: 18.74, trying: 18.86, hard: 19.27, makes: 19.63, worse: 20.16,
+  in: 21.26, study: 21.85, marching: 22.45, music: 22.76, playing: 23.48, people2: 23.89, told: 24.29, fast: 25.58, said: 26.05, t34: 26.85, minutes2: 27.53,
+  and3: 28.03, people3: 28.41, werent: 28.98, trying2: 29.22, said2: 29.81, t22: 30.15,
+  so: 31.65, still: 32.46, awake: 32.62, after: 32.87, twenty2: 33.19, minutes3: 33.62, get: 33.84, up: 34.16, something: 34.74, quiet: 35.36, dim: 35.76, light: 35.96,
+  with: 36.31, no: 36.82, screens: 37.09, and4: 37.71, go: 37.98, back: 38.42, bed2: 38.74, when: 39.03, sleepy: 39.57,
+  it: 40.88, sounds: 41.19, backwards: 41.64, but: 42.09, part: 42.37, treatment: 42.86, doctors: 43.84, recommend: 44.59, most2: 45.13, strongly: 45.49, insomnia: 46.19,
+  a: 47.83, warm: 48.25, bath: 48.55, shower: 48.85, one: 49.25, two: 49.58, hours: 49.81, before: 50.27, bed3: 50.74, also: 51.26, helped: 51.64, sooner: 53.39, studies: 53.93,
+  if2: 55.54, over: 56.50, thirty: 56.72, asleep2: 57.77, three: 58.26, more: 59.01, nights: 59.06, week: 59.76, three2: 60.45, months: 60.76, see: 61.19, doctor: 61.47, insomnia2: 62.45,
+  and5: 63.80, dont: 64.24, wait: 64.52, long: 64.89, poor: 65.24, life: 66.36, hard2: 66.80, cope: 67.31, with2: 67.59,
+  final: 68.82, factory: 70.03, settings: 70.40,
 };
+const H = 3600;
 
 // ------------------------------------------------------------------ the set (metres; the bed runs along z, its head at -z; +x is the bedside)
 const W = {}; window.HFS_W = W;
-const BED = { x0: -0.48, x1: 0.48, z0: -1.06, z1: 1.02, top: 0.5, base: 0.3 };   // the mattress (a single bed)
-const TBL = { x: 0.83, z: -0.83, w: 0.56, d: 0.46, top: 0.56 };                  // the bedside table
-const DIAL = new THREE.Vector3(0.77, TBL.top, -0.72), DIAL_R = 0.078;            // the sleep timer, flat on the table
-const LOGO_R = 0.06;
-const CLOCK = new THREE.Vector3(0.68, TBL.top, -0.97), LAMP = new THREE.Vector3(1.0, TBL.top, -0.95);
-const CUP = new THREE.Vector3(0.98, TBL.top, -0.72), PHONE = new THREE.Vector3(0.61, TBL.top, -0.75), DIARY = new THREE.Vector3(0.985, TBL.top, -0.71);
+const BED = { x0: -0.48, x1: 0.48, z0: -1.06, z1: 1.02, top: 0.5, base: 0.3 };
+const TBL = { x: 0.83, z: -0.83, w: 0.56, d: 0.46, top: 0.56 };
+const DIAL = new THREE.Vector3(0.75, TBL.top, -0.72), DIAL_R = 0.078, LOGO_R = 0.06;   // the sleep timer, flat on the table
+const BELL = new THREE.Vector3(0.665, TBL.top, -0.705);                                  // the service bell, where the left hand reaches
+const BOOK = new THREE.Vector3(0.73, TBL.top, -0.74), BOOK_RY = 2.3;
+const CLOCK = new THREE.Vector3(0.68, TBL.top, -0.985), CLOCK_RY = 0.6, LAMP = new THREE.Vector3(1.0, TBL.top, -0.95);
+const PHONE_AT = new THREE.Vector3(0.99, TBL.top, -0.715), DIARY = new THREE.Vector3(0.985, TBL.top, -0.72);
+const WALL_Z = -1.2;
 const X = new THREE.Vector3(1, 0, 0), Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
-const BED_T = 23 * 3600;                 // bedtime on the clock: 11 pm
 const pulse = (t, a, b, r = 0.35) => ss(a, a + r, t) * (1 - ss(b - r, b, t));
 
 function canvasTex(w, h, draw) {
@@ -51,16 +178,16 @@ function canvasTex(w, h, draw) {
 function txt(x, s, px, py, { font = '800 100px Archivo', color = '#fff', align = 'center', track = 0, base = 'middle' } = {}) {
   x.font = font; x.letterSpacing = `${track}px`; x.fillStyle = color; x.textAlign = align; x.textBaseline = base; x.fillText(s, px, py);
 }
-function brainKind(p) {
+function brainKind(p) {   // the brain (for the busy head): the big pieces of the nervous system inside the skull
   if (p.system !== 'nervous') return undefined;
   const cy = (p.bounds[0][1] + p.bounds[1][1]) / 2;
   if (cy < 1.45 || p.vertexCount < 400 || /nerve|optic|tentorium/i.test(p.name)) return null;
   return 'brain';
 }
 
-// ------------------------------------------------------------------ the bed: frame, headboard, a mattress that takes the body's shape, a pillow
+// ------------------------------------------------------------------ the bed (films 1 and 8): frame, headboard, a mattress that takes the body's shape, a pillow
 const MAT = { nx: 97, nz: 209, r: 0.035 };
-function edgeDrop(x, z) {   // the mattress's rounded top edge
+function edgeDrop(x, z) {
   const d = Math.min(x - BED.x0, BED.x1 - x, z - BED.z0, BED.z1 - z), r = MAT.r;
   if (d >= r) return 0; const u = r - Math.max(0, d); return r - Math.sqrt(Math.max(0, r * r - u * u));
 }
@@ -75,7 +202,6 @@ function makeBed(scene) {
   const fabric = (c, o = {}) => phys({ color: c, roughness: 0.92, sheen: 0.6, sheenColor: new THREE.Color(0x8a93a6), sheenRoughness: 0.6, roughnessMap: noiseTex(5, 256, 0.82, 1.0, 40), ...o });
   const head = new THREE.Mesh(new RoundedBoxGeometry(BED.x1 - BED.x0 + 0.08, 0.86, 0.07, 5, 0.025), fabric(0x262a31));
   head.position.set(0, 0.1 + 0.43, BED.z0 - 0.06); g.add(head);
-  // the mattress: straight sides, and a top that is a fine grid we can press down
   const sideH = BED.top - MAT.r - BED.base;
   const box = new THREE.Mesh(new THREE.BoxGeometry(BED.x1 - BED.x0, sideH, BED.z1 - BED.z0), fabric(0x2c3037));
   box.position.set(0, BED.base + sideH / 2, (BED.z0 + BED.z1) / 2); g.add(box);
@@ -89,9 +215,8 @@ function makeBed(scene) {
   const top = new THREE.Mesh(geo, fabric(0x30343c)); g.add(top);
   shadows(g); g.traverse((o) => o.layers.enable(1));
   const edge = new Float32Array(nx * nz); for (let k = 0; k < nx * nz; k++) { const x = pos[k * 3], z = pos[k * 3 + 2]; edge[k] = ss(0.0, 0.05, Math.min(x - BED.x0, BED.x1 - x, z - BED.z0, BED.z1 - z)); }
-  return { g, top, geo, base: Float32Array.from(pos), edge, key: '' };
+  return { g, top, geo, base: Float32Array.from(pos), edge, key: '', frame, box };
 }
-// the body's imprint: for each cell of the mattress (or pillow) grid, how far the bones above it press it down
 function imprint(pts, { x0, x1, z0, z1, nx, nz }, surf, { gap = 0.004, dil = 2, blur = 3, max = 0.07 } = {}) {
   const d = new Float32Array(nx * nz);
   for (let p = 0; p < pts.length; p += 3) {
@@ -100,7 +225,7 @@ function imprint(pts, { x0, x1, z0, z1, nx, nz }, surf, { gap = 0.004, dil = 2, 
     const s = surf(x, z), k = j * nx + i; d[k] = Math.max(d[k], Math.min(max, s - (y - gap)));
   }
   const pass = (src, r, op) => { const out = new Float32Array(nx * nz);
-    for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) { let a = op === 'max' ? 0 : 0, ws = 0;
+    for (let j = 0; j < nz; j++) for (let i = 0; i < nx; i++) { let a = 0, ws = 0;
       for (let dj = -r; dj <= r; dj++) for (let di = -r; di <= r; di++) { const ii = i + di, jj = j + dj; if (ii < 0 || jj < 0 || ii >= nx || jj >= nz) continue;
         const v = src[jj * nx + ii]; if (op === 'max') a = Math.max(a, v); else { const w = Math.exp(-(di * di + dj * dj) / (r * r * 0.6)); a += v * w; ws += w; } }
       out[j * nx + i] = op === 'max' ? a : a / ws; }
@@ -115,7 +240,7 @@ function setMattress(B, dent) {
   for (let k = 0; k < base.length / 3; k++) P[k * 3 + 1] = base[k * 3 + 1] - dent.at(k) * B.edge[k];
   B.geo.attributes.position.needsUpdate = true; B.geo.computeVertexNormals(); B.geo.computeBoundingSphere();
 }
-function makePillow(scene, c, size) {   // a soft box: a sphere pushed out toward a box
+function makePillow(scene, c, size) {
   const geo = new THREE.SphereGeometry(1, 160, 80), P = geo.attributes.position, sp = (u, e) => Math.sign(u) * Math.pow(Math.abs(u), e);
   for (let i = 0; i < P.count; i++) P.setXYZ(i, sp(P.getX(i), 0.32) * size.x, sp(P.getY(i), 0.75) * size.y, sp(P.getZ(i), 0.32) * size.z);
   geo.computeVertexNormals();
@@ -123,19 +248,48 @@ function makePillow(scene, c, size) {   // a soft box: a sphere pushed out towar
   m.position.copy(c); m.castShadow = m.receiveShadow = true; m.layers.enable(1); scene.add(m);
   return { m, geo, base: Float32Array.from(P.array), key: '' };
 }
-
-// ------------------------------------------------------------------ the bedside table and what is on it
 function makeTable(scene) {
   const g = new THREE.Group(); g.position.set(TBL.x, 0, TBL.z); scene.add(g);
   const wood = phys({ color: 0x15100c, roughness: 0.45, clearcoat: 0.5, clearcoatRoughness: 0.3 });
   const top = new THREE.Mesh(new RoundedBoxGeometry(TBL.w, 0.03, TBL.d, 4, 0.008), wood); top.position.y = TBL.top - 0.015; g.add(top);
   const body = new THREE.Mesh(new RoundedBoxGeometry(TBL.w - 0.03, 0.34, TBL.d - 0.03, 4, 0.01), wood); body.position.y = TBL.top - 0.03 - 0.17; g.add(body);
-  const drawer = new THREE.Mesh(new THREE.BoxGeometry(TBL.w - 0.06, 0.003, 0.002), phys({ color: 0x050505, roughness: 0.6 })); drawer.position.set(0, TBL.top - 0.15, -TBL.d / 2 + 0.014); drawer.rotation.y = 0; g.add(drawer);
   for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.01, TBL.top - 0.37, 16), wood); leg.position.set(x * (TBL.w / 2 - 0.04), (TBL.top - 0.37) / 2, z * (TBL.d / 2 - 0.04)); g.add(leg); }
   shadows(g); g.traverse((o) => o.layers.enable(1));
   return g;
 }
-// the sleep timer: minutes to fall asleep, 0 to 45 over 270 degrees (twelve o'clock, toward the headboard, is 22.5)
+
+// ------------------------------------------------------------------ a window over the bed: night, a few stars
+function makeWindow(scene) {
+  const g = new THREE.Group(); g.position.set(0, 1.6, WALL_Z + 0.012); scene.add(g);
+  const frameMat = phys({ color: 0x0d0e10, roughness: 0.5, clearcoat: 0.4 }), W0 = 0.86, H0 = 0.62;
+  const bar = (w, h, x, y) => { const m = new THREE.Mesh(new THREE.BoxGeometry(w, h, 0.03), frameMat); m.position.set(x, y, 0.013); m.castShadow = true; g.add(m); };
+  bar(W0 + 0.06, 0.04, 0, H0 / 2 + 0.014); bar(W0 + 0.06, 0.04, 0, -H0 / 2 - 0.014); bar(0.04, H0 + 0.06, -W0 / 2 - 0.014, 0); bar(0.04, H0 + 0.06, W0 / 2 + 0.014, 0);
+  bar(0.022, H0, -W0 / 6, 0); bar(0.022, H0, W0 / 6, 0); bar(W0, 0.022, 0, 0);
+  const sky = canvasTex(256, 184, (x, w, h) => {
+    const gr = x.createLinearGradient(0, 0, 0, h); gr.addColorStop(0, 'rgb(10,16,34)'); gr.addColorStop(1, 'rgb(18,26,51)'); x.fillStyle = gr; x.fillRect(0, 0, w, h);
+    for (let i = 0; i < 26; i++) { x.fillStyle = `rgba(220,228,255,${(0.25 + 0.5 * hash(i * 3.7)).toFixed(3)})`; x.fillRect(hash(i * 1.3) * w, hash(i * 2.1 + 5) * h * 0.8, 1.6, 1.6); } });
+  const paneMat = new THREE.MeshBasicMaterial({ map: sky });
+  const pane = new THREE.Mesh(new THREE.PlaneGeometry(W0, H0), paneMat); g.add(pane);
+  const sill = new THREE.Mesh(new RoundedBoxGeometry(W0 + 0.12, 0.025, 0.08, 3, 0.006), frameMat); sill.position.set(0, -H0 / 2 - 0.04, 0.03); g.add(sill);
+  return { g, paneMat };
+}
+
+// ------------------------------------------------------------------ the service bell: a black base, a chrome dome, a plunger that goes down when struck
+function makeBell() {
+  const g = new THREE.Group();
+  const chrome = new THREE.MeshPhysicalMaterial({ color: 0xdcdde1, metalness: 1, roughness: 0.14, clearcoat: 0.6, clearcoatRoughness: 0.1 });
+  const black = phys({ color: 0x101113, roughness: 0.38, clearcoat: 0.5 });
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(0.046, 0.049, 0.014, 96), black); base.position.y = 0.007; g.add(base);
+  const DH = 0.041 * 0.8;
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(0.041, 96, 48, 0, Math.PI * 2, 0, Math.PI / 2), chrome); dome.position.y = 0.014; dome.scale.y = 0.8; g.add(dome);
+  const plunger = new THREE.Group(); plunger.position.y = 0.014 + DH; g.add(plunger);
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.0026, 0.0026, 0.012, 24), chrome); stem.position.y = 0.006; plunger.add(stem);
+  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.0068, 32, 16), chrome); knob.scale.y = 0.7; knob.position.y = 0.0122; plunger.add(knob);
+  shadows(g); g.traverse((o) => o.layers.enable(1));
+  return { g, plunger, top: 0.014 + DH + 0.0122 + 0.0068 * 0.7 };
+}
+
+// ------------------------------------------------------------------ the sleep timer: minutes to fall asleep, 0 to 45 over 270 degrees (twelve o'clock, toward the headboard, is 22.5)
 const ANG = (v) => ((-135 + 6 * v) * Math.PI) / 180;   // clockwise from twelve, seen from above
 function makeTimer(scene) {
   const g = new THREE.Group(); g.position.copy(DIAL); scene.add(g);
@@ -143,7 +297,6 @@ function makeTimer(scene) {
   const alu = phys({ color: 0xcdcac4, metalness: 1, roughness: 0.3, clearcoat: 0.4, clearcoatRoughness: 0.3 });
   const plate = new THREE.Mesh(new THREE.CylinderGeometry(DIAL_R + 0.012, DIAL_R + 0.015, 0.012, 128), dark); plate.position.y = 0.006; g.add(plate);
   const bezel = new THREE.Mesh(new THREE.TorusGeometry(DIAL_R + 0.003, 0.0032, 20, 160), alu); bezel.rotation.x = Math.PI / 2; bezel.position.y = 0.0125; g.add(bezel);
-  // the face, drawn: minute ticks, 0 10 20 30 40, the words
   const tex = canvasTex(1024, 1024, (x, w) => {
     const R = w / 2; x.fillStyle = '#0b0c0e'; x.fillRect(0, 0, w, w);
     for (let v = 0; v <= 45; v++) { const a = ANG(v), big = v % 5 === 0, r0 = R * (big ? 0.78 : 0.83), r1 = R * 0.9;
@@ -153,40 +306,32 @@ function makeTimer(scene) {
     txt(x, 'TO FALL ASLEEP', R, R * 1.53, { font: '500 30px "Geist Mono"', color: '#6d7077', track: 7 });
   });
   const faceMat = new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.42, clearcoat: 0.5, clearcoatRoughness: 0.2, emissive: new THREE.Color(0xffffff), emissiveMap: tex, emissiveIntensity: 0, transparent: true });
-  const face = new THREE.Mesh(new THREE.CircleGeometry(DIAL_R, 128), faceMat); face.rotation.x = -Math.PI / 2; face.position.y = 0.0122; g.add(face);
-  // arcs on the scale (drawn in the face's plane, twelve at +y): the normal band, the coffee's extra, the drop, the long zone, the setting
+  const face = new THREE.Mesh(new THREE.CircleGeometry(DIAL_R, 128), faceMat); face.rotation.x = -Math.PI / 2; face.position.y = 0.0122; face.renderOrder = 1; g.add(face);
   const flat = new THREE.Group(); flat.rotation.x = -Math.PI / 2; flat.position.y = 0.0128; g.add(flat);
-  const arc = (color, r0, r1, add = true) => { const m = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ color: color.clone(), transparent: true, opacity: 0, depthWrite: false, blending: add ? THREE.AdditiveBlending : THREE.NormalBlending, fog: false }));
-    m.userData = { r0, r1, key: '' }; flat.add(m); return m; };
-  const A = { band: arc(new THREE.Color(0x9fb0cf), DIAL_R * 0.905, DIAL_R * 0.965, false), extra: arc(COLD.clone().multiplyScalar(1.5), DIAL_R * 0.905, DIAL_R * 0.965),
-    drop: arc(new THREE.Color(0xd9dce2), DIAL_R * 0.905, DIAL_R * 0.965, false), zone: arc(new THREE.Color(0x9fb0cf), DIAL_R * 0.905, DIAL_R * 0.965, false),
-    set: arc(ORANGE.clone().multiplyScalar(1.6), DIAL_R * 0.905, DIAL_R * 0.965, false) };
-  // the needle, and a ghost needle for comparisons
+  const arc = (color, add = false) => { const m = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ color: color.clone(), transparent: true, opacity: 0, depthWrite: false, blending: add ? THREE.AdditiveBlending : THREE.NormalBlending, fog: false }));
+    m.userData = { r0: DIAL_R * 0.905, r1: DIAL_R * 0.965, key: '' }; m.renderOrder = 2; flat.add(m); return m; };
+  const A = { band: arc(new THREE.Color(0x9fb0cf)), zone: arc(new THREE.Color(0xc7cbd3)), set: arc(ORANGE.clone().multiplyScalar(1.6)) };
   const needle = (o) => { const n = new THREE.Group(); n.position.y = 0.0135 + o * 0.0006; g.add(n);
     const mat = new THREE.MeshPhysicalMaterial({ color: 0xf2f3f5, roughness: 0.35, clearcoat: 0.6, emissive: new THREE.Color(0xffffff), emissiveIntensity: 0.25, transparent: true, opacity: 1 });
     const bar = new THREE.Mesh(new THREE.BoxGeometry(0.0022, 0.0009, DIAL_R * 0.86), mat); bar.position.z = -DIAL_R * 0.43 + 0.008; n.add(bar);
-    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.0052, 0.0052, 0.0022, 40), mat); n.add(hub);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(0.0052, 0.0052, 0.0022, 40), mat); n.add(hub); bar.renderOrder = hub.renderOrder = 3;
     return { n, mat }; };
   const N = needle(1), G = needle(0); G.mat.opacity = 0; G.mat.emissiveIntensity = 0.1;
-  // twenty dots for twenty trials, round the rim
-  const dotMat = new THREE.MeshBasicMaterial({ color: new THREE.Color(0xeceef1).multiplyScalar(1.3), fog: false });
-  const dots = []; for (let i = 0; i < 20; i++) { const a = ANG(-1.5 + (i / 19) * 48), m = new THREE.Mesh(new THREE.SphereGeometry(0.0032, 16, 12), dotMat.clone());
-    m.material.transparent = true; m.material.opacity = 0; m.position.set(Math.sin(a) * (DIAL_R + 0.026), 0.004, -Math.cos(a) * (DIAL_R + 0.026)); g.add(m); dots.push(m); }
-  // the logo, for the end
-  const logo = makeLogoRing(LOGO_R); logo.g.rotation.x = -Math.PI / 2; logo.g.position.y = 0.0142; g.add(logo.g);
+  const logo = makeLogoRing(LOGO_R); logo.g.rotation.x = -Math.PI / 2; logo.g.position.y = 0.0142; logo.g.traverse((o) => { o.renderOrder = 4; }); g.add(logo.g);
   shadows(g); face.castShadow = false; g.traverse((o) => o.layers.enable(1));
-  return { g, faceMat, A, N, G, dots, logo };
+  return { g, faceMat, A, N, G, logo };
 }
-function setArc(m, v0, v1, o) {   // an arc from v0 to v1 minutes
+function setArc(m, v0, v1, o) {   // an arc on the timer from v0 to v1 minutes
   m.material.opacity = o; m.visible = o > 0.002 && v1 - v0 > 0.01; if (!m.visible) return;
   const key = v0.toFixed(3) + '|' + v1.toFixed(3); if (key === m.userData.key) return; m.userData.key = key;
-  const a0 = ANG(v0), a1 = ANG(v1);   // clockwise from twelve; the ring's angles run anticlockwise from +x
+  const a0 = ANG(v0), a1 = ANG(v1);
   m.geometry.dispose(); m.geometry = new THREE.RingGeometry(m.userData.r0, m.userData.r1, 96, 1, Math.PI / 2 - a1, a1 - a0);
 }
-// the sleep diary: thirteen weeks, seven nights each; three nights a week marked
+
+// ------------------------------------------------------------------ the sleep diary: thirteen weeks, seven nights each; three nights a week marked
 const DIARY_N = [[0, 2, 5], [1, 3, 6], [0, 3, 5], [1, 4, 6], [0, 2, 4], [2, 5, 6], [1, 3, 5], [0, 4, 6], [1, 2, 5], [0, 3, 6], [2, 4, 5], [1, 3, 6], [0, 2, 5]];
 function makeDiary(scene) {
-  const g = new THREE.Group(); g.position.copy(DIARY); g.rotation.y = 0.5; scene.add(g);
+  const g = new THREE.Group(); g.position.copy(DIARY); g.rotation.y = 0.45; scene.add(g);
   const tex = canvasTex(1280, 900, () => {}), c = tex.userData.canvas;
   const card = new THREE.Mesh(new THREE.BoxGeometry(0.16, 0.002, 0.112), [0, 0, new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.75 }), 0, 0, 0].map((m) => m || phys({ color: 0xe9e5dc, roughness: 0.8 })));
   card.position.y = 0.001; g.add(card); shadows(g); g.traverse((o) => o.layers.enable(1));
@@ -232,12 +377,12 @@ function makeTape(scene) {
   const body = new THREE.Mesh(new RoundedBoxGeometry(0.084, 0.026, 0.118, 4, 0.004), phys({ color: 0x2a2c31, roughness: 0.4, metalness: 0.3, clearcoat: 0.4 })); body.position.y = 0.013; g.add(body);
   const tex = canvasTex(512, 720, (x, w, h) => {
     x.fillStyle = '#2a2c31'; x.fillRect(0, 0, w, h);
-    x.fillStyle = '#0d0e10'; x.fillRect(40, 60, w - 80, 380);                                 // the window
-    x.fillStyle = '#d9d2c3'; x.fillRect(70, 90, w - 140, 120);                                // the cassette's label
+    x.fillStyle = '#0d0e10'; x.fillRect(40, 60, w - 80, 380);
+    x.fillStyle = '#d9d2c3'; x.fillRect(70, 90, w - 140, 120);
     txt(x, 'MARCHES', w / 2, 152, { font: '600 58px "Geist Mono"', color: '#2c2b29', track: 8 });
     for (const cx of [170, w - 170]) { x.strokeStyle = '#8a8d93'; x.lineWidth = 8; x.beginPath(); x.arc(cx, 320, 46, 0, Math.PI * 2); x.stroke(); }
     for (let i = 0; i < 4; i++) { x.fillStyle = '#4a4d54'; x.fillRect(60 + i * 104, 520, 80, 120); }
-    x.fillStyle = '#eceef1'; x.beginPath(); x.moveTo(90, 555); x.lineTo(90, 605); x.lineTo(125, 580); x.fill();   // play
+    x.fillStyle = '#eceef1'; x.beginPath(); x.moveTo(90, 555); x.lineTo(90, 605); x.lineTo(125, 580); x.fill();
   });
   const face = new THREE.Mesh(new THREE.PlaneGeometry(0.08, 0.114), new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.4, clearcoat: 0.5 }));
   face.rotation.x = -Math.PI / 2; face.position.y = 0.0262; g.add(face);
@@ -245,23 +390,25 @@ function makeTape(scene) {
   const cord = new THREE.Mesh(new THREE.BufferGeometry(), phys({ color: 0x141518, roughness: 0.5 })); cord.castShadow = true; cord.layers.enable(1); scene.add(cord); cord.visible = false;
   return { g, cord, key: '' };
 }
+// ------------------------------------------------------------------ a book: it rises from the table, opens, shuts and goes back in
 function makeBook(scene) {
-  const g = new THREE.Group(); scene.add(g);
+  const g = new THREE.Group(); g.position.copy(BOOK); g.rotation.y = BOOK_RY; scene.add(g);
   const cover = phys({ color: 0x5b2b25, roughness: 0.6, clearcoat: 0.2 }), paper = phys({ color: 0xe8e2d4, roughness: 0.85 });
-  const halves = [], open = new THREE.Group(); g.add(open);
-  for (const s of [-1, 1]) {   // two halves that open about the spine (the spine runs along z)
-    const h = new THREE.Group(); open.add(h);
-    const c = new THREE.Mesh(new THREE.BoxGeometry(0.128, 0.003, 0.2), cover); c.position.set(s * 0.064, -0.0015, 0); h.add(c);
-    const p = new THREE.Mesh(new THREE.BoxGeometry(0.122, 0.012, 0.19), paper); p.position.set(s * 0.062, 0.006, 0); h.add(p);
+  const halves = [];
+  for (const s of [-1, 1]) {   // two halves that open about the spine (the spine runs along local z)
+    const h = new THREE.Group(); g.add(h);
+    const c = new THREE.Mesh(new THREE.BoxGeometry(0.124, 0.003, 0.19), cover); c.position.set(s * 0.062, 0.0015, 0); h.add(c);
+    const p = new THREE.Mesh(new THREE.BoxGeometry(0.118, 0.011, 0.18), paper); p.position.set(s * 0.06, 0.0085, 0); h.add(p);
     halves.push({ h, s });
   }
-  const closed = new THREE.Group(); g.add(closed);
-  const cb = new THREE.Mesh(new RoundedBoxGeometry(0.13, 0.03, 0.2, 2, 0.002), cover); cb.position.y = 0.015; closed.add(cb);
-  const cp = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.024, 0.19), paper); cp.position.set(0.0645, 0.015, 0); closed.add(cp);
-  shadows(g); g.traverse((o) => o.layers.enable(1));
-  return { g, halves, open, closed };
+  const leaf = new THREE.Group(); g.add(leaf);   // one page, turning
+  const lp = new THREE.Mesh(new THREE.PlaneGeometry(0.116, 0.178), phys({ color: 0xece6d8, roughness: 0.85, side: THREE.DoubleSide })); lp.rotation.x = -Math.PI / 2; lp.position.x = 0.058; leaf.add(lp);
+  leaf.position.y = 0.0145; leaf.visible = false;
+  shadows(g); g.traverse((o) => o.layers.enable(1)); g.visible = false;
+  return { g, halves, leaf };
 }
 
+// ------------------------------------------------------------------ warmth from a bath, rising off the bones
 function makeSteam(scene) {
   const out = [];
   for (let i = 0; i < 10; i++) {
@@ -272,16 +419,16 @@ function makeSteam(scene) {
         float h(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
         float n(vec2 p){ vec2 i = floor(p), f = fract(p); f = f * f * (3.0 - 2.0 * f); return mix(mix(h(i), h(i + vec2(1.0, 0.0)), f.x), mix(h(i + vec2(0.0, 1.0)), h(i + vec2(1.0, 1.0)), f.x), f.y); }
         float fbm(vec2 p){ float a = 0.5, s = 0.0; for (int k = 0; k < 5; k++) { s += a * n(p); p = p * 2.03 + 7.1; a *= 0.5; } return s; }
-        void main(){ float t = uTime * 0.22; vec2 p = vec2(vUv.x * 3.4 + uSeed, vUv.y * 1.5 - t);
+        void main(){ float t = uTime * 0.22; vec2 p = vec2(vUv.x * 2.0 + uSeed, vUv.y * 1.3 - t);
           float q = fbm(vec2(p.x * 0.55, p.y * 0.8 + uSeed * 1.3));
-          p.x += (q - 0.5) * 2.4 * (0.25 + vUv.y);                           // the strands curl as they rise
+          p.x += (q - 0.5) * 2.4 * (0.25 + vUv.y);
           float w = fbm(p * vec2(1.0, 0.5));
-          float strands = smoothstep(0.52, 0.74, w) * (0.55 + 0.45 * smoothstep(0.6, 0.8, w));
+          float strands = smoothstep(0.42, 0.78, w) * (0.6 + 0.4 * smoothstep(0.55, 0.8, w));
           float env = smoothstep(0.0, 0.16, vUv.y) * (1.0 - smoothstep(0.3, 1.0, vUv.y)) * smoothstep(0.0, 0.32, vUv.x) * (1.0 - smoothstep(0.68, 1.0, vUv.x));
           gl_FragColor = vec4(vec3(1.0, 0.95, 0.9), strands * env * uAmt); }`,
       transparent: true, depthWrite: false, side: THREE.DoubleSide, fog: false, blending: THREE.AdditiveBlending,
     });
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.55), mat); m.position.set((hash(i * 2.3) - 0.5) * 0.22, BED.top + 0.33, -0.74 + i * 0.15); m.renderOrder = 7; scene.add(m); out.push(m);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(0.3, 0.55), mat); m.position.set((hash(i * 2.3) - 0.5) * 0.22, BED.top + 0.33, -0.74 + i * 0.15); m.renderOrder = 7; m.visible = false; scene.add(m); out.push(m);
   }
   return out;
 }
@@ -299,10 +446,13 @@ async function build(S, cfg) {
   for (const m of meshes) { m.castShadow = true; m.receiveShadow = true; m.layers.enable(1); }
   W.meshes = meshes.filter((m) => m.userData.tissue !== 'brain');
   W.brain = meshes.filter((m) => m.userData.tissue === 'brain');
-  W.brain.forEach((m, i) => { m.material.transparent = true; m.material.opacity = 0; m.visible = false; m.castShadow = false; m.material.color.set(0x5d5f6b); m.material.sheen = 0.3; m.material.emissive.set(0xb8ccff); m.userData.ph = hash(i * 3.7) * 40; m.userData.f = 1.5 + hash(i * 1.9) * 4; });
+  W.brain.forEach((m, i) => { m.material = m.material.clone(); m.material.transparent = true; m.material.opacity = 0; m.visible = false; m.castShadow = false; m.material.color.set(0x5d5f6b); m.material.sheen = 0.3; m.material.emissive = new THREE.Color(0xb8ccff); m.userData.ph = hash(i * 3.7) * 40; m.userData.f = 1.5 + hash(i * 1.9) * 4; });
   W.vault = meshes.filter((m) => /frontal bone|parietal bone|occipital bone|temporal bone|sphenoid bone/i.test(m.userData.name));
   for (const m of W.vault) { m.material = m.material.clone(); m.material.transparent = true; }
-  // the lower jaw gets its own hinge (for a yawn)
+  // hands
+  W.wristL = makeWrist(R, 'Left'); W.wristR = makeWrist(R, 'Right');
+  W.handL = rigHand(R, 'Left', W.wristL); W.handR = rigHand(R, 'Right', W.wristR); W.handL.wr = W.wristL; W.handR.wr = W.wristR;
+  // the lower jaw on its own hinge (a yawn)
   { const jaw = meshes.filter((m) => /^mandible$|lower .*tooth/i.test(m.userData.name)), mv = worldVerts(R.byName.get('Mandible'), 2);
     let top = -9; for (const v of mv) top = Math.max(top, v.y); const hi = mv.filter((v) => v.y > top - 0.012), zc = hi.reduce((s, v) => s + v.z, 0) / hi.length;
     const TMJ = new THREE.Vector3(0, top - 0.008, Math.min(...hi.filter((v) => v.z < zc).map((v) => v.z)) + 0.012);
@@ -312,64 +462,81 @@ async function build(S, cfg) {
   // the skull's size, for the headphones
   { const sk = meshes.filter((m) => /parietal bone|temporal bone/i.test(m.userData.name)).flatMap((m) => worldVerts(m, 3));
     let hx = 0, topY = -9; for (const v of sk) { hx = Math.max(hx, Math.abs(v.x)); topY = Math.max(topY, v.y); }
-    const tv = worldVerts(R.byName.get('Right temporal bone'), 2), lat = tv.filter((v) => v.x < -hx + 0.012);
-    W.skullBox = { hx, topY, earY: W.TMJ.y + 0.03, earZ: W.TMJ.z - 0.02, lat: lat.length }; }
-  // ---- the factory stamp: on the front of the breastbone, across it
+    W.skullBox = { hx, topY, earY: W.TMJ.y + 0.03, earZ: W.TMJ.z - 0.02 }; }
+  // ---- the factory stamp: on the front of the breastbone (seen from the ceiling)
   { const st = R.byName.get('Body of sternum'); st.material = st.material.clone();
     W.stampSpot = stampSpot(st, { from: [0, 0.006, 0.12], dir: [0, 0, -1], spread: 0.004 });
     if (W.stampSpot) W.stamp = stamp(st, { canvas: stampCanvas(['HUMAN FACTORY', 'SETTINGS'], '', { frame: false }), center: W.stampSpot.center, normal: W.stampSpot.normal, up: [0, 1, 0], width: 0.04, depth: 0.03, opacity: 0.6 }); }
   // ---- the set
   W.bed = makeBed(scene);
-  makeTable(scene);
-  W.timer = makeTimer(scene);
-  W.clock = makeClock(); W.clock.g.position.copy(CLOCK); W.clock.g.rotation.y = 0.72; W.clock.g.scale.setScalar(1.25); scene.add(W.clock.g);
-  W.clock.arcMat.color.set(0x3f66d8); W.clock.arcGhostMat.color.set(0x9aa0aa); W.clock.markMat.opacity = 0; W.clock.marker.visible = false; W.clock.g.traverse((o) => o.layers.enable(1));
-  W.cup = makeCup(); W.cup.g.position.copy(CUP); W.cup.g.rotation.y = 2.2; scene.add(W.cup.g); W.cup.g.traverse((o) => o.layers.enable(1));
-  W.phone = makePhone(); W.phone.g.position.copy(PHONE); W.phone.g.rotation.y = 0.18; scene.add(W.phone.g); W.phone.g.traverse((o) => o.layers.enable(1));
-  { const cv = document.createElement('canvas'); cv.width = 590; cv.height = 1220; const x = cv.getContext('2d');
-    const bg = x.createLinearGradient(0, 0, 0, 1220); bg.addColorStop(0, '#1b2440'); bg.addColorStop(1, '#090c16'); x.fillStyle = bg; x.fillRect(0, 0, 590, 1220);
-    txt(x, '23:38', 295, 360, { font: '300 190px Archivo', color: 'rgba(255,255,255,0.95)' }); txt(x, 'Thursday 5 November', 295, 200, { font: '500 34px Archivo', color: 'rgba(255,255,255,0.75)' });
-    x.fillStyle = 'rgba(255,255,255,0.16)'; x.beginPath(); x.roundRect(40, 560, 510, 150, 34); x.fill();
-    txt(x, '1 new notification', 295, 635, { font: '500 38px Archivo', color: 'rgba(255,255,255,0.9)' });
-    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; W.phone.screenMat.map = tex; W.phone.screenMat.needsUpdate = true; }
+  W.tableG = makeTable(scene);
+  { const wall = new THREE.Mesh(new THREE.PlaneGeometry(9, 3.2), phys({ color: 0x1b1d22, roughness: 0.92, roughnessMap: noiseTex(9, 256, 0.85, 1.0, 30) })); wall.position.set(0, 1.6, WALL_Z); wall.receiveShadow = true; scene.add(wall); }
+  W.window = makeWindow(scene);
+  W.clock = makeClock(); W.clock.g.position.copy(CLOCK); W.clock.g.rotation.y = CLOCK_RY; W.clock.g.scale.setScalar(1.25); scene.add(W.clock.g);
+  W.clock.arcMat.color.set(0x4a5a78); W.clock.arcGhostMat.color.set(0x9aa0aa); W.clock.markMat.color.set(0xd9dce2); W.clock.marker.rotation.z = -(11 / 12) * Math.PI * 2;   // bedtime, 11
+  W.clock.g.traverse((o) => o.layers.enable(1));
+  W.timer = makeTimer(scene); W.timer.g.visible = false;
+  W.bell = makeBell(); W.bell.g.position.copy(BELL); W.bell.g.rotation.y = 0.4; scene.add(W.bell.g);
   W.lamp = makeLamp(); W.lamp.g.position.copy(LAMP); scene.add(W.lamp.g); W.lamp.g.traverse((o) => o.layers.enable(1));
   W.lampLight = new THREE.PointLight(0xffc98a, 0, 3.0, 2); W.lampLight.position.copy(LAMP).add(new THREE.Vector3(0, 0.27, 0)); scene.add(W.lampLight);
-  W.diary = makeDiary(scene); drawDiary(W.diary, 0);
+  W.phone = makePhone(); W.phone.g.position.copy(PHONE_AT); W.phone.g.rotation.y = 0.32; scene.add(W.phone.g); W.phone.g.traverse((o) => o.layers.enable(1));
+  { const cv = document.createElement('canvas'); cv.width = 590; cv.height = 1220; const x = cv.getContext('2d');
+    const bg = x.createLinearGradient(0, 0, 0, 1220); bg.addColorStop(0, '#1b2440'); bg.addColorStop(1, '#090c16'); x.fillStyle = bg; x.fillRect(0, 0, 590, 1220);
+    txt(x, '00:31', 295, 360, { font: '300 190px Archivo', color: 'rgba(255,255,255,0.95)' }); txt(x, 'Thursday 5 November', 295, 200, { font: '500 34px Archivo', color: 'rgba(255,255,255,0.75)' });
+    x.fillStyle = 'rgba(255,255,255,0.16)'; x.beginPath(); x.roundRect(40, 560, 510, 150, 34); x.fill();
+    txt(x, '3 new notifications', 295, 635, { font: '500 38px Archivo', color: 'rgba(255,255,255,0.9)' });
+    const tex = new THREE.CanvasTexture(cv); tex.colorSpace = THREE.SRGBColorSpace; W.phone.screenMat.map = tex; W.phone.screenMat.needsUpdate = true; }
+  W.book = makeBook(scene);
+  W.diary = makeDiary(scene); drawDiary(W.diary, 0); W.diary.g.visible = false;
   W.phones = makePhones(R, W.skullBox);
   W.tape = makeTape(scene);
-  W.book = makeBook(scene);
   W.steam = makeSteam(scene);
-  // ---- lying and sitting: measure the pose, place the body, press the bed
+  // ---- lying and sitting: measure the pose, place the body, press the bed (as in films 1 and 8)
   W.qLie = new THREE.Quaternion().setFromAxisAngle(X, -Math.PI / 2);
   poseRig(restPose()); W.body.quaternion.copy(W.qLie); W.body.position.set(0, 0, 0); W.body.updateMatrixWorld(true);
   const bb = (re) => { const b = new THREE.Box3(); for (const m of W.meshes) if (re.test(m.userData.name)) b.expandByObject(m); return b; };
   const heel = bb(/calcaneus/i), skull = bb(/parietal bone|occipital bone|frontal bone/i), occ = bb(/occipital bone/i);
   W.lieP = new THREE.Vector3(0, BED.top - 0.012 - heel.min.y, BED.z0 + 0.075 - skull.min.z);
-  // the pillow: under the skull, its top a little above the back of the skull
   const occY = occ.min.y + W.lieP.y, occZ = (occ.min.z + occ.max.z) / 2 + W.lieP.z;
   const ph = (occY + 0.04 - BED.top) / 2;
   W.pillow = makePillow(scene, new THREE.Vector3(0, BED.top + ph - 0.004, occZ - 0.03), new THREE.Vector3(0.3, ph, 0.19));
-  // sitting on the bed's edge, facing the bedside
   const hipB = new THREE.Box3(); for (const m of W.meshes) if (/hip bone/i.test(m.userData.name)) for (const v of worldVerts(m, 3)) hipB.expandByPoint(v);
   W.qSit = new THREE.Quaternion().setFromAxisAngle(Y, Math.PI / 2);
-  W.sitP = new THREE.Vector3(BED.x1 - 0.13, BED.top - 0.025 + (R.P0.y - hipB.min.y), W.lieP.z + 0.02);
-  // the imprints, lying and sitting
+  W.sitP = new THREE.Vector3(BED.x1 - 0.13, BED.top - 0.025 + (R.P0.y - hipB.min.y), -0.32);   // sitting up nearer the head of the bed, by the table
   const grab = () => { W.body.updateMatrixWorld(true); const out = []; const v = new THREE.Vector3();
     for (const m of W.meshes) { const P = m.geometry.attributes.position; for (let i = 0; i < P.count; i += 2) { v.fromBufferAttribute(P, i).applyMatrix4(m.matrixWorld); out.push(v.x, v.y, v.z); } } return out; };
   const grid = { x0: BED.x0, x1: BED.x1, z0: BED.z0, z1: BED.z1, nx: MAT.nx, nz: MAT.nz }, surf = (x, z) => BED.top - edgeDrop(x, z);
   W.body.position.copy(W.lieP); const lyingPts = grab();
   W.dentLie = imprint(lyingPts, grid, surf, { gap: 0.002, dil: 2, blur: 4, max: 0.08 });
+  // ---- the bell: where the left hand slaps it, solved once, lying. The palm comes down flat on the knob (the flesh not
+  // drawn: the bones stop 10 mm above it), the fingers pointing on, away from the body
+  { const Hh = W.handL, A = R.arms.Left, sh = A.arm.getWorldPosition(new THREE.Vector3());
+    const knob = new THREE.Vector3(BELL.x, TBL.top + W.bell.top, BELL.z);
+    const along = new THREE.Vector3(knob.x - sh.x, 0, knob.z - sh.z).normalize();
+    W.zHead = (() => { const b = bb(/frontal bone|parietal bone|occipital bone|temporal bone|sphenoid|maxilla|zygomatic|nasal bone|mandible|tooth/i); return { c: b.getCenter(new THREE.Vector3()), r: b.getSize(new THREE.Vector3()).multiplyScalar(0.5).addScalar(0.03) }; })();
+    const tbl = { c: new THREE.Vector3(TBL.x, TBL.top - 0.2, TBL.z), r: new THREE.Vector3(TBL.w / 2 + 0.02, 0.21, TBL.d / 2 + 0.02) };
+    const ko = keepOut(R, 'Left', Hh, [W.zHead, tbl]);
+    const hitAt = knob.clone().addScaledVector(along, 0.062); hitAt.y = knob.y - 0.004 + 0.015 - 0.024;   // the palm 15 mm over the pressed knob (the thumb's base clears the dome)
+    const upAt = hitAt.clone(); upAt.y += 0.07;
+    const aims = [{ v: Hh.n, to: new THREE.Vector3(0, -1, 0), w: 0.5 }, { v: Hh.fdir, to: along, w: 0.25 }];
+    Hh.curl(0.1);
+    const starts = [{ dir: [1, 0.15, 0.3], twist: 0, elbow: 0.6 }, { dir: [1, 0.3, 0.5], twist: 0.6, elbow: 0.9 }, { dir: [0.9, 0.0, 0.2], twist: -0.6, elbow: 0.4 }, { dir: [1, 0.2, 0.6], twist: 1.2, elbow: 1.1 }, { dir: [0.8, 0.3, 0.7], twist: -1.2, elbow: 1.3 }];
+    W.slapHit = solveHand(R, 'Left', Hh, hitAt, starts[0], aims, () => ko(), starts);
+    W.slapUp = solveHand(R, 'Left', Hh, upAt, W.slapHit, aims, () => ko(), [W.slapHit, ...starts]);
+    W.bellInfo = { sh: sh.toArray().map((v) => +v.toFixed(3)), hit: W.slapHit.dbg, up: W.slapUp.dbg, hitE: +W.slapHit.err.toFixed(4), upE: +W.slapUp.err.toFixed(4) };
+    poseRig(restPose()); W.body.updateMatrixWorld(true); }
+  // sitting, by the table
   poseRig(sitPose()); W.body.quaternion.copy(W.qSit); W.body.position.copy(W.sitP);
   for (const Side of ['Right', 'Left']) legIK(R, Side, footTarget(Side), W.qSit, X);
   W.dentSit = imprint(grab(), grid, surf, { gap: 0.002, dil: 2, blur: 4, max: 0.06 });
-  // the pillow's imprint (lying only)
   { const P = W.pillow.base, c = W.pillow.m.position, cell = new Map(), key = (x, z) => `${Math.round(x / 0.008)},${Math.round(z / 0.008)}`;
     for (let p = 0; p < lyingPts.length; p += 3) { const x = lyingPts[p] - c.x, y = lyingPts[p + 1] - c.y, z = lyingPts[p + 2] - c.z; if (Math.abs(x) > 0.32 || Math.abs(z) > 0.21) continue; const k = key(x, z); cell.set(k, Math.min(cell.get(k) ?? 9, y)); }
     W.pillowDent = new Float32Array(P.length / 3);
     for (let i = 0; i < P.length / 3; i++) { const x = P[i * 3], y = P[i * 3 + 1], z = P[i * 3 + 2]; if (y < 0) continue; let lo = 9;
       for (let a = -3; a <= 3; a++) for (let b = -3; b <= 3; b++) { const v = cell.get(`${Math.round(x / 0.008) + a},${Math.round(z / 0.008) + b}`); if (v !== undefined) lo = Math.min(lo, v + 0.004 + 0.0012 * (a * a + b * b)); }
       W.pillowDent[i] = Math.max(0, y - lo); } }
-  // ---- light: the moon through a window (it turns to afternoon when the clock goes back), a cold rim, the lamp
+  poseRig(restPose()); W.body.quaternion.copy(W.qLie); W.body.position.copy(W.lieP); W.body.updateMatrixWorld(true);
+  // ---- light: the moon through the window, a cold rim, a fill, the table, the head
   const cookie = canvasTex(512, 512, (x, w) => { x.fillStyle = '#000'; x.fillRect(0, 0, w, w); x.filter = 'blur(4px)'; x.fillStyle = '#fff';
     const m = 50, gap = 26, pw = (w - 2 * m - gap * 2) / 3, phh = (w - 2 * m - gap * 3) / 4;
     for (let i = 0; i < 3; i++) for (let j = 0; j < 4; j++) x.fillRect(m + i * (pw + gap), m + j * (phh + gap), pw, phh); });
@@ -378,60 +545,77 @@ async function build(S, cfg) {
   W.key.map = cookie; W.key.shadow.camera.far = 7;
   W.rim = spot(scene, { color: 0x9fb6ff, pos: new THREE.Vector3(-0.9, 1.9, -2.2), target: new THREE.Vector3(0, 0.55, -0.4), angle: 0.5, penumbra: 0.9 });
   W.fill = spot(scene, { color: 0xc8d6ff, pos: new THREE.Vector3(-1.8, 1.4, 1.6), target: new THREE.Vector3(0, 0.5, -0.1), angle: 0.6, penumbra: 1 });
-  W.tableLight = spot(scene, { color: 0xdfe6ff, pos: new THREE.Vector3(1.3, 1.6, -0.2), target: new THREE.Vector3(0.82, TBL.top, -0.8), angle: 0.3, penumbra: 0.8 });
-  return { stamp: W.stampSpot, lieP: W.lieP.toArray(), sitP: W.sitP.toArray(), skullBox: W.skullBox, pillowH: ph, brain: W.brain.length, n: meshes.length };
+  W.tableLight = spot(scene, { color: 0xdfe6ff, pos: new THREE.Vector3(1.4, 1.6, -0.25), target: new THREE.Vector3(0.82, TBL.top + 0.05, -0.8), angle: 0.32, penumbra: 0.8 });
+  W.headLight = spot(scene, { color: 0xc4d2ff, pos: new THREE.Vector3(-0.35, 1.35, -0.55), target: new THREE.Vector3(0, 0.62, -0.88), angle: 0.26, penumbra: 0.9 });
+  W.auditSolids = [['bed frame', W.bed.frame], ['mattress', W.bed.box], ['bell', W.bell.g], ['timer', W.timer.g], ['book', W.book.g], ['tape', W.tape.g], ['headphones', W.phones.g], ['nightstand', W.tableG], ['diary', W.diary.g], ['clock', W.clock.g], ['lamp', W.lamp.g]];
+  W.timing = { dings: SLAP.hits, lift: SLAP.lift[0], back: SLAP.back[0], bellSink: BELL_SINK[0], dialRise: DIAL_RISE[0], run1: [T.body, T.minutes + 0.3], band: T.ten,
+    phonesOn: PHONES[0], march: [MARCH.t0, MARCH.t1, MARCH.beat], phonesOff: PHONES[1], run34: [T.t34 - 0.75, T.t34 + 0.35], ghost22: [T.t22 - 0.55, T.t22 + 0.3], run20: [32.0, T.minutes3],
+    getUp: G0, dialDown: DIAL_DOWN[0], bookUp: BOOK_UP[0], bookOpen: BOOK_OPEN[0], page: PAGE, lamp: T.dim - 0.1, flip: FLIP[0], bookShut: BOOK_SHUT[0], bookDown: BOOK_DOWN[0],
+    yawn: YAWN[0], lieDown: B0, dialUp: DIAL_UP[0], backwards: BACK, steam: [50.6, 55.4], run38: [T.over - 0.3, T.thirty + 0.6],
+    phoneDown: PHONE_DOWN[0], diaryUp: DIARY_UP[0], fill: DIARY_FILL, rewind: DIARY_REW, diaryDown: DIARY_DOWN[0], setRun: [T.final + 0.1, T.final + 1.0], logo: T.logo };
+  return { stamp: W.stampSpot, lieP: W.lieP.toArray(), sitP: W.sitP.toArray(), bell: W.bellInfo, brain: W.brain.length, n: meshes.length };
 }
 
+// ------------------------------------------------------------------ when things happen (beats on the words)
+const SLAP = { lift: [2.9, 3.42], up: [3.36, 3.72], hits: [3.88, 4.43, 5.05, 7.16], back: [7.42, 8.3] };   // the bell: three quick slaps, a wait, one more
+const BELL_SINK = [8.6, 9.1], DIAL_RISE = [9.05, 9.6];
+const PHONES = [22.2, 31.2], MARCH = { t0: 22.5, t1: 30.95, beat: 0.5 };
+const G0 = T.get - 0.12, B0 = 39.8;                                                 // getting up; lying back down
+const DIAL_DOWN = [34.3, 34.75], BOOK_UP = [34.7, 35.2], BOOK_OPEN = [35.3, 35.9], PAGE = 36.75, BOOK_SHUT = [37.95, 38.45], BOOK_DOWN = [38.5, 38.95], DIAL_UP = [54.8, 55.35];
+const FLIP = [T.no - 0.05, T.no + 0.45], YAWN = [39.0, 39.95];
+const BACK = [41.62, 42.62];                                                        // the clock runs backwards
+const PHONE_DOWN = [58.3, 58.75], DIARY_UP = [58.75, 59.25], DIARY_FILL = [59.1, 61.0], DIARY_REW = [64.3, 65.1], DIARY_DOWN = [67.75, 68.3];
+
 // ------------------------------------------------------------------ the body over time
-// poses: lying (arms at the sides, feet relaxed outward), sitting (on the edge, feet on the floor), reading, a yawn
-const ARM_LIE = { dir: [-0.1, -1, -0.09], twist: 0, elbow: 0.1 }, ARM_FLOP = { dir: [0.96, -0.12, -0.25], twist: 3.0, elbow: 1.25 };
-const ARM_PUSH = { dir: [0.28, -0.95, -0.2], twist: 0, elbow: 0.25 }, ARM_READ = { dir: [0.1, -0.86, 0.5], twist: 0.45, elbow: 1.3 };
-const mixArm = (a, b, k) => ({ dir: a.dir.map((v, i) => lerp(v, b.dir[i], k)), twist: lerp(a.twist, b.twist, k), elbow: lerp(a.elbow, b.elbow, k) });
-function restPose() { return { up: 0, swivel: 0, move: 0, knee: 0, ik: 0, cer: 0.3, tho: 0, lum: 0, turn: 0, roll: 0, flopL: 0, read: 0, push: 0, jaw: 0, tap: 0 }; }
-function sitPose() { return { ...restPose(), up: 1, swivel: 1, move: 1, knee: 1, ik: 1, cer: 0.12, tho: 0.12 }; }
-function footTarget(Side) {   // sitting: the ankle above the floor, in front of the knee
-  const G = W.rig.legs[Side], ah = G.A.y - G.ground;
-  return new THREE.Vector3(W.sitP.x + 0.43, ah + 0.002, W.sitP.z + (Side === 'Right' ? 0.11 : -0.11));
-}
+// lying (arms at the sides, feet relaxed outward), the bell (the left arm lifts, reaches, slaps), sitting (on the edge, by
+// the table), reading (leaning to the book), a yawn
+const ARM_LIE = { dir: [-0.1, -1, -0.09], twist: 0, elbow: 0.1 }, ARM_PUSH = { dir: [0.28, -0.95, -0.2], twist: 0, elbow: 0.25 };
+const ARM_REST = { dir: [0.1, -0.9, 0.42], twist: 0.6, elbow: 1.1 };   // sitting, hands on the knees
+const ARM_LIFT = { dir: [0.85, 0.05, 0.55], twist: 0, elbow: 0.75 };     // lying: the hand up off the bed and out, on its way to the bell
+function restPose() { return { up: 0, swivel: 0, move: 0, knee: 0, ik: 0, cer: 0.3, tho: 0, lum: 0, turn: 0, twist: 0, jaw: 0, push: 0, rest: 0, lift: 0, reach: 0, hit: 0, tap: 0 }; }
+function sitPose() { return { ...restPose(), up: 1, swivel: 1, move: 1, knee: 1, ik: 1, cer: 0.12, tho: 0.12, rest: 1 }; }
+function footTarget(Side) { const G = W.rig.legs[Side], ah = G.A.y - G.ground; return new THREE.Vector3(W.sitP.x + 0.43, ah + 0.002, W.sitP.z + (Side === 'Right' ? 0.11 : -0.11)); }
 function bodyAt(t) {
   const o = restPose();
-  // clock-watching at the start: the head turns to the bedside, then back
-  o.turn = 0.62 * s5(0.6, 1.5, t) * (1 - s5(3.4, 4.6, t));
-  // asleep within a minute: the left arm drops off the bed, the head rolls; back for the next test
-  const fl = T.minute + 0.15; o.flopL = (t < fl ? 0 : outBack(clamp01((t - fl) / 0.42), 1.2)) * (1 - s5(12.1, 13.2, t)); o.roll = 0.35 * s5(fl - 0.05, fl + 0.4, t) * (1 - s5(12.1, 13.2, t));
-  // the march: the right foot keeps time (the gag); 120 to the minute, from the first beat to the music's end
+  // the bell: lift, reach, slap (fast down, a bounce up), back down to the side
+  o.lift = s5(SLAP.lift[0], SLAP.lift[1], t) * (1 - s5(SLAP.back[0] + 0.3, SLAP.back[1], t));
+  o.reach = s5(SLAP.up[0], SLAP.up[1], t) * (1 - s5(SLAP.back[0], SLAP.back[0] + 0.45, t));
+  let hit = 0; for (const h of SLAP.hits) hit = Math.max(hit, t < h ? ss(h - 0.1, h, t) : 1 - ss(h + 0.02, h + 0.17, t));
+  o.hit = hit * ss(0.9, 1, o.reach);
+  // the march: the right foot keeps time
   if (t > MARCH.t0 && t < MARCH.t1) { const b = (t - MARCH.t0) / MARCH.beat, f = b - Math.floor(b); o.tap = (f < 0.18 ? ss(0, 0.18, f) : 1 - ss(0.18, 0.62, f)) * ss(MARCH.t0, MARCH.t0 + 0.3, t) * (1 - ss(MARCH.t1 - 0.4, MARCH.t1, t)); }
-  // getting up, and back
-  const G0 = T.getUp - 0.15, B0 = T.sleepy + 0.25;
-  o.up = s5(G0, G0 + 0.75, t) * (1 - s5(B0 + 0.55, B0 + 1.35, t));
-  o.swivel = s5(G0 + 0.25, G0 + 1.05, t) * (1 - s5(B0 + 0.2, B0 + 1.0, t));
-  o.move = s5(G0 + 0.2, G0 + 1.0, t) * (1 - s5(B0 + 0.2, B0 + 1.0, t));
-  o.knee = s5(G0 + 0.45, G0 + 1.1, t) * (1 - s5(B0 + 0.1, B0 + 0.7, t));
-  o.ik = s5(G0 + 0.8, G0 + 1.2, t) * (1 - s5(B0, B0 + 0.35, t));
-  o.push = pulse(t, G0, G0 + 1.2, 0.4) + pulse(t, B0 + 0.4, B0 + 1.4, 0.4);
-  o.read = s5(T.quiet - 0.6, T.quiet + 0.1, t) * (1 - s5(T.goBack + 0.1, T.goBack + 0.7, t));
-  const y = pulse(t, T.goBack + 0.15, T.sleepy + 0.25, 0.4); o.jaw = 0.42 * y;
-  o.cer = lerp(lerp(0.3, 0.12, o.up), 0.55, o.read) - 0.5 * y; o.tho = lerp(0, 0.12, o.up) + 0.25 * o.read - 0.15 * y;
+  // getting up, reading by the lamp, a yawn, back
+  o.up = s5(G0, G0 + 0.8, t) * (1 - s5(B0 + 0.55, B0 + 1.35, t));
+  o.swivel = s5(G0 + 0.3, G0 + 1.1, t) * (1 - s5(B0 + 0.2, B0 + 1.0, t));
+  o.move = s5(G0 + 0.25, G0 + 1.05, t) * (1 - s5(B0 + 0.2, B0 + 1.0, t));
+  o.knee = s5(G0 + 0.5, G0 + 1.15, t) * (1 - s5(B0 + 0.1, B0 + 0.7, t));
+  o.ik = s5(G0 + 0.85, G0 + 1.25, t) * (1 - s5(B0, B0 + 0.35, t));
+  o.rest = s5(G0 + 0.1, G0 + 0.85, t) * (1 - s5(B0 + 0.45, B0 + 1.25, t));
+  const read = s5(BOOK_OPEN[0] - 0.2, BOOK_OPEN[1], t) * (1 - s5(BOOK_SHUT[0], BOOK_SHUT[1] + 0.2, t));
+  const y = pulse(t, YAWN[0], YAWN[1], 0.4); o.jaw = 0.42 * y;
+  o.cer = lerp(lerp(0.3, 0.12, o.up), 0.5, read) - 0.45 * y; o.tho = lerp(0, 0.12, o.up) + 0.22 * read - 0.12 * y;
+  o.turn = 0.5 * read; o.twist = 0.18 * read;
   return o;
 }
-const MARCH = { t0: 42.55, t1: 48.3, beat: 0.5 };
-const _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _qc = new THREE.Quaternion(), _qd = new THREE.Quaternion();
+const mixA = (a, b, k) => ({ dir: a.dir.map((v, i) => lerp(v, b.dir[i], k)), twist: lerp(a.twist, b.twist, k), elbow: lerp(a.elbow, b.elbow, k), wf: lerp(a.wf || 0, b.wf || 0, k), wd: lerp(a.wd || 0, b.wd || 0, k), wr: lerp(a.wr || 0, b.wr || 0, k), mix: [a, b, k] });
+const _qa = new THREE.Quaternion(), _qb = new THREE.Quaternion(), _qc = new THREE.Quaternion();
 function poseRig(o) {
   const R = W.rig;
-  bendSpine(R.seg, { lum: 0, tho: o.tho, cer: o.cer });
-  for (const n of ['Atlas', 'Axis', 'Third cervical vertebra']) { R.seg[n].g.rotation.y += o.turn / 3 + o.roll / 3; }
-  W.jaw.rotation.x = o.jaw;
-  // arms
-  const armL = mixArm(mixArm(mixArm(ARM_LIE, ARM_PUSH, o.push), ARM_READ, o.read), ARM_FLOP, o.flopL);
-  const armR = mixArm(mixArm(ARM_LIE, ARM_PUSH, o.push), ARM_READ, o.read);
-  poseArm(R.arms.Right, armR); poseArm(R.arms.Left, armL);
-  // legs: lying, the hips turn out and the feet fall forward; sitting, the hips bend as the body rises, the knees as the legs leave the bed
+  bendSpine(R.seg, { lum: 0, tho: o.tho, cer: o.cer, twist: o.twist || 0 });
+  for (const n of ['Atlas', 'Axis', 'Third cervical vertebra']) R.seg[n].g.rotation.y += (o.turn || 0) / 3;
+  if (W.jaw) W.jaw.rotation.x = o.jaw || 0;
+  for (const Side of ['Right', 'Left']) {
+    let a = mixA(mixA(ARM_LIE, ARM_PUSH, o.push), ARM_REST, o.rest);
+    if (Side === 'Left' && W.slapUp) { if (o.lift > 0) a = mixA(a, ARM_LIFT, o.lift); if (o.reach > 0) a = mixA(a, W.slapUp, o.reach); if (o.hit > 0) a = mixA(a, W.slapHit, o.hit); }
+    poseArm(R.arms[Side], a); if (W.wristR) setWrist(Side === 'Right' ? W.wristR : W.wristL, a);
+  }
+  if (W.handR) { W.handR.curl(0.12); W.handL.curl(lerp(0.12, 0.1, o.reach || 0)); clearArms(R); }
   for (const Side of ['Right', 'Left']) {
     const G = R.legs[Side], s = G.s, lie = 1 - o.up;
     _qa.setFromAxisAngle(X, -(Math.PI / 2) * o.up); _qb.setFromAxisAngle(Z, 0.1 * s * o.knee); _qc.setFromAxisAngle(Y, 0.22 * s * lie);
     G.hip.quaternion.multiplyQuaternions(_qa, _qb).multiply(_qc);
     G.knee.quaternion.setFromAxisAngle(X, (Math.PI / 2) * o.knee);
-    const tap = Side === 'Right' ? o.tap : 0;
+    const tap = Side === 'Right' ? o.tap || 0 : 0;
     G.ankle.quaternion.setFromAxisAngle(X, lerp(0.62, 0, o.knee) - 0.38 * tap);
   }
 }
@@ -448,77 +632,69 @@ function placeBody(o) {
   W.body.updateMatrixWorld(true);
 }
 
-// ------------------------------------------------------------------ the clock, the timer and the light over time
-const H = 3600;
-function clockAt(t) {   // seconds of the day on the bedside clock
-  const night = 23 * H + 38 * 60 + t, sp = (a, b, x) => s5(a, b, x);
-  const rew = sp(T.regular - 0.3, T.cutoff + 0.5, t), fw1 = sp(T.nhs - 0.1, T.six + 0.2, t), fw2 = sp(T.warm - 0.9, T.warm + 0.4, t), fw3 = sp(T.bed2 + 0.3, T.gets + 0.9, t);
-  const c1 = 14 * H + 12 * 60 + (t - T.cutoff - 0.5), c2 = 17 * H + (t - T.six - 0.2), c3 = 21 * H + 30 * 60 + (t - T.warm - 0.4);   // each held time keeps ticking
-  let s = lerp(night, c1, rew); s = lerp(s, c2, fw1); s = lerp(s, c3, fw2); s = lerp(s, night, fw3);
-  return s;
-}
-function timerAt(t) {   // the needle, the ghost needle and the arcs, in minutes
-  const o = { v: 0, g: 0, gO: 0, band: 0, extra: 0, extraV: 0, drop: [0, 0], dropO: 0, zone: 0, set: 0, dots: 0, glow: 0 };
-  o.glow = ss(T.heres - 0.2, T.measured, t);
-  // normal: a run from 0 to 15, the band 10 to 20
-  let v = 15 * s5(T.ten - 0.3, T.minutes + 0.4, t);
-  o.band = ss(T.ten - 0.1, T.ten + 0.4, t) * (1 - ss(T.out - 0.4, T.out, t)) + 0.45 * ss(T.out, T.out + 0.4, t) * (1 - ss(T.inStudies, T.inStudies + 0.6, t));
-  // out within a minute: back to zero, then barely moves
-  v = lerp(v, 0.7, s5(T.out - 0.3, T.minute + 0.2, t));
-  // caffeine: from 15 to 24 (+9)
-  const cf = s5(T.caffeine - 0.2, T.added + 0.6, t); v = lerp(v, 15, cf); v = lerp(v, 24, s5(T.nine - 0.1, T.falling + 0.3, t));
-  o.extra = ss(T.nine - 0.2, T.nine + 0.3, t) * (1 - ss(T.regular - 0.6, T.regular, t)); o.extraV = 15 + 9 * s5(T.nine - 0.1, T.falling + 0.3, t);
-  // the bath: a run that stops sooner (13, against the ghost at 15)
-  v = lerp(v, 0, s5(T.regular - 0.6, T.cup, t)); v = lerp(v, 13, s5(T.gets - 0.2, T.sooner + 0.3, t));
-  o.gO = 0.55 * ss(T.gets - 0.3, T.gets, t) * (1 - ss(T.trying - 0.6, T.trying, t)); o.g = 15;
-  // trying hard: 34; not trying: 22 (the ghost)
-  v = lerp(v, 34, s5(T.reported - 0.1, T.t34 + 0.5, t));
-  const g2 = ss(T.didnt - 0.2, T.didnt + 0.2, t) * (1 - ss(T.notAsleep - 0.4, T.notAsleep, t)); if (t > T.trying) { o.g = 22 * s5(T.didnt - 0.2, T.t22 + 0.3, t); o.gO = 0.6 * g2; }
-  // twenty minutes awake
-  v = lerp(v, 0, s5(T.notAsleep - 0.6, T.notAsleep, t)); v = lerp(v, 20, s5(T.notAsleep + 0.1, T.twenty2 + 0.1, t));
-  // insomnia: long; CBT: about 19 minutes faster
-  v = lerp(v, 45, s5(T.withIns - 0.2, T.fell + 0.2, t)); v = lerp(v, 26, s5(T.nineteen - 0.2, T.faster + 0.2, t));
-  o.drop = [26 + 19 * (1 - s5(T.nineteen - 0.2, T.faster + 0.2, t)), 45]; o.dropO = ss(T.nineteen - 0.2, T.nineteen + 0.2, t) * (1 - ss(T.over - 0.5, T.over, t));
-  o.dots = clamp01((t - (T.trials - 0.4)) / 0.9) * (1 - ss(T.over - 0.6, T.over, t));
-  // over thirty: the long zone
-  v = lerp(v, 38, s5(T.thirty - 0.3, T.three, t)); o.zone = ss(T.thirty - 0.2, T.thirty + 0.3, t) * (1 - ss(T.final - 0.2, T.final + 0.3, t));
+// ------------------------------------------------------------------ the clock: seconds of the day
+const CK = [
+  [-5, 23 * H], [0.35, 23 * H], [2.95, 24 * H],                                       // an hour in bed, staring at the ceiling
+  [BACK[0], 24 * H + (BACK[0] - 2.95)], [BACK[1], 21 * H + 30 * 60],               // "backwards": back to half past nine
+  [T.end, 21 * H + 30 * 60 + (T.end - BACK[1])],
+];
+function clockAt(t) { return keys(CK, t); }
+
+// ------------------------------------------------------------------ the timer over time: the needle, the ghost needle and the arcs, in minutes
+function timerAt(t) {
+  const o = { v: 0, g: 0, gO: 0, band: 0, zone: 0, set: 0 };
+  // on its own: a run from 0 to 15, the band 10 to 20 at "ten to twenty"
+  let v = 15 * s5(T.body, T.minutes + 0.3, t);
+  o.band = ss(T.ten - 0.15, T.ten + 0.35, t) * (1 - ss(25.0, 25.6, t));
+  // told to fall asleep fast: 34; not trying: 22 (the ghost)
+  v = lerp(v, 0, s5(25.2, 25.8, t)); v = lerp(v, 34, s5(T.t34 - 0.75, T.t34 + 0.35, t));
+  o.g = 22 * s5(T.t22 - 0.55, T.t22 + 0.3, t); o.gO = 0.6 * ss(T.t22 - 0.6, T.t22 - 0.3, t) * (1 - ss(31.4, 31.9, t));
+  // still awake after twenty minutes
+  v = lerp(v, 0, s5(31.45, 31.95, t)); v = lerp(v, 20, s5(32.0, T.minutes3, t));
+  // back in bed: from zero; over thirty minutes: the long zone
+  v = lerp(v, 0, s5(34.0, 34.3, t)); v = lerp(v, 38, s5(T.over - 0.3, T.thirty + 0.6, t));
+  o.zone = ss(T.thirty - 0.2, T.thirty + 0.3, t) * (1 - ss(T.final - 0.2, T.final + 0.3, t));
   // factory settings: 15, the band in orange
-  v = lerp(v, 15, s5(T.final, T.final + 0.9, t)); o.set = ss(T.final + 0.3, T.final + 0.9, t);
+  v = lerp(v, 15, s5(T.final + 0.1, T.final + 1.0, t)); o.set = ss(T.final + 0.4, T.final + 1.0, t);
   o.v = v; return o;
 }
 
 // ------------------------------------------------------------------ the camera: one path, no cuts
 let CAM = null;
 function buildCam() {
-  const D = DIAL, Dl = V3(D.x, D.y + 0.012, D.z - 0.004), C = V3(CLOCK.x - 0.01, CLOCK.y + 0.075, CLOCK.z);
+  const D = DIAL, Dl = V3(D.x, D.y + 0.012, D.z - 0.004);
+  const cf = new THREE.Vector3(Math.sin(CLOCK_RY), 0, Math.cos(CLOCK_RY)), Cc = W.clock.body.localToWorld(new THREE.Vector3(0, 0, W.clock.D / 2));
+  const ck = Cc.clone().addScaledVector(cf, 0.42).add(new THREE.Vector3(0.0, 0.07, 0.0));
+  const TV = { p: V3(1.195, 1.243, -0.463), p2: V3(1.19, 1.24, -0.47), l: V3(0.75, 0.63, -0.72) };   // the timer, from beside the table (the bed behind it)
+  const CK = { p: V3(0.972, 0.865, -0.482), p2: V3(0.985, 0.87, -0.47), l: V3(0.69, 0.66, -0.97) };   // the clock
   return camTrack([
-    { t: -3.0, p: V3(0.31, 4.35, 0.08), l: V3(0.31, 0.5, 0.0), fov: 44 },
-    { t: 0.3, p: V3(0.31, 3.95, 0.08), l: V3(0.31, 0.5, 0.0), fov: 44, tens: 0.5 },                 // the bed from above, at night
-    { t: 2.4, p: V3(1.05, 1.75, 0.5), l: V3(0.62, 0.56, -0.7), fov: 34 },
-    { t: 4.2, p: V3(1.0, 1.13, -0.3), l: Dl, fov: 28, tens: 0.2 },                                  // down to the timer
-    { t: 7.2, p: V3(1.0, 1.12, -0.29), l: Dl, fov: 28, tens: 0.4 },
-    { t: 8.7, p: V3(1.3, 1.38, 0.4), l: V3(0.36, 0.5, -0.5), fov: 36, tens: 0.2 },                 // back: the arm drops
-    { t: 12.1, p: V3(1.31, 1.37, 0.42), l: V3(0.38, 0.5, -0.52), fov: 36, tens: 0.4 },
-    { t: 13.7, p: V3(0.95, 1.08, -0.06), l: V3(0.83, 0.6, -0.77), fov: 32, tens: 0.2 },              // the coffee, the timer, the clock
-    { t: 19.9, p: V3(0.94, 1.07, -0.08), l: V3(0.82, 0.6, -0.78), fov: 32, tens: 0.4 },
-    { t: 21.7, p: V3(1.14, 0.76, -0.47), l: C, fov: 28, tens: 0.2 },                                // the clock goes back to the afternoon
-    { t: 32.4, p: V3(1.12, 0.76, -0.49), l: C, fov: 28, tens: 0.3 },
-    { t: 33.9, p: V3(1.5, 1.2, 0.5), l: V3(0.05, 0.62, -0.45), fov: 36, tens: 0.2 },              // warmth off the bones
-    { t: 35.5, p: V3(1.47, 1.19, 0.52), l: V3(0.05, 0.62, -0.47), fov: 36, tens: 0.4 },
-    { t: 36.9, p: V3(0.24, 1.2, -0.4), l: V3(-0.015, 0.62, -0.86), fov: 30, tens: 0.2 },              // the busy head
-    { t: 41.7, p: V3(0.25, 1.21, -0.37), l: V3(-0.015, 0.62, -0.85), fov: 31, tens: 0.4 },
-    { t: 43.0, p: V3(-0.32, 1.06, 1.66), l: V3(0.02, 0.5, 0.0), fov: 34, tens: 0.2 },              // the right foot keeps time
-    { t: 45.1, p: V3(-0.29, 1.07, 1.63), l: V3(0.06, 0.5, -0.08), fov: 34, tens: 0.4 },
-    { t: 46.6, p: V3(1.0, 1.13, -0.3), l: Dl, fov: 28, tens: 0.2 },                                 // 34 against 22, then 20 minutes awake
-    { t: 50.3, p: V3(1.01, 1.12, -0.29), l: Dl, fov: 28, tens: 0.3 },
-    { t: 51.7, p: V3(2.7, 1.62, 1.25), l: V3(0.52, 0.62, -0.36), fov: 38, tens: 0.2 },             // he gets up, reads, goes back
-    { t: 57.5, p: V3(2.66, 1.61, 1.28), l: V3(0.5, 0.6, -0.37), fov: 38, tens: 0.4 },
-    { t: 59.0, p: V3(1.06, 1.27, -0.17), l: Dl, fov: 28, tens: 0.2 },                                // CBT: twenty trials, nineteen minutes
-    { t: 68.6, p: V3(1.05, 1.26, -0.18), l: Dl, fov: 28, tens: 0.4 },
-    { t: 70.2, p: V3(0.86, 1.3, -0.03), l: V3(0.86, TBL.top + 0.01, -0.74), fov: 31, tens: 0.2 },  // the sleep diary
-    { t: 76.7, p: V3(0.86, 1.29, -0.04), l: V3(0.86, TBL.top + 0.01, -0.74), fov: 31, tens: 0.4 },
-    { t: 77.9, p: V3(0.9, 1.1, -0.42), l: Dl, fov: 30 },
-    { t: T.logo, p: V3(D.x, D.y + 0.62, D.z + 0.005), l: V3(D.x, D.y + 0.0142, D.z), fov: 30, stop: true },   // straight down on the timer: the logo
+    { t: -3.0, p: V3(0.17, 4.2, -0.38), l: V3(0.17, 0.5, -0.46), fov: 44 },
+    { t: 0.3, p: V3(0.17, 4.15, -0.4), l: V3(0.17, 0.5, -0.48), fov: 44, tens: 0.5 },          // from the ceiling: he stares up at us
+    { t: 2.55, p: V3(0.2, 2.3, -0.74), l: V3(0.2, 0.55, -0.83), fov: 40, tens: 0.5 },          // closer: the face
+    { t: 3.75, p: V3(1.646, 1.316, 0.237), l: V3(0.33, 0.7, -0.83), fov: 36, stop: true },     // the skull, the arm, the bell
+    { t: 9.45, p: V3(1.62, 1.3, 0.22), l: V3(0.34, 0.69, -0.83), fov: 36, stop: true },
+    { t: 10.7, p: TV.p, l: TV.l, fov: 28, stop: true },                                          // the timer
+    { t: 16.9, p: TV.p2, l: TV.l, fov: 28, stop: true },
+    { t: 18.3, p: V3(0.33, 1.2, -0.42), l: V3(0.0, 0.66, -0.83), fov: 32, stop: true },        // the busy head; the headphones come down
+    { t: 23.0, p: V3(0.35, 1.21, -0.4), l: V3(0.0, 0.66, -0.83), fov: 32, stop: true },
+    { t: 24.2, p: V3(-0.35, 1.1, 2.3), l: V3(-0.01, 0.6, 0.7), fov: 30, tens: 0.15 },          // the right foot keeps time
+    { t: 25.6, p: V3(-0.345, 1.1, 2.28), l: V3(-0.01, 0.6, 0.7), fov: 30, tens: 0.15 },
+    { t: 26.6, p: TV.p, l: TV.l, fov: 28, stop: true },                                          // 34, 22, then 20
+    { t: 33.5, p: TV.p2, l: TV.l, fov: 28, stop: true },
+    { t: 35.0, p: V3(1.234, 2.5, 1.416), l: V3(0.5, 0.7, -0.6), fov: 42, stop: true },        // up, the lamp, the book, the phone; back to bed
+    { t: 40.4, p: V3(1.21, 2.48, 1.43), l: V3(0.49, 0.69, -0.6), fov: 42, stop: true },
+    { t: 41.5, p: CK.p, l: CK.l, fov: 30, tens: 0.15 },                                          // the clock runs backwards
+    { t: 42.7, p: CK.p2, l: CK.l, fov: 30, tens: 0.15 },
+    { t: 44.5, p: V3(0.17, 4.15, -0.4), l: V3(0.17, 0.5, -0.48), fov: 44, tens: 0.15 },       // the ceiling again: the treatment
+    { t: 47.3, p: V3(0.17, 4.1, -0.4), l: V3(0.17, 0.5, -0.48), fov: 44, tens: 0.15 },
+    { t: 48.6, p: V3(1.09, 0.951, -0.277), l: V3(0.69, 0.67, -0.97), fov: 30, tens: 0.15 },    // the clock: 9 to 10, before bed
+    { t: 50.6, p: V3(1.1, 0.955, -0.265), l: V3(0.69, 0.67, -0.97), fov: 30, tens: 0.15 },
+    { t: 51.7, p: V3(0.966, 1.318, 1.473), l: V3(0.0, 0.8, -0.2), fov: 40, tens: 0.15 },       // warmth off the bones
+    { t: 54.5, p: V3(0.95, 1.31, 1.49), l: V3(0.0, 0.8, -0.21), fov: 40, tens: 0.15 },
+    { t: 55.9, p: V3(0.209, 1.0, -0.503), l: V3(0.86, 0.57, -0.74), fov: 36, stop: true },     // the timer and the diary
+    { t: 68.0, p: V3(0.215, 1.005, -0.51), l: V3(0.86, 0.57, -0.74), fov: 36, stop: true },
+    { t: 69.6, p: V3(0.66, 1.42, -0.5), l: Dl, fov: 30 },
+    { t: T.logo, p: V3(D.x, D.y + 0.9, D.z + 0.005), l: V3(D.x, D.y + 0.0142, D.z), fov: 30, stop: true },   // straight down on the timer: the logo
   ]);
 }
 function camPose(S, t) {
@@ -526,12 +702,12 @@ function camPose(S, t) {
   if (!CAM) CAM = buildCam();
   if (t <= T.logo) return CAM(t);
   const P = CAM(T.logo), k = ss(T.logo, T.end, t);
-  return { p: [P.p[0], lerp(P.p[1], P.p[1] - 0.05, k), P.p[2]], l: P.l, fov: 30 };
+  return { p: [P.p[0], lerp(P.p[1], P.p[1] - 0.06, k), P.p[2]], l: P.l, fov: 30 };
 }
 function focusAt(S, t, P) { return Math.hypot(P.p[0] - P.l[0], P.p[1] - P.l[1], P.p[2] - P.l[2]); }
 
 // ------------------------------------------------------------------ one moment of the film
-const _v = new THREE.Vector3(), _w = new THREE.Vector3(), _m4 = new THREE.Matrix4();
+const _v = new THREE.Vector3(), _w = new THREE.Vector3();
 function update(S, t) {
   const scene = S.scene, endDark = ss(T.final + 0.3, T.logo - 0.3, t);
   // ---- the body
@@ -541,137 +717,118 @@ function update(S, t) {
     setMattress(W.bed, { key: kk.toFixed(3), at: (i) => lerp(L[i], Sd[i], kk) });
     const pk = Math.round(clamp01(1 - o.up * 1.4) * 100) / 100, P = W.pillow;
     if (P.key !== pk.toFixed(2)) { P.key = pk.toFixed(2); const A = P.geo.attributes.position.array; for (let i = 0; i < A.length / 3; i++) A[i * 3 + 1] = P.base[i * 3 + 1] - W.pillowDent[i] * pk; P.geo.attributes.position.needsUpdate = true; P.geo.computeVertexNormals(); } }
+  // ---- the bell: struck, its plunger goes down; then it sinks into the table
+  { const B = W.bell, sk = s5(BELL_SINK[0], BELL_SINK[1], t);
+    B.plunger.position.y = 0.014 + 0.041 * 0.8 - 0.004 * o.hit;
+    B.g.position.y = BELL.y - 0.08 * sk; B.g.visible = sk < 0.999; }
   // ---- the busy head: the vault turns to glass, the brain flickers
-  { const busy = ss(T.backfires - 0.3, T.head, t) * (1 - ss(T.notAsleep - 0.8, T.notAsleep, t)), hard = 0.6 + 0.4 * ss(T.fast - 0.4, T.marches, t) * (1 - ss(T.didnt - 0.2, T.t22, t));
+  { const busy = ss(T.and2 - 0.1, T.head, t) * (1 - ss(31.0, 31.8, t)), hard = 0.6 + 0.4 * ss(T.trying - 0.2, T.hard + 0.3, t);
     for (const m of W.vault) { m.material.opacity = 1 - 0.72 * busy; m.material.depthWrite = busy < 0.5; }
     for (const m of W.brain) { m.visible = busy > 0.003; const ph = (t * m.userData.f + m.userData.ph) % 1, fl = Math.exp(-ph * 9) * (hash(Math.floor(t * m.userData.f + m.userData.ph) * 1.7 + m.userData.ph) < 0.55 * hard + 0.1 ? 1 : 0);
-      m.material.opacity = busy * 0.92; m.material.emissiveIntensity = busy * (0.05 + 2.4 * fl); } }
-  // ---- headphones and the tape player: on from "students" to the end of the march
-  { const on = s5(T.students - 0.1, T.students + 0.5, t) * (1 - s5(MARCH.t1 + 0.2, MARCH.t1 + 0.8, t)), P = W.phones, Tp = W.tape;
+      m.material.opacity = busy * 0.92; m.material.emissiveIntensity = busy * (0.05 + 1.1 * fl); } }
+  // ---- headphones and the tape player: on at "marching", off when the march ends
+  { const on = s5(PHONES[0], PHONES[0] + 0.55, t) * (1 - s5(PHONES[1], PHONES[1] + 0.6, t)), P = W.phones, Tp = W.tape;
     P.g.visible = on > 0.001; P.g.position.copy(P.home); P.g.position.z += (1 - on) * 0.25;   // they come down onto the skull (its own +z is up when lying)
-    Tp.g.visible = on > 0.001; Tp.g.position.set(0.33, BED.top + (1 - on) * 0.25, -0.05); Tp.g.rotation.y = 0.25;
+    Tp.g.visible = on > 0.001; Tp.g.position.set(0.335, BED.top + (1 - on) * 0.25, -0.12); Tp.g.rotation.y = 0.25;
     Tp.cord.visible = on > 0.98;
-    if (Tp.cord.visible) { const c = P.cups[1].getWorldPosition(_v), a = c.clone().add(new THREE.Vector3(0.02, -0.06, 0.05)), b = new THREE.Vector3(0.3, BED.top + 0.004, -0.45), e = Tp.g.position.clone().add(new THREE.Vector3(-0.02, 0.012, -0.055));
+    if (Tp.cord.visible) { const c = P.cups[1].getWorldPosition(_v), a = c.clone().add(new THREE.Vector3(0.03, -0.05, 0.05)), b = new THREE.Vector3(0.33, BED.top + 0.004, -0.42), e = Tp.g.position.clone().add(new THREE.Vector3(-0.02, 0.012, -0.055));
       const key = c.toArray().map((x) => x.toFixed(4)).join(); if (key !== Tp.key) { Tp.key = key; Tp.cord.geometry.dispose(); Tp.cord.geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3([c, a, b, e]), 64, 0.0018, 6); } } }
-  // ---- the book: on the bed, then in the hands, open
-  { const B = W.book, rd = o.read, rest = new THREE.Vector3(0.3, BED.top + 0.001, 0.32);
-    const R = W.rig, hr = R.arms.Right.mc.getWorldPosition(_v), hl = R.arms.Left.mc.getWorldPosition(_w), mid = hr.clone().add(hl).multiplyScalar(0.5);
-    const head = R.seg.Atlas.g.getWorldPosition(new THREE.Vector3());
-    const inHand = mid.clone().add(new THREE.Vector3(0, 0.03, 0));
-    B.g.position.lerpVectors(rest, inHand, s5(0, 1, rd));
-    const q0 = new THREE.Quaternion().setFromAxisAngle(Y, 0.4), look = head.clone().sub(inHand).normalize();
-    const q1 = new THREE.Quaternion().setFromUnitVectors(Y, look); const turn = new THREE.Quaternion().setFromAxisAngle(look, Math.atan2(look.x, look.z) + Math.PI / 2); q1.premultiply(turn);
-    B.g.quaternion.copy(q0).slerp(q1, s5(0, 1, rd));
-    const op = ss(0.35, 0.8, rd); B.open.visible = op > 0.001; B.closed.visible = !B.open.visible;
-    for (const h of B.halves) h.h.rotation.z = h.s * lerp(Math.PI / 2 - 0.02, 0.32, op); }
-  // ---- warmth from a bath, rising off the bones
-  { const a = 0.55 * pulse(t, T.bath, T.sooner + 1.0, 0.8); for (const m of W.steam) { m.visible = a > 0.002; m.material.uniforms.uAmt.value = a; m.rotation.y = Math.atan2(S.cam.position.x - m.position.x, S.cam.position.z - m.position.z); } }
-  { const wm = 0.1 * pulse(t, T.bath, T.sooner + 0.9, 0.9); if (wm !== W.warmK) { W.warmK = wm; for (const m of W.meshes) m.material.emissiveIntensity = wm; } }
-  // ---- the clock
-  { const s = clockAt(t), C = W.clock, hrs = (s / H) % 12, spin = Math.abs(clockAt(t + 0.02) - s) > 30;
-    C.hands.h.rotation.z = -(hrs / 12) * Math.PI * 2; C.hands.m.rotation.z = -((s % H) / H) * Math.PI * 2; C.hands.s.rotation.z = spin ? -((s % 60) / 60) * Math.PI * 2 : -tickAngle(s % 60);
-    // the night on the face: 11 to 7; coffee takes 45 minutes off it
-    const night = pulse(t, T.cut - 0.6, T.regular - 0.2, 0.4), lose = s5(T.fortyfive - 0.2, T.sleep2 + 0.3, t);
-    // the cut-off: the arc follows the hour hand back from bedtime; then from six hours before; then the bath, 9 to 10
-    const cutA = pulse(t, T.regular - 0.3, T.warm - 0.6, 0.3), bathA = pulse(t, T.warm - 0.5, T.trying - 0.3, 0.3);
-    if (night > 0.002) { C.setArc(C.arc, 23 + 0.75 * lose, 7, 0.036, 0.0022); C.setArc(C.ghost, 23, 7, 0.036, 0.0011); C.arcMat.opacity = night; C.arcGhostMat.opacity = night * 0.5 * lose; }
-    else if (cutA > 0.002) { const from = t < T.nhs - 0.2 ? hrs : hrs; C.setArc(C.arc, Math.min(from, 10.99), 11, 0.036, 0.0022); C.arcMat.opacity = cutA * ss(T.regular, T.regular + 0.4, t); C.arcGhostMat.opacity = 0;
-      if (t > T.nhs - 0.2) { C.setArc(C.ghost, 14.2, 23, 0.036, 0.0011); C.arcGhostMat.opacity = cutA * 0.5; } }
-    else if (bathA > 0.002) { C.setArc(C.arc, 21, 22, 0.036, 0.0026); C.arcMat.opacity = bathA; C.arcGhostMat.opacity = 0; }
-    else { C.arcMat.opacity = 0; C.arcGhostMat.opacity = 0; }
-    C.lipMat.emissiveIntensity = 0; }
-  // ---- the timer
-  { const D = W.timer, o2 = timerAt(t);
+  // ---- the timer: rises where the bell was; sinks for the book and comes back
+  { const D = W.timer, o2 = timerAt(t), up = s5(DIAL_RISE[0], DIAL_RISE[1], t) * (1 - s5(DIAL_DOWN[0], DIAL_DOWN[1], t)) + s5(DIAL_UP[0], DIAL_UP[1], t);
+    D.g.position.y = DIAL.y - 0.03 * (1 - up); D.g.visible = up > 0.001;
     D.N.n.rotation.y = -ANG(o2.v); D.G.n.rotation.y = -ANG(o2.g); D.G.mat.opacity = o2.gO; D.G.n.visible = o2.gO > 0.002;
     D.N.mat.opacity = 1 - ss(T.logo - 0.6, T.logo - 0.2, t);
-    setArc(D.A.band, 10, 20, 0.9 * o2.band); setArc(D.A.extra, 15, o2.extraV, 0.9 * o2.extra);
-    setArc(D.A.drop, o2.drop[0], o2.drop[1], 0.9 * o2.dropO); setArc(D.A.zone, 30, 45, 0.85 * o2.zone);
+    setArc(D.A.band, 10, 20, 0.9 * o2.band); setArc(D.A.zone, 30, 45, 0.85 * o2.zone);
     setArc(D.A.set, 10, 20, o2.set * (1 - ss(T.logo - 0.6, T.logo - 0.2, t)));
-    D.faceMat.emissiveIntensity = 0.06 + 0.1 * o2.glow; D.faceMat.opacity = 1 - 0.85 * ss(T.settings, T.logo - 0.2, t);
-    D.dots.forEach((m, i) => { const a = clamp01(o2.dots * 20 - i); m.material.opacity = a; m.visible = a > 0.002; m.scale.setScalar(Math.max(0.001, outBack(a, 2))); });
+    D.faceMat.emissiveIntensity = 0.08; D.faceMat.opacity = 1 - 0.85 * ss(T.settings, T.logo - 0.2, t);
     const logoK = s5(T.final + 0.4, T.logo - 0.25, t); D.logo.set({ weight: logoK, white: logoK, hours: 0, hand: ss(T.logo - 0.4, T.logo - 0.15, t), handScale: outBack(clamp01((t - (T.logo - 0.4)) / 0.35), 1.8) }); }
-  // ---- the cup: there for the coffee lines, then it sinks into the table; the diary rises in its place
-  { const c = pulse(t, -1, T.warm - 0.3, 0.6) ; W.cup.g.position.y = CUP.y - 0.09 * (1 - c); W.cup.g.visible = c > 0.001; W.cup.GLOW.uGlow.value = 0; W.cup.GLOW.uTime.value = t;
-    const d = s5(T.nights - 0.4, T.nights + 0.3, t) * (1 - s5(T.final, T.final + 0.6, t)); W.diary.g.position.y = DIARY.y - 0.01 * (1 - d); W.diary.g.visible = d > 0.002;
-    drawDiary(W.diary, 13 * clamp01((t - T.nights) / (T.months + 0.4 - T.nights))); }
-  // ---- the phone: a notification at the start; turned face down at "away from screens"
-  { const P = W.phone, lit = pulse(t, 0.55, 2.6, 0.15) * 0.9 + 0.12 * (1 - ss(2.6, 3.2, t)), fl = s5(T.away, T.away + 0.5, t);
-    P.screenMat.color.setScalar(lit); P.g.rotation.z = Math.PI * fl; P.g.position.y = PHONE.y + 0.03 * Math.sin(Math.PI * fl) + 0.0078 * fl; }
-  // ---- light: night; the afternoon when the clock goes back; the lamp for reading; dark at the very end
-  { const s = clockAt(t), hr = (s / H) % 24, day = ss(8, 9.5, hr) * (1 - ss(18.6, 20.4, hr)), gold = ss(15.2, 17.2, hr) * (1 - ss(18.6, 19.6, hr)), fig = 1 - endDark;
-    const sunUp = lerp(0.6, 1.0, ss(13, 15, hr) * (1 - ss(15, 18.5, hr)));
-    W.key.position.set(lerp(2.6, 2.4, day), lerp(2.6, 1.6 + 1.6 * sunUp, day), lerp(-0.6, -1.2, day));
-    W.key.color.setRGB(lerp(0.72, 1.0, day), lerp(0.78, lerp(0.93, 0.78, gold), day), lerp(1.0, lerp(0.82, 0.55, gold), day));
-    W.key.intensity = lerp(24, 34, day) * fig;
-    const lamp = pulse(t, T.quiet - 0.6, T.sleepy + 0.4, 0.25); W.lampLight.intensity = 1.6 * lamp * fig; W.lamp.shadeMat.emissiveIntensity = 0.9 * lamp; W.lamp.bulbMat.color.setScalar(1.2 * lamp);
-    W.rim.intensity = 2.6 * fig; W.fill.intensity = (0.45 + 1.0 * day) * fig; W.tableLight.intensity = 3.2 * fig * (1 - day * 0.6);
-    S.tableMat.color.setScalar(0.35 * (1 - endDark * 0.9) * (1 + 0.6 * day)); scene.environmentIntensity = (0.1 + 0.45 * day) * (1 - endDark); S.reflAmt = 0.5 * (1 - endDark);
-    if (S.cfg.dbg) { const d = S.cfg.dbg; if (d.key) W.key.intensity = d.key; if (d.only) { W.rim.intensity = W.fill.intensity = W.tableLight.intensity = 0; scene.environmentIntensity = 0; } }
-    S.bg.setRGB(lerp(0.027, lerp(0.17, 0.2, gold), day), lerp(0.031, lerp(0.15, 0.14, gold), day), lerp(0.039, lerp(0.13, 0.1, gold), day)); S.fog.color.copy(S.bg);  }
+  // ---- the book: rises, opens, a page turns, shuts, goes back into the table
+  { const B = W.book, up = s5(BOOK_UP[0], BOOK_UP[1], t) * (1 - s5(BOOK_DOWN[0], BOOK_DOWN[1], t)), op = s5(BOOK_OPEN[0], BOOK_OPEN[1], t) * (1 - s5(BOOK_SHUT[0], BOOK_SHUT[1], t));
+    B.g.visible = up > 0.001; B.g.position.y = BOOK.y - 0.035 * (1 - up);
+    for (const h of B.halves) h.h.rotation.z = h.s * lerp(Math.PI / 2 - 0.02, 0.06, op);
+    const pg = clamp01((t - PAGE) / 0.7); B.leaf.visible = op > 0.95 && pg > 0 && pg < 1; B.leaf.rotation.z = Math.PI * s5(0, 1, pg); B.leaf.position.y = 0.0145 + 0.03 * Math.sin(Math.PI * pg); }
+  // ---- the phone: face up, a glow; it turns itself face down at "no screens"; it goes into the table for the diary
+  { const P = W.phone, fl = s5(FLIP[0], FLIP[1], t), dn = s5(PHONE_DOWN[0], PHONE_DOWN[1], t), lit = 0.55 * pulse(t, 35.6, T.no + 0.05, 0.3) + 0.1;
+    P.screenMat.color.setScalar(lit * (1 - fl));
+    P.g.rotation.set(0, 0.32, Math.PI * fl); P.g.position.y = PHONE_AT.y + 0.03 * Math.sin(Math.PI * fl) + 0.0078 * fl - 0.04 * dn; P.g.visible = dn < 0.999; }
+  // ---- the diary: three nights a week for thirteen weeks; then it empties again ("don't wait that long")
+  { const Dy = W.diary, up = s5(DIARY_UP[0], DIARY_UP[1], t) * (1 - s5(DIARY_DOWN[0], DIARY_DOWN[1], t));
+    Dy.g.visible = up > 0.001; Dy.g.position.y = DIARY.y - 0.01 * (1 - up);
+    const k = 13 * s5(DIARY_FILL[0], DIARY_FILL[1], t) - 11 * s5(DIARY_REW[0], DIARY_REW[1], t); if (Dy.g.visible) drawDiary(Dy, k); }
+  // ---- warmth from a bath, rising off the bones
+  { const a = 0.24 * pulse(t, 50.6, 55.4, 0.8); for (const m of W.steam) { m.visible = a > 0.002; m.material.uniforms.uAmt.value = a; m.rotation.y = Math.atan2(S.cam.position.x - m.position.x, S.cam.position.z - m.position.z); } }
+  { const wm = 0.1 * pulse(t, 50.6, 55.3, 0.9); if (wm !== W.warmK) { W.warmK = wm; for (const m of W.meshes) if (m.material.emissive) m.material.emissiveIntensity = wm; } }
+  // ---- the clock: an hour at the start, backwards on "backwards"; 9 to 10 for the bath
+  { const s = clockAt(t), C = W.clock, hrs = (s / H) % 12, spin = Math.abs(clockAt(t + 0.02) - s) > 30;
+    C.hands.h.rotation.z = -(hrs / 12) * Math.PI * 2; C.hands.m.rotation.z = -((s % H) / H) * Math.PI * 2; C.hands.s.rotation.z = spin ? -((s % 60) / 60) * Math.PI * 2 : -tickAngle(s % 60);
+    const bath = pulse(t, T.one - 0.35, 51.3, 0.4); C.setArc(C.arc, 9, 10, 0.036, 0.0026); C.arcMat.opacity = bath; C.arcGhostMat.opacity = 0;
+    C.markMat.opacity = 0.35 + 0.65 * bath; C.lipMat.emissiveIntensity = 0; }
+  // ---- light: night; the moon's window slides over the bed while the hour passes; the lamp for reading; dark at the very end
+  { const fig = 1 - endDark, hourK = s5(T.you, 2.95, t);
+    W.key.position.set(lerp(2.75, 2.45, hourK), 2.6, lerp(-0.85, -0.35, hourK));
+    W.key.intensity = 24 * fig;
+    const lamp = pulse(t, T.dim - 0.1, B0 + 0.3, 0.25); W.lampLight.intensity = 0.85 * lamp * fig; W.lamp.shadeMat.emissiveIntensity = 0.6 * lamp; W.lamp.bulbMat.color.setScalar(1.0 * lamp);
+    const head = pulse(t, 17.6, 23.0, 0.6);
+    W.rim.intensity = 2.6 * fig; W.fill.intensity = 0.45 * fig; W.tableLight.intensity = 3.0 * fig; W.headLight.intensity = (0.5 + 0.9 * head) * fig;
+    W.window.paneMat.color.setScalar(1 - 0.9 * endDark);
+    S.tableMat.color.setScalar(0.35 * (1 - endDark * 0.9)); scene.environmentIntensity = 0.1 * (1 - endDark); S.reflAmt = 0.5 * (1 - endDark);
+    S.bg.setRGB(0.027, 0.031, 0.039); S.fog.color.copy(S.bg); }
 }
 
 // ------------------------------------------------------------------ the words on screen
 const CAPS = [
-  { t0: 0.35, t1: 2.0, top: 300, size: 100, html: 'Can’t <em>fall asleep?</em>' },
-  { t0: 2.16, t1: 4.2, top: 300, size: 88, html: 'Here’s what’s<br>been <em>measured</em>' },
-  { t0: 4.50, t1: 7.3, top: 292, size: 84, html: 'Normal: about<br><em>10 to 20 minutes</em>' },
-  { t0: 7.53, t1: 10.45, top: 292, size: 80, html: 'Out within a minute:<br>maybe <em>short on sleep</em>' },
-  { t0: 10.64, t1: 12.3, top: 300, size: 100, html: 'Not a <em>talent</em>' },
-  { t0: 12.65, t1: 17.3, top: 292, size: 78, html: 'In studies, caffeine<br>added about <em>9 minutes</em><br>to falling asleep' },
-  { t0: 17.52, t1: 20.7, top: 292, size: 84, html: 'and cut about<br><em>45 minutes</em> of sleep' },
-  { t0: 21.19, t1: 27.15, top: 292, size: 78, html: 'A regular cup: one<br>review’s cut-off, <em>almost</em><br><em>9 hours</em> before bed' },
-  { t0: 27.37, t1: 29.4, top: 300, size: 96, html: 'The NHS says <em>six</em>' },
-  { t0: 29.76, t1: 33.6, top: 292, size: 80, html: 'A warm bath or shower,<br><em>1 to 2 hours</em> before bed' },
-  { t0: 33.78, t1: 35.8, top: 300, size: 92, html: 'gets you there <em>sooner</em>' },
-  { t0: 36.17, t1: 39.3, top: 292, size: 84, html: 'Trying hard <em>backfires</em><br>when your head is busy' },
-  { t0: 39.59, t1: 43.5, top: 292, size: 80, html: 'Told to fall asleep fast,<br>with <em>marches</em> playing:' },
-  { t0: 43.69, t1: 45.6, top: 300, size: 92, html: '<em>34 minutes</em>, reported' },
-  { t0: 45.78, t1: 48.8, top: 300, size: 92, html: 'Didn’t try: <em>22</em>' },
-  { t0: 49.33, t1: 51.7, top: 292, size: 84, html: 'Not asleep after<br><em>20 minutes?</em>' },
-  { t0: 51.85, t1: 52.5, top: 300, size: 104, html: '<em>Get up</em>' },
-  { t0: 52.59, t1: 54.9, top: 292, size: 84, html: 'Something quiet,<br><em>away from screens</em>' },
-  { t0: 55.02, t1: 57.2, top: 300, size: 88, html: 'Back when<br>you’re <em>sleepy</em>' },
-  { t0: 57.60, t1: 62.2, top: 292, size: 80, html: 'Part of <em>CBT for insomnia</em>,<br>the first-line treatment' },
-  { t0: 62.44, t1: 68.8, top: 292, size: 80, html: 'Across 20 trials: about<br><em>19 minutes faster</em>' },
-  { t0: 69.36, t1: 73.2, top: 292, size: 76, html: 'Over 30 minutes,<br>3 nights a week,<br>for <em>3 months?</em>' },
-  { t0: 73.41, t1: 74.85, top: 300, size: 92, html: 'That may be <em>insomnia</em>' },
-  { t0: 74.99, t1: 76.7, top: 300, size: 100, html: 'See a <em>doctor</em>' },
-  { t0: 77.17, t1: 99, top: 360, size: 96, html: 'Back to<br><em>factory settings.</em>' },
+  { t0: T.you, t1: 1.86, top: 300, size: 96, html: 'You lie in bed<br>for <em>an hour</em>,' },
+  { t0: T.staring, t1: 3.2, top: 300, size: 96, html: 'staring at<br>the <em>ceiling</em>' },
+  { t0: T.and1, t1: 5.5, top: 292, size: 86, html: 'and ordering yourself<br>to <em>fall asleep</em>,' },
+  { t0: T.as, t1: 7.95, top: 300, size: 96, html: 'as if sleep<br><em>takes orders.</em>' },
+  { t0: T.lets, t1: 9.6, top: 300, size: 104, html: 'Let’s <em>fix</em> that.' },
+  { t0: T.your, t1: 12.5, top: 292, size: 86, html: 'Your body was built<br>to fall asleep<br><em>on its own</em>,' },
+  { t0: T.and0, t1: 17.2, top: 292, size: 84, html: 'and for most people,<br>that takes about<br><em>10 to 20 minutes</em>.' },
+  { t0: T.and2, t1: 18.8, top: 300, size: 96, html: 'And when your<br>head is <em>busy</em>,' },
+  { t0: T.trying, t1: 21.0, top: 300, size: 96, html: 'trying hard<br>makes it <em>worse</em>.' },
+  { t0: T.in, t1: 23.8, top: 292, size: 88, html: 'In one study,<br>with <em>marching music</em><br>playing,' },
+  { t0: T.people2, t1: 27.95, top: 292, size: 84, html: 'people told to<br>fall asleep <em>fast</em><br>said it took <em>34 minutes</em>,' },
+  { t0: T.and3, t1: 31.3, top: 292, size: 88, html: 'and people who<br>weren’t trying<br>said <em>22</em>.' },
+  { t0: T.so, t1: 33.78, top: 292, size: 88, html: 'So if you’re still<br>awake after<br><em>20 minutes</em>,' },
+  { t0: T.get, t1: 36.25, top: 292, size: 84, html: '<em>get up</em>, do something<br>quiet in <em>dim light</em>,' },
+  { t0: T.with, t1: 37.65, top: 300, size: 96, html: 'with <em>no screens</em>,' },
+  { t0: T.and4, t1: 40.4, top: 292, size: 86, html: 'and go back to bed<br>when you’re <em>sleepy</em>.' },
+  { t0: T.it, t1: 42.05, top: 300, size: 96, html: 'It sounds<br><em>backwards</em>,' },
+  { t0: T.but, t1: 44.55, top: 292, size: 86, html: 'but it’s part of the<br>treatment <em>sleep doctors</em>' },
+  { t0: T.recommend, t1: 47.3, top: 292, size: 92, html: 'recommend<br><em>most strongly</em><br>for insomnia.' },
+  { t0: T.a, t1: 51.2, top: 292, size: 84, html: 'A warm <em>bath</em> or <em>shower</em><br>1 to 2 hours<br>before bed' },
+  { t0: T.also, t1: 54.9, top: 292, size: 86, html: 'also helped people<br>fall asleep <em>sooner</em><br>in studies.' },
+  { t0: T.if2, t1: 58.2, top: 292, size: 86, html: 'If it takes you<br><em>over 30 minutes</em><br>to fall asleep,' },
+  { t0: T.three, t1: 61.1, top: 292, size: 86, html: '3 or more<br>nights a week,<br>for <em>3 months</em>,' },
+  { t0: T.see, t1: 63.4, top: 300, size: 96, html: 'see a <em>doctor</em><br>about insomnia.' },
+  { t0: T.and5, t1: 68.4, top: 292, size: 82, html: 'And don’t wait that long<br>if poor sleep is making<br>life <em>hard to cope with</em>.' },
+  { t0: T.final, t1: 99, top: 360, size: 92, html: 'Let’s get you back to<br><em>factory settings.</em>' },
 ];
 const OVL = {};
 function overlayInit(S) {
   const O = S.O, tag = (cls, txt2, size, bsize) => { const e = O.tag(cls, txt2); e.style.fontSize = size + 'px'; const b = e.querySelector('b'); if (b && bsize) b.style.fontSize = bsize + 'px'; return e; };
-  OVL.normal = tag('tag', 'Normal<b>10 to 20 min</b>', 26, 44);
-  OVL.minute = tag('tag', 'Under a minute<b>maybe sleep debt</b>', 24, 40);
-  OVL.caf = tag('tag', 'Caffeine<b>+9 min to fall asleep</b>', 24, 40);
-  OVL.lost = tag('tag', 'Sleep<b>45 min less</b>', 24, 40);
-  OVL.cut = tag('tag', 'One review<b>8.8 hours before bed</b>', 24, 40);
-  OVL.nhs = tag('tag', 'NHS<b>6 hours</b>', 24, 44);
-  OVL.bath = tag('tag', 'Warm bath or shower<b>1 to 2 hours before</b>', 24, 40);
-  OVL.tried = tag('tag', 'Tried hard<b>34 min</b>', 26, 48);
-  OVL.didnt = tag('tag', 'Didn’t try<b>22 min</b>', 26, 48);
-  OVL.twenty = tag('tag', 'Still awake<b>20 min</b>', 26, 44);
-  OVL.cbt = tag('tag', 'CBT for insomnia<b>first-line</b>', 24, 40);
-  OVL.trials = tag('tag', 'Trials<b>20</b>', 24, 48);
-  OVL.faster = tag('tag', 'About<b>19 min faster</b>', 24, 44);
-  OVL.long = tag('tag', 'Over 30 min<b>3 nights a week · 3 months</b>', 22, 36);
+  OVL.normal = tag('tag', 'Most people<b>10 to 20 min</b>', 26, 46);
+  OVL.tried = tag('tag', 'Told to fall asleep fast<b>said 34 min</b>', 22, 42);
+  OVL.didnt = tag('tag', 'Not trying<b>said 22 min</b>', 22, 42);
+  OVL.twenty = tag('tag', 'Still awake<b>20 min</b>', 26, 46);
+  OVL.cbt = tag('tag', 'CBT for insomnia<b>strongly recommended</b>', 22, 40);
+  OVL.bath = tag('tag', 'Warm bath or shower<b>1 to 2 h before bed</b>', 22, 40);
+  OVL.over = tag('tag', 'Over<b>30 min</b>', 26, 46);
+  for (const e of [OVL.cbt]) Object.assign(e.style, { background: 'rgba(8,9,11,.58)', padding: '12px 18px 14px', borderRadius: '16px' });
 }
 function overlay(S, t) {
   const D = DIAL, at = (v, r = DIAL_R * 1.15) => { const a = ANG(v); return new THREE.Vector3(D.x + Math.sin(a) * r, D.y + 0.014, D.z - Math.cos(a) * r); };
-  place(S, OVL.normal, at(15), 50, -40, pulse(t, T.ten, T.out - 0.2));
-  place(S, OVL.minute, new THREE.Vector3(0.56, 0.3, -0.5), 30, 0, pulse(t, T.short - 0.2, T.inStudies - 0.3));
-  place(S, OVL.caf, at(24), 40, -60, pulse(t, T.nine, T.cut + 0.6));
-  { const C = W.clock.g.position; place(S, OVL.lost, new THREE.Vector3(C.x + 0.05, C.y + 0.07, C.z + 0.03), 40, -30, pulse(t, T.fortyfive - 0.1, T.regular - 0.4)); }
-  { const C = W.clock.g.position; place(S, OVL.cut, new THREE.Vector3(C.x, C.y + 0.02, C.z + 0.04), 50, 30, pulse(t, T.almost - 0.2, T.nhs - 0.1));
-    place(S, OVL.nhs, new THREE.Vector3(C.x, C.y + 0.02, C.z + 0.04), 50, 30, pulse(t, T.six - 0.3, T.warm - 0.6));
-    place(S, OVL.bath, new THREE.Vector3(C.x, C.y + 0.17, C.z), -80, -60, pulse(t, T.oneTwo - 0.2, T.bed2 + 0.4)); }
-  place(S, OVL.tried, at(34), 40, -50, pulse(t, T.t34, T.notAsleep - 0.4));
-  place(S, OVL.didnt, at(22), -230, -90, pulse(t, T.t22 - 0.3, T.notAsleep - 0.4));
-  place(S, OVL.twenty, at(20), 40, -40, pulse(t, T.twenty2, T.getUp + 0.3));
-  place(S, OVL.cbt, at(40, DIAL_R * 1.5), -40, -170, pulse(t, T.cbt - 0.2, T.across - 0.3));
-  place(S, OVL.trials, at(-1, DIAL_R * 1.5), -120, 10, pulse(t, T.trials, T.fell - 0.2));
-  place(S, OVL.faster, at(22, DIAL_R * 1.8), -170, -90, pulse(t, T.nineteen, T.over - 0.5));
-  place(S, OVL.long, at(36, DIAL_R * 1.4), -60, -170, pulse(t, T.thirty, T.final - 0.3));
+  // tags above the dial as seen (its highest point on screen), centred on it, or to its left or right
+  let top = null, ty = 9e9; for (let v = -7.5; v <= 52.5; v += 2.5) { const w = at(v, DIAL_R * 1.2), y = w.clone().project(S.cam).y; if (-y < ty) { ty = -y; top = w; } }
+  const ab = (e, side, o) => { const w = e.offsetWidth || 240, h = e.offsetHeight || 110; place(S, e, top, side === 0 ? -w / 2 : side < 0 ? -w - 14 : 14, -h - 22, 1);
+    e.style.opacity = (o * parseFloat(e.style.opacity || 1)).toFixed(3); e.style.filter = `blur(${((1 - o) * 8).toFixed(2)}px)`; };
+  ab(OVL.normal, 0, pulse(t, T.ten, 17.25));
+  ab(OVL.didnt, -1, pulse(t, T.t22 - 0.3, 31.4));
+  ab(OVL.tried, 1, pulse(t, T.t34, 31.4));
+  ab(OVL.twenty, 0, pulse(t, T.minutes3 - 0.1, G0 + 0.5));
+  place(S, OVL.cbt, new THREE.Vector3(0.36, 0.62, -0.25), 0, 0, pulse(t, T.treatment, 47.3));
+  { const C = W.clock.body.localToWorld(new THREE.Vector3(0, W.clock.R + 0.004, W.clock.D / 2)); place(S, OVL.bath, C, -(OVL.bath.offsetWidth || 300) / 2, -(OVL.bath.offsetHeight || 100) - 24, pulse(t, T.one, 51.0)); }
+  ab(OVL.over, 0, pulse(t, T.thirty, T.final - 0.3));
   const c = new THREE.Vector3(D.x, D.y + 0.0142, D.z);
   logoEnd(S, t, { t0: T.logo, center: c, edge: c.clone().add(new THREE.Vector3(0, 0, LOGO_R)) });
 }
@@ -679,7 +836,7 @@ function overlay(S, t) {
 makeFilm({
   T, caps: CAPS, subs: [], build, update, pose: camPose, overlay, overlayInit, focus: focusAt,
   stage: { bg: 0x07080a, reflSize: 6, env: 0.1, far: 30 },
-  aperture: [[0, 0.002], [4.3, 0.004], [8.6, 0.002], [13.6, 0.003], [21.6, 0.004], [30.6, 0.002], [36.6, 0.003], [43, 0.002], [46.6, 0.004], [50.8, 0.0015], [59, 0.004], [70, 0.003], [77.9, 0.003]],
-  bloom: [[0, 0.42], [36, 0.55], [49, 0.45], [77, 0.55]],
-  fast: [[8.8, 9.6, 2], [21.6, 24.6, 3], [27.5, 29.2, 2], [29.6, 30.8, 2], [35.2, 36.2, 2], [42.5, 48.3, 2], [51.6, 53.2, 2], [56.3, 57.8, 2]],
+  aperture: [[0, 0.002], [3.9, 0.003], [9.8, 0.004], [18.3, 0.003], [24.1, 0.002], [26.6, 0.004], [35.0, 0.0015], [41.5, 0.004], [44.5, 0.002], [49.0, 0.002], [55.9, 0.003], [69.6, 0.003]],
+  bloom: [[0, 0.42], [17.5, 0.55], [23, 0.45], [68, 0.55]],
+  fast: [[2.7, 4.2, 2], [7.4, 10.0, 2], [16.8, 18.4, 2], [22.6, 26.8, 2], [33.4, 35.2, 2], [40.3, 41.6, 2], [41.5, 42.7, 3], [42.6, 44.6, 2], [47.2, 49.2, 2], [54.3, 56.0, 2], [67.9, 69.7, 2]],
 });
