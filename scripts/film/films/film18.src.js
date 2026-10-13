@@ -318,10 +318,10 @@ function makeCold(scene) {
   const fat = new THREE.Mesh(new RoundedBoxGeometry(0.12, 0.075, 0.085, 4, 0.016), phys({ color: 0xf1e3b8, roughness: 0.55, clearcoat: 0.25, sheen: 0.6, sheenColor: new THREE.Color(0xfff4d6), roughnessMap: noiseTex(23, 256, 0.6, 1.0, 6) }));
   fat.position.set(ST.x, ST.y + 0.032 + 0.0375, ST.z); fat.rotation.y = 0.25; fat.visible = false; g.add(fat);
   const fatTag = label(0.1, 0.022, [['700 G OF FAT', 46, '#e6e8eb']], { bg: '#16171a' }); fatTag.position.set(ST.x, ST.y - 0.015, ST.z + 0.1812); g.add(fatTag);
-  // the stool
+  // the stool (splayed legs, feet on the floor)
   const stool = new THREE.Group(); stool.position.set(0, 0, -0.02); g.add(stool);
   const seat = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.035, 48), woodM()); seat.position.y = 0.46; stool.add(seat);
-  for (let k = 0; k < 3; k++) { const a = (k / 3) * Math.PI * 2 + 0.3, l = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.012, 0.47, 12), woodM()); l.position.set(Math.cos(a) * 0.12, 0.22, Math.sin(a) * 0.12); l.rotation.set(Math.sin(a) * 0.12, 0, -Math.cos(a) * 0.12); stool.add(l); }
+  for (let k = 0; k < 3; k++) { const a = (k / 3) * Math.PI * 2 + 0.3, l = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.012, 0.45, 12), woodM()); l.position.set(Math.cos(a) * 0.12, 0.227, Math.sin(a) * 0.12); l.rotation.set(Math.sin(a) * 0.12, 0, -Math.cos(a) * 0.12); stool.add(l); }
   // the stand at its left: the clock; under its shelf, the day count and the temperature
   const PX = 0.42, pole = new THREE.Mesh(new THREE.CylinderGeometry(0.012, 0.012, 1.7, 16), black()); pole.position.set(PX, 0.85, -0.12); g.add(pole);
   const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.16, 0.18, 0.025, 40), black()); foot.position.set(PX, 0.0125, -0.12); g.add(foot);
@@ -481,7 +481,7 @@ function where(t) { return t < SWAP1 ? 'shower' : t < SWAP2 ? 'stool' : 'tank'; 
 const STAND_ARM = { dir: [0.1, -1, 0.0], twist: 0.15, elbow: 0.2, pro: 1.45, wf: 0.08 };
 const CHATTER2 = 52.5;   // the teeth start again on the stool as the camera comes to it
 const screamK = (t) => s5(T.scream - 0.06, T.scream + 0.12, t) * (1 - s5(T.shower + 0.15, T.shower + 0.5, t));
-const hugOn = (t) => where(t) === 'shower' ? s5(T.shower + 0.05, T.shower + 0.6, t) : 1;
+const hugOn = (t) => where(t) === 'shower' ? s5(T.shower + 0.05, T.shower + 0.9, t) : 1;
 const chatter = (t) => {   // teeth: open a little, shut, at about seven a second; none in the tank
   const on = where(t) === 'shower' ? ss(T.shower + 0.45, T.shower + 0.75, t) : where(t) === 'stool' ? ss(CHATTER2 - 0.3, CHATTER2, t) : 0;
   if (on <= 0) return 0; const ph = t * 7.3 + 0.3 * Math.sin(t * 2.1), f = ph - Math.floor(ph), kick = 0.6 + 0.4 * hash(Math.floor(ph));
@@ -500,9 +500,12 @@ function poseStand(t, solving = false) {
 }
 function armsHug(k) {
   const R = W.rig;
-  for (const Side of ['Right', 'Left']) { const p = W.hug ? mixArm(STAND_ARM, W.hug[Side], k) : STAND_ARM; poseArm(R.arms[Side], p); setWrist(Side === 'Left' ? W.wristL : W.wristR, p);
-    R.arms[Side].girdle.rotation.set(0, SHOULDERS_BACK * (1 - k) * R.arms[Side].s, 0); }   // shoulders back while it stands tall
-  W.handL.curl(0.3 + 0.3 * k); W.handR.curl(0.3 + 0.3 * k);
+  for (const Side of ['Right', 'Left']) { const ks = Side === 'Right' ? clamp01(k / 0.55) : clamp01((k - 0.45) / 0.55);   // the right arm (in front) first, then the left slides in under it, close to the body
+    const p = !W.hug ? STAND_ARM : ks < 0.5 ? mixArm(STAND_ARM, W.hug[Side].mid, ks * 2) : mixArm(W.hug[Side].mid, W.hug[Side], ks * 2 - 1); poseArm(R.arms[Side], p);   // forward first, then folded in: the forearm never sweeps through the chest setWrist(Side === 'Left' ? W.wristL : W.wristR, p);
+    R.arms[Side].girdle.rotation.set(0, SHOULDERS_BACK * (1 - k) * R.arms[Side].s, 0);   // shoulders back while it stands tall
+    const H = Side === 'Left' ? W.handL : W.handR, F = W.hug && W.hug[Side].fit, kf = Side === 'Right' ? ss(0.9, 1, k) : ss(0.6, 1, ks);   // the fingers close on the arm as the hand arrives (the right's once the left arm is under them)
+    const open = Side === 'Right' ? lerp(0.3, 0.08, ks) : 0.3;   // the right hand comes in flat, then grips once the left arm is under it
+    if (F) H.curl(0, F.per.map((v) => lerp(open, v, kf)), lerp(open, F.tk, kf)); else H.curl(0.3); }
 }
 const SHOULDERS_BACK = 0.06;
 function solveHug() {   // each hand round the other upper arm, forearms across the chest; solved in turns, since each arm moves the other's target
@@ -515,31 +518,66 @@ function solveHug() {   // each hand round the other upper arm, forearms across 
     const r = solveHugArm(R, Side, Side === 'Left' ? W.handL : W.handR, at, it === 0 ? null : cur[Side]);
     cur[Side] = r; out[Side] = r;
   }
+  // then clear: the hand and forearm kept HUG_CLR off the ribs, the sternum, the pelvis and the other arm (the plain solve
+  // put the wrists on the chest and the fingers into the other humerus); the grip moves to the front and outside of the arm
+  const fixed = []; for (const m of W.meshes) if (/rib|costal|sternum|manubrium|xiphoid|hip bone|clavicle/i.test(m.userData.name)) fixed.push(...meshPts(m, 1));
+  for (let it = 0; it < 2; it++) for (const Side of ['Right', 'Left']) {
+    const other = Side === 'Right' ? 'Left' : 'Right', A = R.arms[other], H = Side === 'Left' ? W.handL : W.handR;
+    poseArm(A, cur[other]); setWrist(other === 'Left' ? W.wristL : W.wristR, cur[other]); R.root.updateMatrixWorld(true);
+    const sh = new THREE.Vector3(), el = new THREE.Vector3(); A.arm.getWorldPosition(sh); A.elbow.getWorldPosition(el);
+    const at = sh.clone().lerp(el, 0.5).add(new THREE.Vector3(0.014 * A.s, 0, Side === 'Right' ? 0.05 : 0.026));
+    const gr = ptGrid([...fixed, ...sideMeshes(other, /humerus|radius|ulna|scaphoid|lunate|triquetr|pisiform|trapez|capitate|hamate|metacarpal|phalan/i).flatMap((m) => meshPts(m, 2))]);
+    poseArm(R.arms[Side], cur[Side]); setWrist(H.wr, cur[Side]); H.curl(0.3);
+    const samp = sideMeshes(Side, /humerus|radius|ulna|scaphoid|lunate|triquetr|pisiform|trapez|capitate|hamate|metacarpal|proximal phalanx/i).flatMap((m) => { const a = m.geometry.attributes.position, st = Math.max(1, Math.floor(a.count / 60)), o2 = [];
+      for (let i = 0; i < a.count; i += st) o2.push([m, new THREE.Vector3().fromBufferAttribute(a, i)]); return o2; });
+    const v = new THREE.Vector3();
+    const clr = () => { let e = 0; for (const [m, l] of samp) { const d = nearPt(gr, v.copy(l).applyMatrix4(m.matrixWorld), HUG_CLR); e += HUG_CLR - d; } return 60 * e; };
+    const r = solveHugArm(R, Side, H, at, cur[Side], clr); cur[Side] = r; out[Side] = r; out[Side].clear = +(clr() / 60).toFixed(4);
+  }
+  // the fingers: each closed on the other arm until it is clear of it (9 mm to the nearest point of its surface mesh)
+  for (const Side of ['Right', 'Left']) { poseArm(R.arms[Side], cur[Side]); setWrist(Side === 'Left' ? W.wristL : W.wristR, cur[Side]); }
+  R.root.updateMatrixWorld(true);
+  for (const Side of ['Right', 'Left']) {
+    const other = Side === 'Right' ? 'Left' : 'Right', H = Side === 'Left' ? W.handL : W.handR;
+    const gr = ptGrid([...fixed, ...sideMeshes(other, /humerus|radius|ulna/i).flatMap((m) => meshPts(m, 1))]);
+    const f = H.fit((q) => nearPt(gr, q, 0.08), { need: 0.009, kmin: 0.05, kmax: 0.9 }); out[Side].fit = f;
+  }
+  for (const Side of ['Right', 'Left']) { const h = out[Side], fwd = Side === 'Right' ? 0.6 : 0.15, d = new THREE.Vector3(...h.dir).normalize().add(new THREE.Vector3(0, 0.12, fwd)).normalize();   // half way in: the arm out in front (the right, which ends in front, further out)
+    h.mid = { ...h, dir: d.toArray(), elbow: Math.max(0.5, h.elbow * (Side === 'Right' ? 0.6 : 0.85)) }; }
   return out;
 }
-function solveHugArm(R, Side, H, at, start) {   // like solveHand, but the upper arm must hang down and forward, never up; the forearm turns (pro), the wrist barely
+// clearance helpers: a mesh's points where it is now; a 1 cm grid of points; the distance to the nearest grid point within r
+const HUG_CLR = 0.012;
+const sideMeshes = (Side, re) => W.meshes.filter((m) => re.test(m.userData.name) && new RegExp(`\\b${Side}\\b`, 'i').test(m.userData.name));
+function meshPts(m, step) { m.updateMatrixWorld(true); const a = m.geometry.attributes.position, o = []; for (let i = 0; i < a.count; i += step) o.push(new THREE.Vector3().fromBufferAttribute(a, i).applyMatrix4(m.matrixWorld)); return o; }
+function ptGrid(pts, c = 0.01) { const G = new Map(); for (const p of pts) { const k = `${Math.floor(p.x / c)},${Math.floor(p.y / c)},${Math.floor(p.z / c)}`; let a = G.get(k); if (!a) G.set(k, (a = [])); a.push(p); } return { G, c }; }
+function nearPt(gr, p, r) { const { G, c } = gr, n = Math.ceil(r / c), x0 = Math.floor(p.x / c), y0 = Math.floor(p.y / c), z0 = Math.floor(p.z / c); let b = r * r;
+  for (let dx = -n; dx <= n; dx++) for (let dy = -n; dy <= n; dy++) for (let dz = -n; dz <= n; dz++) { const a = G.get(`${x0 + dx},${y0 + dy},${z0 + dz}`); if (!a) continue;
+    for (const q of a) { const d = (q.x - p.x) ** 2 + (q.y - p.y) ** 2 + (q.z - p.z) ** 2; if (d < b) b = d; } }
+  return Math.sqrt(b); }
+function solveHugArm(R, Side, H, at, start, clr = null) {   // like solveHand, but the upper arm must hang down and forward, never up; the forearm turns (pro), the wrist barely
   R.root.updateMatrixWorld(true);
   const A = R.arms[Side], Wr = H.wr, s = A.s, h = new THREE.Vector3(), q = new THREE.Quaternion(), pn = new THREE.Vector3(), dv = new THREE.Vector3();
   const fore = new THREE.Vector3(-s, 0.12, 0.2).normalize(), cl = (v, a, b) => Math.min(b, Math.max(a, v));
   const err = (p) => { poseArm(A, p); setWrist(Wr, p); A.girdle.updateMatrixWorld(true); h.copy(H.handle).applyMatrix4(Wr.g.matrixWorld); let E = h.distanceTo(at);
     Wr.g.getWorldQuaternion(q); E += 0.25 * (1 - pn.set(0, -1, 0).applyQuaternion(q).dot(fore));
     dv.set(p.dir[0], p.dir[1], p.dir[2]).normalize(); E += 3 * Math.max(0, dv.y + 0.6) ** 2 + 1 * Math.max(0, -dv.z) ** 2;
-    E += 0.01 * (p.wf ** 2 + 2 * p.wd ** 2) + 0.06 * p.wr ** 2; return E; };
+    E += 0.01 * (p.wf ** 2 + 2 * p.wd ** 2) + 0.06 * p.wr ** 2; if (clr) E += clr(); return E; };
   const descend = (b0) => { let best = { dir: [...b0.dir], twist: b0.twist, elbow: b0.elbow, wf: b0.wf || 0, wd: b0.wd || 0, wr: b0.wr || 0, pro: b0.pro ?? 1.6, retract: 0, elevate: 0 }, bestE = err(best);
     for (const st of [0.25, 0.12, 0.06, 0.03, 0.015, 0.007]) for (let it = 0; it < 60; it++) { let improved = false;
-      for (const key of ['d0', 'd1', 'd2', 'twist', 'elbow', 'wf', 'wd', 'wr', 'pro']) for (const sg of [-1, 1]) {
+      for (const key of (clr ? ['d0', 'd1', 'd2', 'twist', 'elbow', 'pro'] : ['d0', 'd1', 'd2', 'twist', 'elbow', 'wf', 'wd', 'wr', 'pro'])) for (const sg of [-1, 1]) {   // clearing keeps the wrist as it was
         const c = { ...best, dir: [...best.dir] }; if (key[0] === 'd') c.dir[+key[1]] += sg * st; else c[key] += sg * st * 2;
         c.elbow = cl(c.elbow, 0, 2.6); c.wf = cl(c.wf, -1.1, 1.1); c.wd = cl(c.wd, -0.4, 0.4); c.wr = cl(c.wr, -0.6, 0.6); c.pro = cl(c.pro, 0, 2.6);
         const E = err(c); if (E < bestE) { bestE = E; best = c; improved = true; } }
       if (!improved) break; }
     return { best, bestE }; };
   let out = start ? descend(start) : { best: null, bestE: 9 };
-  for (const dir of [[-0.15, -0.85, 0.45], [0.05, -0.9, 0.35], [-0.3, -0.75, 0.6]]) for (const twist of [-0.6, 0.4, 1.2]) for (const elbow of [1.7, 2.2]) {
+  if (!clr) for (const dir of [[-0.15, -0.85, 0.45], [0.05, -0.9, 0.35], [-0.3, -0.75, 0.6]]) for (const twist of [-0.6, 0.4, 1.2]) for (const elbow of [1.7, 2.2]) {
     const r = descend({ dir, twist, elbow }); if (r.bestE < out.bestE) out = r; }
   poseArm(A, out.best); setWrist(Wr, out.best); A.girdle.updateMatrixWorld(true); h.copy(H.handle).applyMatrix4(Wr.g.matrixWorld);
   return { ...out.best, err: out.bestE, dbg: { pos: +h.distanceTo(at).toFixed(4), pro: +out.best.pro.toFixed(2), at: at.toArray().map((v) => +v.toFixed(3)) } };
 }
-const sitP = (seatY, x, z) => new THREE.Vector3(x, seatY + W.sitDrop - 0.012, z);
+const sitP = (seatY, x, z) => new THREE.Vector3(x, seatY + W.sitDrop + 0.003, z);   // the sit bones just on the seat
 function poseSit(t, P, feetY, feetZ, hugK) {   // seated upright, a little hunched against the cold; shins down, feet on a floor
   const R = W.rig, sh = shiver(t);
   W.body.quaternion.identity(); W.body.position.copy(P).add(new THREE.Vector3(-R.P0.x + sh * 0.0015 * Math.sin(t * 71), -R.P0.y, -R.P0.z));
@@ -596,8 +634,8 @@ function buildCam() {
     { t: 41.6, p: V(5.034, 1.305, 1.77), l: V(5.034, 1.3, -0.05), fov: 36, stop: true },
     { t: 42.4, p: V(5.48, 0.86, 0.92), l: V(5.48, 0.85, 0.0), fov: 36, stop: true },                                    // the scale, the fat
     { t: 47.4, p: V(5.48, 0.858, 0.88), l: V(5.48, 0.85, 0.0), fov: 36, stop: true },
-    { t: 48.0, p: V(6.55, 1.42, 1.79), l: V(6.55, 1.41, 0.0), fov: 36, stop: true },                                    // six weeks, two hours a day, 17 °C
-    { t: 52.15, p: V(6.55, 1.415, 1.73), l: V(6.55, 1.41, 0.0), fov: 36, stop: true },
+    { t: 48.0, p: V(6.6, 1.38, 1.79), l: V(6.6, 1.37, 0.0), fov: 32, stop: true },                                    // six weeks, two hours a day, 17 °C
+    { t: 52.15, p: V(6.6, 1.375, 1.73), l: V(6.6, 1.37, 0.0), fov: 32, stop: true },   // framed right of the stool: no sliver of the skeleton at the edge
     { t: 52.8, p: V(6.3, 1.32, 2.85), l: V(6.28, 1.12, 0.0), fov: 38, stop: true },                                     // it shivers on the stool
     { t: 54.45, p: V(6.3, 1.315, 2.77), l: V(6.28, 1.12, 0.0), fov: 38, stop: true },
     { t: SWAP2, p: V(7.0, 1.2, 2.66), l: V(6.98, 0.98, 0.0), fov: 38 },                                                 // neither the stool nor the tank in view: it moves
@@ -722,7 +760,7 @@ function overlay(S, t) {
 }
 
 // ------------------------------------------------------------------ the timing table the sound reads (timing18.json)
-W.timing = { cold: T.scream - 0.2, scream: [T.scream - 0.06, T.shower + 0.5], hug: T.shower + 0.05, chatter: [T.shower + 0.45, CHATTER2], swap: [SWAP1, SWAP2],
+W.timing = { cold: T.scream - 0.2, scream: [T.scream - 0.06, T.shower + 0.5], hug: [T.shower + 0.5, T.shower + 0.9], chatter: [T.shower + 0.45, CHATTER2], swap: [SWAP1, SWAP2],
   pod: [T.fix, T.whole], row: T.ended, coldTile: T.thirty, month: T.everyDay, sick: T.reported + 0.1, ill: T.no, therms: T.still, meet: T.more - 0.05,
   tubs: T.eleven, stamps: [T.immunity + 0.05, T.mood + 0.05], grow: [T.training - 0.1, T.growth + 0.6], fat: FAT_DROP + Math.sqrt(2 * 0.4 / 9.81),
   days: [T.six + 0.02, T.weeks + 0.55], clock: [T.two, T.aDay + 0.45], temp: T.seventeen, gasp: T.gasp, breath: BREATH, beat: BEAT,
@@ -730,6 +768,7 @@ W.timing = { cold: T.scream - 0.2, scream: [T.scream - 0.06, T.shower + 0.5], hu
 
 makeFilm({
   T, caps: CAPS, subs: [], build, update, pose: camPose, overlay, overlayInit, focus: focusAt,
+  shade: [[2.7, 3.2], [47.45, 47.95]],   // the deep scrim behind the words: two camera moves carry the skull up behind them
   stage: { bg: 0x07080a, reflSize: 9, env: 0.12, far: 30 },
   aperture: [[0, 0.004], [2.6, 0.004], [3.35, 0.002], [6.5, 0.002], [8.3, 0.003], [74.6, 0.003]],
   bloom: [[0, 0.5], [74, 0.55]],
