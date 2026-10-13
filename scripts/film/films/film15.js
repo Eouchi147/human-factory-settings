@@ -429,10 +429,10 @@ function poseBody(t) {
   const [yaw, pitch] = headAt(t);
   bendSpine(R.seg, { lum: 0.1, tho: 0.22, cer: pitch + 0.015 * br });
   for (const n of SPINE_CER) { const s = R.seg[n]; if (s) s.g.rotation.y += yaw / SPINE_CER.length; }
-  if (HANDS) { const ty = Math.max(...TYPE.map(([a, b]) => pulse(t, a - 0.15, b + 0.15, 0.15)));
+  if (HANDS) { const ty = Math.max(...TYPE.map(([a, b]) => pulse(t, a - 0.35, b + 0.35, 0.4)));
     for (const Side of ['Right', 'Left']) { const A = R.arms[Side], h = HANDS[Side]; poseArm(A, h.sol); setWrist(W.hand[Side].wr, h.sol);
       // typing: the fingers lift and strike in a quick, uneven rhythm
-      const per = h.F.per.map((k, i) => { const ph = ((t * (5.3 + 0.7 * i) + (Side === 'Right' ? 0.37 : 0) + i * 0.23) % 1 + 1) % 1; return k - ty * 0.35 * Math.sin(Math.PI * Math.min(1, ph / 0.6)) ** 2; });
+      const per = h.F.per.map((k, i) => { const ph = t * (2.6 + 0.3 * i) + (Side === 'Right' ? 0.37 : 0) + i * 0.23; return k - ty * 0.3 * (0.5 - 0.5 * Math.cos(2 * Math.PI * ph)); });   // smooth strokes, about 3 a second: no fingertip jumps between frames
       W.hand[Side].curl(0, per, h.F.tk); } }
   W.body.quaternion.identity(); W.body.position.copy(W.sitP); W.body.updateMatrixWorld(true);
   for (const Side of ['Right', 'Left']) { const G = R.legs[Side]; _qa.setFromAxisAngle(X, -Math.PI / 2); G.hip.quaternion.copy(_qa);

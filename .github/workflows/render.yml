@@ -51,17 +51,35 @@ jobs:
         working-directory: scripts/film
         run: |
           S=$(( ${{ matrix.part }} * 2 )); STEP=$(( ${{ matrix.parts }} * 2 ))
-          for k in 0 1; do
-            python3 film_render.py frames --film ${{ matrix.film }} --w 1080 --h 1920 --fps 24 --t0 0 --t1 ${{ matrix.t1 }} --blur --shadow 2048 --port $((8800 + k)) --start $((S + k)) --step $STEP > render$k.log 2>&1 &
-          done
+          N=$(python3 -c "print(int(round(${{ matrix.t1 }} * 24)))")
+          R="python3 film_render.py frames --film ${{ matrix.film }} --w 1080 --h 1920 --fps 24 --t0 0 --t1 ${{ matrix.t1 }} --blur --shadow 2048"
+          mkdir -p plog
+          # two browsers, the second started 20 s after the first so they do not load the models at the same moment
+          $R --port 8850 --start $S --step $STEP > plog/p${{ matrix.part }}-a.log 2>&1 &
+          sleep 20; $R --port 8851 --start $((S + 1)) --step $STEP > plog/p${{ matrix.part }}-b.log 2>&1 &
           wait
-          echo "frames: $(ls frames | wc -l)"; tail -n 3 render0.log render1.log
+          # any frame of this part still missing (a browser that died): render it again, one browser, up to three passes
+          want() { python3 -c "import os;m=[i for k in (0,1) for i in range($S+k,$N,$STEP) if not os.path.exists('frames/f%05d.jpg'%i)];print(len(m))"; }
+          for pass in 1 2 3; do
+            M=$(want); echo "pass $pass: missing $M" | tee -a plog/p${{ matrix.part }}-retry.log
+            [ "$M" = 0 ] && break
+            $R --port $((8860 + pass)) --start $S --step $STEP >> plog/p${{ matrix.part }}-retry.log 2>&1 || true
+            $R --port $((8870 + pass)) --start $((S + 1)) --step $STEP >> plog/p${{ matrix.part }}-retry.log 2>&1 || true
+          done
+          M=$(want); echo "frames: $(ls frames | wc -l), missing: $M"; tail -n 3 plog/*.log
+          [ "$M" = 0 ] || { echo "part ${{ matrix.part }} incomplete"; exit 1; }
       - uses: actions/upload-artifact@v4
         with:
           name: frames-${{ matrix.film }}-${{ matrix.part }}
           path: scripts/film/frames/
           retention-days: 3
           compression-level: 0
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: plog-${{ matrix.film }}-${{ matrix.part }}
+          path: scripts/film/plog/
+          retention-days: 3
 
   checks:
     # the quality checks on GitHub's machines, not in Claude's workspace: bones through bones or props (audit), anything
@@ -121,12 +139,21 @@ jobs:
         with:
           name: qa-${{ matrix.film }}
           path: scripts/film
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: plog-${{ matrix.film }}-*
+          path: scripts/film/plog
+          merge-multiple: true
       - name: Sound and cuts
         working-directory: scripts/film
         env:
           HFS_REPO: ${{ github.workspace }}
         run: |
-          echo "frames: $(ls frames${{ matrix.nn }} | wc -l)"
+          N=$(python3 -c "print(int(round(${{ matrix.t1 }} * 24)))")
+          for f in plog/*.log; do [ -f "$f" ] && { echo "== $f"; tail -n 4 "$f"; }; done > parts.log 2>/dev/null || true
+          # every frame or nothing: a film with a gap is handed back as failed, never cut short
+          python3 -c "import os,sys;m=[i for i in range($N) if not os.path.exists('frames${{ matrix.nn }}/f%05d.jpg'%i)];open('missing.log','w').write('frames: %d of %d, missing %d\n%s\n'%($N-len(m),$N,len(m),m[:200]));print(open('missing.log').read());sys.exit(1 if m else 0)"
           python3 sound_${{ matrix.film }}.py ../voice/guides/${{ matrix.guide }}-voice-guide.wav ../voice/guides/${{ matrix.guide }}-report.json snd${{ matrix.nn }} > sound.log 2>&1
           python3 assemble_film.py ${{ matrix.n }} frames${{ matrix.nn }} snd${{ matrix.nn }} --mb 19 > assemble.log 2>&1
           cat assemble.log

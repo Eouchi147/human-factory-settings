@@ -1,6 +1,8 @@
 """caps_clear.py FILM [--dt 0.1] [--margin 0.012] [--port P]: walks the film's real camera path and reports every moment the
 skeleton sits behind the words on screen: any bone point projected inside a caption's text box (plus a margin) while that
-caption is fully up. Prints one line per stretch (time span, how deep into the box, the bone, the caption). Exit 1 if any."""
+caption is fully up. Moments the film declares dark are left out: inside its shade windows (F.shade, the deep scrim behind
+the words, at full strength) and its dark windows (F.dark: the skeleton unlit). Check those by eye on the contact sheet.
+Prints one line per stretch (time span, how deep into the box, the bone, the caption). Exit 1 if any."""
 import asyncio, subprocess, sys, time, os, json, argparse
 HERE = os.path.dirname(os.path.abspath(__file__))
 ap = argparse.ArgumentParser(); ap.add_argument('film'); ap.add_argument('--dt', type=float, default=0.1); ap.add_argument('--margin', type=float, default=0.012)
@@ -18,8 +20,12 @@ JS = r"""async ([dt, margin, t0, t1]) => {
   let bones = W.bones;
   if (!bones) { bones = []; W.rig.root.traverse((o) => { if (o.isMesh && o.userData && ['bone', 'tooth', 'cartilage'].includes(o.userData.tissue)) bones.push(o); }); }
   const v = new THREE.Vector3(), out = [], T1 = t1 > 0 ? t1 : api.T.end;
+  const ss = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
+  const shade = (t) => { let k = 0; for (const [a, b] of F.shade || []) k = Math.max(k, ss(a, a + 0.2, t) * (1 - ss(b - 0.2, b, t))); return k; };
+  let skipped = 0;
   for (let t = t0; t <= T1 + 1e-6; t += dt) {
     const cs = caps.filter((c) => t >= c.t0 + 0.2 && t <= c.t1 - 0.2); if (!cs.length) continue;
+    if (shade(t) > 0.97 || (F.dark || []).some(([a, b]) => t >= a && t <= b)) { skipped++; continue; }
     F.update(S, t); S.scene.updateMatrixWorld(true);
     const P = F.pose(S, t); cam.position.fromArray(P.p); cam.lookAt(new THREE.Vector3().fromArray(P.l)); cam.fov = P.fov ?? 30; cam.aspect = 1080 / 1920; cam.updateProjectionMatrix(); cam.updateMatrixWorld(true);
     let worst = null;
@@ -30,7 +36,7 @@ JS = r"""async ([dt, margin, t0, t1]) => {
         for (const c of cs) { const [bx0, by0, bx1, by1] = c.box; if (x >= bx0 - margin && x <= bx1 + margin && y >= by0 - margin && y <= by1 + margin) { const d = Math.min(y - (by0 - margin), by1 + margin - y, x - (bx0 - margin), bx1 + margin - x); if (!worst || d > worst.d) worst = { d, bone: m.userData.name, cap: c.text }; } } } }
     if (worst) out.push({ t: +t.toFixed(2), d: +worst.d.toFixed(3), bone: worst.bone, cap: worst.cap });
   }
-  return { caps: caps.length, out };
+  return { caps: caps.length, out, skipped: +(skipped * dt).toFixed(2) };
 }"""
 async def main():
     from playwright.async_api import async_playwright
@@ -51,6 +57,7 @@ async def main():
             if r['d'] > s['d']: s['d'], s['bone'] = r['d'], r['bone']
         else: spans.append({'t0': r['t'], 't1': r['t'], 'd': r['d'], 'bone': r['bone'], 'cap': r['cap']})
     for s in spans: print(f"{s['t0']:6.2f}-{s['t1']:6.2f}  {s['d']*100:4.1f}% into the words  {s['bone'][:38]:38s}  \"{s['cap']}\"")
+    if res.get('skipped'): print(f"(left out: {res['skipped']} s the film declares shaded or unlit)")
     print(f"{a.film}: {res['caps']} captions, bones behind the words: {len(spans)} stretches")
     sys.exit(1 if spans else 0)
 asyncio.run(main())
