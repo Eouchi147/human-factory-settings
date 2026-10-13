@@ -1,39 +1,178 @@
-// Human Factory Settings · Film 14 "Does intermittent fasting work?" · one continuous shot, 9:16.
-// A skeleton sits at a small table and waits. In front of it, a plate that is a clock: the fork and the knife are its
-// hands, and an eating window lights on the rim (noon to 8 pm; then 8 am to 4 pm). A beam balance weighs the trials:
-// noon to 8 against three meals a day, level; a calorie limit with or without the window, level. A newspaper: the 91%
-// scare, stamped conference abstract, not peer reviewed; two days, from memory; a link, not proof. Ninety-nine trials:
-// fasting outweighs eating freely, and ties with ordinary dieting. "It works like a diet": the brand on the plate's dial
-// reads DIET (the gag). The warnings, plain. The plate, from above, becomes the logo. The factory stamp is on the breastbone.
-import { THREE, ss, s5, lerp, clamp01, hash, camTrack, phys, shadows, spot, RoundedBoxGeometry,
+// Human Factory Settings · Film 14 "Intermittent fasting" (new direction, 7 Oct 2026) · one continuous shot, 9:16.
+// A skeleton sits at a table and drums its fingers, waiting for noon. In front of it a plate that is a clock: the knife and
+// the fork are its hands. Beside it a little hanging sign, EATING WINDOW: CLOSED, and a family pizza box. Noon: the box flies
+// open on a family pizza, the jaw drops, the sign spins round to OPEN (the gag). The window lights on the plate's rim, noon
+// to eight, and the hours fly by. A switch on the table, FAT BURNING, flips on in a sparkle; its cable runs down to a plug on
+// the floor, plugged into nothing. A balance weighs the trials: noon to 8 pm against three meals a day, level; the same
+// calorie limit on both pans, and an eating window dropped on one, still level; fasting against eating freely, down;
+// against ordinary dieting, level. The plate's brand appears under twelve: DIET. Midnight: a fridge flies open and its light
+// falls on the skeleton. Three proper meals land on the table. The warnings, plain. The plate, from above, becomes the logo.
+// The factory stamp is on the breastbone.
+import { THREE, ss, s5, lerp, clamp01, hash, camTrack, phys, shadows, spot, RoundedBoxGeometry, glowSprite,
   loadAnatomy, V3, place, logoEnd, makeFilm, outBack, stamp, stampCanvas, stampSpot, noiseTex } from '../kit.js';
-import { buildRig, skeletonKind, bendSpine, poseArm, legIK, worldVerts } from '../rig.js';
+import { buildRig, skeletonKind, bendSpine, poseArm, legIK, worldVerts, avgV, clearArms } from '../rig.js';
 import { makeLogoRing } from '../props.js';
+
+// ------------------------------------------------------------------ a wrist, and hands that can hold (from film 11, on the wrist)
+const HANDBONE = /scaphoid|lunate|triquetral|pisiform|trapezium|trapezoid|capitate|hamate|metacarpal|phalanx of/i;
+function makeWrist(R, Side, { pronate = false } = {}) {
+  const A = R.arms[Side], low = (m) => { const vs = worldVerts(m); let mn = 9; for (const v of vs) mn = Math.min(mn, v.y); return avgV(vs.filter((v) => v.y < mn + 0.012)); };
+  const rad = R.byName.get(`${Side} radius`), uln = R.byName.get(`${Side} ulna`);
+  const P = low(rad).lerp(low(uln), 0.5);
+  // pronate: the forearm turns as a real one does. The radius, and the hand on it, turn about the line from the middle of
+  // the radial head to the middle of the ulnar head; the ulna stays. setWrist's p.pro turns it (radians, + = pronation)
+  let host = A.elbow, hp = A.EL, pro = null, proAxis = null;
+  if (pronate) {
+    const rv = worldVerts(rad), uv = worldVerts(uln); let rt = -9, ub = 9; for (const v of rv) rt = Math.max(rt, v.y); for (const v of uv) ub = Math.min(ub, v.y);
+    const RH = avgV(rv.filter((v) => v.y > rt - 0.012)), UH = avgV(uv.filter((v) => v.y < ub + 0.016));
+    proAxis = UH.clone().sub(RH).normalize();
+    pro = new THREE.Group(); pro.position.copy(RH).sub(A.EL); A.elbow.add(pro); R.pivots.set(pro, RH.clone());
+    A.elbow.remove(rad); rad.position.copy(rad.userData.home).sub(RH); pro.add(rad);
+    host = pro; hp = RH;
+  }
+  const g = new THREE.Group(); g.position.copy(P).sub(hp); host.add(g);
+  for (const m of [...A.elbow.children]) if (m.isMesh && HANDBONE.test(m.userData.name) && m.userData.name.toLowerCase().includes(Side.toLowerCase())) { A.elbow.remove(m); m.position.copy(m.userData.home).sub(P); g.add(m); }
+  return { g, P, s: Side === 'Right' ? -1 : 1, pro, proAxis };
+}
+const setWrist = (Wr, p) => { Wr.g.rotation.set(p.wf || 0, (p.wr || 0) * Wr.s, (p.wd || 0) * Wr.s, 'YXZ'); if (Wr.pro) Wr.pro.quaternion.setFromAxisAngle(Wr.proAxis, (p.pro || 0) * Wr.s); };   // roll (forearm turn), then flex, then tilt; a pronating forearm turns too
+function rigHand(R, Side, Wr) {
+  const A = R.arms[Side], side = Side.toLowerCase(), eg = Wr.g, EL = Wr.P, by = (n) => R.byName.get(n);
+  const top = (m) => { const vs = worldVerts(m); let mx = -9, mn = 9; for (const v of vs) { mx = Math.max(mx, v.y); mn = Math.min(mn, v.y); } return avgV(vs.filter((v) => v.y > mx - 0.12 * (mx - mn))); };
+  const bot = (m) => { const vs = worldVerts(m); let mx = -9, mn = 9; for (const v of vs) { mx = Math.max(mx, v.y); mn = Math.min(mn, v.y); } return avgV(vs.filter((v) => v.y < mn + 0.12 * (mx - mn))); };
+  const F = ['index', 'middle', 'ring', 'little'].map((f) => ({ P: by(`Proximal phalanx of ${side} ${f} finger`), M: by(`Middle phalanx of ${side} ${f} finger`), D: by(`Distal phalanx of ${side} ${f} finger`) }));
+  const mcpI = top(F[0].P), mcpL = top(F[3].P), fdir = bot(F[1].D).sub(top(F[1].P)).normalize();
+  const across = mcpL.clone().sub(mcpI); across.sub(fdir.clone().multiplyScalar(across.dot(fdir))).normalize();
+  const n = new THREE.Vector3().crossVectors(fdir, across).normalize(); if (n.z < 0) n.negate();
+  const axis = new THREE.Vector3().crossVectors(fdir, n).normalize();   // +angle turns each finger toward the palm (n): the way fingers close
+  const joints = [];
+  for (const f of F) { const pts = [top(f.P), top(f.M), top(f.D)], gs = []; let parent = eg, pp = EL;
+    [f.P, f.M, f.D].forEach((m, i) => { const g = new THREE.Group(); g.position.copy(pts[i]).sub(pp); parent.add(g); m.parent.remove(m); m.position.copy(m.userData.home).sub(pts[i]); g.add(m); gs.push(g); parent = g; pp = pts[i]; }); joints.push(gs); }
+  const tP = by(`Proximal phalanx of ${side} thumb`), tD = by(`Distal phalanx of ${side} thumb`), tpt = [top(tP), top(tD)];
+  const ttip = bot(tD), tdir = ttip.clone().sub(tpt[0]).normalize(), aim = mcpI.clone().lerp(mcpL, 0.6).add(n.clone().multiplyScalar(0.03)).sub(ttip);
+  const taxis = new THREE.Vector3().crossVectors(tdir, aim).normalize(), tg = [];
+  { let parent = eg, pp = EL; [tP, tD].forEach((m, i) => { const g = new THREE.Group(); g.position.copy(tpt[i]).sub(pp); parent.add(g); m.parent.remove(m); m.position.copy(m.userData.home).sub(tpt[i]); g.add(m); tg.push(g); parent = g; pp = tpt[i]; }); }
+  const mid = mcpI.clone().add(mcpL).multiplyScalar(0.5);
+  const handle = mid.clone().addScaledVector(fdir, 0.03).addScaledVector(n, 0.024).sub(EL);
+  // prof: how a finger shares its closing between knuckle, middle and end joint (a fist by default; a hand flat on a
+  // phone's back that wraps its far edge bends mostly at the middle joints)
+  const PROF = [1.25, 1.5, 0.95];
+  const setF = (gs, kk, s, pr) => { gs[0].quaternion.setFromAxisAngle(axis, pr[0] * kk * s); gs[1].quaternion.setFromAxisAngle(axis, pr[1] * kk * s); gs[2].quaternion.setFromAxisAngle(axis, pr[2] * kk * s); };
+  function curl(k, per = null, tk = null, prof = PROF) {   // per: each finger's own closing [index, middle, ring, little]; tk: the thumb's
+    joints.forEach((gs, i) => setF(gs, per ? per[i] : k, 1 + 0.06 * i, prof));
+    const t = tk ?? k; tg[0].quaternion.setFromAxisAngle(taxis, 0.55 * t); tg[1].quaternion.setFromAxisAngle(taxis, 0.7 * t);
+  }
+  // close each finger (and the thumb) on an object until it is `need` off it: sdf(world point) is the distance to the object
+  // (+ outside). Returns { per, tk } for curl(); a finger that never meets it closes to kmax
+  function fit(sdf, { need = 0.003, kmin = 0.05, kmax = 0.95, prof = PROF, tmin = kmin } = {}) {   // tmin < 0 lets the thumb stand off, away from the palm
+    const v = new THREE.Vector3(), samp = (ms) => ms.map((m) => { const P = m.geometry.attributes.position, st = Math.max(1, Math.floor(P.count / 200)), pts = []; for (let i = 0; i < P.count; i += st) pts.push(new THREE.Vector3().fromBufferAttribute(P, i)); return { m, pts }; });
+    const gap = (S) => { eg.updateMatrixWorld(true); let g = 9; for (const { m, pts } of S) for (const p of pts) g = Math.min(g, sdf(v.copy(p).applyMatrix4(m.matrixWorld))); return g; };
+    // the first contact on the way from open to closed (a finger can pass an object's edge and curl clear of it again,
+    // so the whole sweep is scanned, then the contact is found finely)
+    const search = (S, set, k0 = kmin) => { set(k0); if (gap(S) < need) return k0; let lo = k0, hi = null;
+      for (let j = 1; j <= 24; j++) { const k = k0 + (kmax - k0) * (j / 24); set(k); if (gap(S) < need) { hi = k; break; } lo = k; }
+      if (hi === null) return kmax;
+      for (let j = 0; j < 12; j++) { const m = (lo + hi) / 2; set(m); if (gap(S) >= need) lo = m; else hi = m; } set(lo); return lo; };
+    const per = joints.map((gs, i) => search(samp(gs.map((g) => g.children.find((c) => c.isMesh)).filter(Boolean)), (kk) => setF(gs, kk, 1 + 0.06 * i, prof)));
+    const tk = search(samp(tg.map((g) => g.children.find((c) => c.isMesh)).filter(Boolean)), (kk) => { tg[0].quaternion.setFromAxisAngle(taxis, 0.55 * kk); tg[1].quaternion.setFromAxisAngle(taxis, 0.7 * kk); }, tmin);
+    return { per, tk };
+  }
+  const hand = new THREE.Vector3().crossVectors(fdir, across).dot(n) > 0 ? 1 : -1;   // n = hand * (fdir x across)
+  return { curl, fit, handle, across: across.clone(), n: n.clone(), fdir: fdir.clone(), eg, hand };
+}
+function solveHand(R, Side, H, at, init, aims = [], extra = null, starts = null) {   // starts: other initial poses to try (default: a spread for a standing body)   // an arm and wrist pose that puts the hand's grip at a world point, with hand directions (local v) turned toward world ones; extra(A) adds a posture cost
+  R.root.updateMatrixWorld(true);
+  const A = R.arms[Side], Wr = H.wr, h = new THREE.Vector3(), q = new THREE.Quaternion(), pn = new THREE.Vector3();
+  const err = (p) => { poseArm(A, p); setWrist(Wr, p); A.girdle.updateMatrixWorld(true); h.copy(H.handle).applyMatrix4(Wr.g.matrixWorld); let E = h.distanceTo(at);
+    if (aims.length) { Wr.g.getWorldQuaternion(q); for (const a of aims) E += a.w * (1 - pn.copy(a.v).applyQuaternion(q).dot(a.to)); }
+    if (extra) E += extra(A);
+    E += 0.01 * ((p.wf || 0) ** 2 + 2 * (p.wd || 0) ** 2 + 0.5 * (p.wr || 0) ** 2); return E; };
+  const descend = (start) => {
+    let best = { dir: [...start.dir], twist: start.twist, elbow: start.elbow, wf: start.wf || 0, wd: start.wd || 0, wr: start.wr || 0, pro: start.pro || 0, retract: 0, elevate: 0 }, bestE = err(best);   // pro (a pronating wrist) is carried as given, not searched
+    for (const st of [0.25, 0.12, 0.06, 0.03, 0.015, 0.007]) for (let it = 0; it < 40; it++) {
+      let improved = false;
+      for (const key of ['d0', 'd1', 'd2', 'twist', 'elbow', 'wf', 'wd', 'wr']) for (const sg of [-1, 1]) {
+        const c = { ...best, dir: [...best.dir] }; if (key[0] === 'd') c.dir[+key[1]] += sg * st; else c[key] += sg * st * 2; c.elbow = Math.min(2.6, Math.max(0, c.elbow)); c.wf = Math.min(1.1, Math.max(-1.1, c.wf)); c.wd = Math.min(0.4, Math.max(-0.4, c.wd)); c.wr = Math.min(2.2, Math.max(-2.2, c.wr));
+        const E = err(c); if (E < bestE) { bestE = E; best = c; improved = true; }
+      }
+      if (!improved) break;
+    }
+    return { best, bestE };
+  };
+  let out = descend(init);
+  const tries = starts || [[0.6, 0.8, 0.2], [0.35, 0.7, 0.45], [0.9, 0.35, 0.1], [0.5, 0.5, -0.3], [0.2, -0.2, 0.9]].flatMap((dir) => [-1.2, -0.4, 0.4, 1.2].flatMap((twist) => [1.3, 1.9, 2.4].map((elbow) => ({ dir, twist, elbow }))));
+  for (const st of tries) { if (out.bestE < 0.004) break; const r = descend(st); if (r.bestE < out.bestE) out = r; }
+  poseArm(A, out.best); setWrist(Wr, out.best); A.girdle.updateMatrixWorld(true); h.copy(H.handle).applyMatrix4(Wr.g.matrixWorld); Wr.g.getWorldQuaternion(q);
+  const dbg = { pos: +h.distanceTo(at).toFixed(4), dots: aims.map((a) => +pn.copy(a.v).applyQuaternion(q).dot(a.to).toFixed(3)), at: at.toArray().map((v) => +v.toFixed(3)) };
+  return { ...out.best, err: out.bestE, dbg };
+}
+const FIST = [1.25, 1.5, 0.95], FLAT_WRAP = [0.35, 1.6, 1.25];   // how the fingers close: a fist; flat on a phone's back, bent round its edge
+// a hand closing on what it holds: each finger goes from `base` toward its fitted closing, and never further in than that fit
+// while the object is there (a finger more closed than its fit would be inside the object)
+function gripCurl(H, G, g, base, prof) { H.curl(0, G.per.map((k) => lerp(Math.min(base, k), k, g)), lerp(Math.min(base, G.tk), G.tk, g), prof); }
+// the phone (props.js makePhone): a rounded box, its long edges rounded to half its thickness; local y = 0 is the back, Th the
+// screen. Signed distance from a point in the phone's own frame (+ outside)
+const PHONE = { W: 0.0716, L: 0.1476, Th: 0.0078 };
+function phoneSDF(p) {
+  const r = PHONE.Th / 2, qx = Math.abs(p.x) - (PHONE.W / 2 - r), qy = Math.abs(p.y - PHONE.Th / 2) - (PHONE.Th / 2 - r), qz = Math.abs(p.z) - (PHONE.L / 2 - r);
+  return Math.hypot(Math.max(qx, 0), Math.max(qy, 0), Math.max(qz, 0)) + Math.min(Math.max(qx, qy, qz), 0) - r;
+}
+// how far a hand's bones come inside their gap round an object (sdf: world point -> distance, + outside): fingers `finger`,
+// palm and wrist `palm` (the flesh that is not drawn). palmOnly skips the fingers (they are closed on the object after)
+function handGap(H, sdf, { palm = 0.006, finger = 0.003, palmOnly = false } = {}) {
+  if (!H._gapPts) { H._gapPts = []; H.wr.g.traverse((m) => { if (!m.isMesh) return; const P = m.geometry.attributes.position, st = Math.max(1, Math.floor(P.count / 40)), fing = /phalanx/i.test(m.userData.name);
+    for (let i = 0; i < P.count; i += st) H._gapPts.push({ m, p: new THREE.Vector3().fromBufferAttribute(P, i), fing }); }); }
+  const v = new THREE.Vector3(); let E = 0, worst = 0, who = '';
+  for (const q of H._gapPts) { if (palmOnly && q.fing) continue; const d = (q.fing ? finger : palm) - sdf(v.copy(q.p).applyMatrix4(q.m.matrixWorld)); if (d > 0) { E += d; if (d > worst) { worst = d; who = q.m.userData.name; } } }
+  return { E, worst, who };
+}
+// a posture cost that keeps an arm out of ellipsoids (world centre c, semi-axes r, the bone's own thickness included):
+// samples the upper arm (from a quarter of the way down, the shoulder itself sits where it sits), the forearm and the hand
+function keepOut(R, Side, H, zones, w = 3) {
+  const A = R.arms[Side], s = new THREE.Vector3(), e = new THREE.Vector3(), wr = new THREE.Vector3(), g = new THREE.Vector3(), p = new THREE.Vector3();
+  const f = (arm) => { A.arm.getWorldPosition(s); A.elbow.getWorldPosition(e); H.wr.g.getWorldPosition(wr); g.copy(H.handle).applyMatrix4(H.wr.g.matrixWorld);
+    let E = 0;
+    for (const [a, b, n, u0] of [[s, e, 10, 0.25], [e, wr, 10, 0], [wr, g, 4, 0]]) for (let i = 0; i <= n; i++) { p.lerpVectors(a, b, u0 + (1 - u0) * i / n);
+      for (const z of zones) { const q = Math.hypot((p.x - z.c.x) / z.r.x, (p.y - z.c.y) / z.r.y, (p.z - z.c.z) / z.r.z); if (q < 1) E += w * (1 - q); } }
+    return E; };
+  return f;
+}
+const mixArm = (a, b, k) => ({ dir: a.dir.map((v, i) => lerp(v, b.dir[i], k)), twist: lerp(a.twist, b.twist, k), elbow: lerp(a.elbow, b.elbow, k), wf: lerp(a.wf || 0, b.wf || 0, k), wd: lerp(a.wd || 0, b.wd || 0, k), wr: lerp(a.wr || 0, b.wr || 0, k), pro: lerp(a.pro || 0, b.pro || 0, k), retract: 0, elevate: 0, mix: [a, b, k] });
+
+
 
 // ------------------------------------------------------------------ timing, from the voice guide (word starts)
 const T = {
-  end: 76.7,
-  fasting: 0.35, trust: 2.26, clock: 3.19, dieting: 3.81,                                              // "Intermittent fasting. Trust the clock to do the dieting."
-  trial: 4.91, noon: 7.29, eight: 8.02, noCal: 8.72,
-  after: 11.01, twelve: 11.81, noMore: 12.25, three: 13.84, calories: 15.64, noDiff: 16.83,
-  year: 18.58, same: 21.34, limit: 22.42, one: 23.21, eight2: 25.07, four: 25.56, noSig: 26.56,
-  scare: 29.54, under8: 31.0, t91: 33.14, death: 37.4,
-  conf: 38.6, notPeer: 40.14, times: 41.96, twoDays: 43.09, memory: 43.93, link: 45.11, proof: 46.15,
-  across: 47.32, t99: 48.14, beat: 50.93, against: 52.96, tie: 55.62,
-  works: 56.74, diet: 57.96, because: 58.72, isOne: 59.55,
-  pregnant: 60.8, dontFast: 64.83, diabetes: 66.12, medication: 68.75, doctor: 69.93,
-  back: 72.53, factory: 73.39, settings: 73.69, logo: 74.4,
+  end: 79.21, logo: 76.69,
+  you: 0.35, skip: 0.8, breakfast: 1.01, call: 1.45, fasting: 2.55, and: 3.19, eat: 3.41, family: 3.79, pizza: 4.35, noon: 5.12, because: 5.6, window: 6.45, open: 7.23,
+  lets: 8.1, talk: 8.62, window2: 9.26,
+  your: 10.48, built: 11.53, hours: 11.98, food: 12.6, but: 13.02, long: 13.6, gap: 14.06, meals: 14.84, isnt: 15.29, magic: 15.83, fat: 16.34, switch: 17.2,
+  in: 18.68, trial: 19.27, only: 20.21, noon2: 20.85, eight: 21.46, evening: 22.13, no: 22.86, limit: 23.7, after: 24.52, twelve: 24.95, lost: 25.9, same: 26.93, weight: 27.3, three: 28.9, day: 29.87,
+  in2: 30.85, year: 31.46, both: 32.15, same2: 33.34, limits: 34.24, adding: 35.01, eighthr: 35.36, window3: 36.66, made: 37.26, clear: 37.86, difference: 38.29, weight2: 39.23,
+  across: 40.6, ninetynine: 41.28, fasting2: 42.33, beat: 42.84, freely: 43.74, but2: 44.24, against: 44.55, ordinary: 45.04, dieting: 45.89, mostly: 47.15, tie: 47.64,
+  clock: 48.91, magic2: 49.54, its: 50.01, one: 50.61, less: 51.68,
+  so: 52.87, window4: 53.95, snack: 54.69, use: 55.16, and2: 55.9, raid: 57.29, fridge: 57.87, midnight: 58.5, eat3: 58.97, three2: 59.44, proper: 59.66, meals3: 60.24, instead: 60.77,
+  dont: 62.2, pregnant: 63.34, diabetes: 64.87, ever: 66.43, disorder: 67.69, and3: 68.37, medication: 69.35, tell: 70.29, doctor: 70.89, change: 72.2,
+  final: 74.43, factory: 75.64, settings: 76.01,
 };
 
-// ------------------------------------------------------------------ the set (metres, floor at y = 0)
+// ------------------------------------------------------------------ the set (metres, floor at y = 0): the table at the origin; the skeleton sits at -z, facing +z; +x is its left
 const W = {}; window.HFS_W = W;
 const X = new THREE.Vector3(1, 0, 0), Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
-const TABLE = { w: 0.92, d: 0.62, top: 0.74 };                       // the table at the origin; the skeleton sits at -z, facing +z
-const SEAT = 0.46, SEAT_Z = -0.52;
+const TABLE = { w: 1.5, d: 0.75, top: 0.74 };
+const SEAT = 0.46, SEAT_Z = -0.45;
 const PLATE = new THREE.Vector3(0, TABLE.top, -0.06), PLATE_R = 0.135, LOGO_R = 0.036;
-const PAPER = new THREE.Vector3(0.3, TABLE.top, 0.06);
-const BAL = { x: 0.95, z: 0.55, top: 0.62 };
+const SIGN = new THREE.Vector3(-0.42, TABLE.top, 0.24);
+const PIZZA = new THREE.Vector3(0.5, TABLE.top, 0.06), BOX = { s: 0.42, h: 0.042 };
+const SWITCH = new THREE.Vector3(-0.56, TABLE.top, -0.2), PLUG = new THREE.Vector3(-0.95, 0, -0.36);
+const BAL = { x: 1.12, z: 0.62, top: 0.62, ry: 0 };
+const FRIDGE = { x: -1.55, z: 0.85, ry: 0.9, w: 0.6, h: 1.16, d: 0.6 };
+const MEALS = [new THREE.Vector3(0.45, TABLE.top, 0.08), new THREE.Vector3(0.04, TABLE.top, 0.255), new THREE.Vector3(-0.42, TABLE.top, 0.04)];
+const BOX_OPEN = [T.pizza - 0.05, T.pizza + 0.32], BOX_SHUT = [9.35, 9.75], BOX_GONE = [9.75, 10.55];
+const FLIP = [T.open - 0.15, T.open + 0.45];
+const MAGIC = T.magic + 0.05, CABLE_LOOK = [16.6, 17.9];
 const pulse = (t, a, b, r = 0.35) => ss(a, a + r, t) * (1 - ss(b - r, b, t));
+// a thing that falls h metres and lands at t1, then bounces a little
+const drop = (t, t1, h, b = 0.03) => { const tf = Math.sqrt((2 * h) / 9.81); if (t < t1 - tf) return h; if (t < t1) { const u = t1 - t; return 4.905 * u * u; } const u = t - t1; return b * h * Math.exp(-u * 9) * Math.abs(Math.sin(u * 22)); };
 function canvasTex(w, h, draw, { srgb = true } = {}) {
   const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h, c);
   const t = new THREE.CanvasTexture(c); if (srgb) t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 8; t.userData.canvas = c; return t;
@@ -43,28 +182,30 @@ function txt(x, s, px, py, { font = '800 100px Archivo', color = '#fff', align =
   if (maxW) { const w = x.measureText(s).width; if (w > maxW) { x.save(); x.translate(px, py); x.scale(maxW / w, 1); x.fillText(s, 0, 0); x.restore(); return; } }
   x.fillText(s, px, py);
 }
-const black = () => phys({ color: 0x151619, roughness: 0.45, clearcoat: 0.4 });
+const blackMat = () => phys({ color: 0x141518, roughness: 0.42, clearcoat: 0.45 });
+const lathe = (pts, n = 96) => new THREE.LatheGeometry(pts.map(([x, y]) => new THREE.Vector2(x, y)), n);
+const finish = (g) => { shadows(g); g.traverse((o) => o.layers.enable(1)); return g; };
 
 // ------------------------------------------------------------------ the table, the stool
 function makeTable(scene) {
   const g = new THREE.Group(); scene.add(g);
-  const wood = phys({ color: 0x1a120d, roughness: 0.42, clearcoat: 0.5, clearcoatRoughness: 0.3, roughnessMap: noiseTex(7, 256, 0.8, 1.0, 12) });
+  const wood = phys({ color: 0x1d140e, roughness: 0.42, clearcoat: 0.5, clearcoatRoughness: 0.3, roughnessMap: noiseTex(7, 256, 0.8, 1.0, 12) });
   const top = new THREE.Mesh(new RoundedBoxGeometry(TABLE.w, 0.03, TABLE.d, 4, 0.008), wood); top.position.y = TABLE.top - 0.015; g.add(top);
-  for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.014, TABLE.top - 0.03, 20), wood); leg.position.set(x * (TABLE.w / 2 - 0.06), (TABLE.top - 0.03) / 2, z * (TABLE.d / 2 - 0.06)); g.add(leg); }
-  const stool = new THREE.Group(); stool.position.set(0, 0, SEAT_Z); g.add(stool);
-  const st = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.035, 96), black()); st.position.y = SEAT - 0.0175; stool.add(st);
-  for (let i = 0; i < 3; i++) { const a = (i / 3) * Math.PI * 2 + 0.5, leg = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.011, SEAT - 0.03, 20), black());
+  for (const [x, z] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.02, 0.016, TABLE.top - 0.03, 20), wood); leg.position.set(x * (TABLE.w / 2 - 0.07), (TABLE.top - 0.03) / 2, z * (TABLE.d / 2 - 0.07)); g.add(leg); }
+  const stool = new THREE.Group(); stool.position.set(0, 0, SEAT_Z); g.add(stool); const black = blackMat();
+  const st = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.17, 0.035, 96), black); st.position.y = SEAT - 0.0175; stool.add(st);
+  for (let i = 0; i < 3; i++) { const a = (i / 3) * Math.PI * 2 + 0.5, leg = new THREE.Mesh(new THREE.CylinderGeometry(0.013, 0.011, SEAT - 0.03, 20), black);
     leg.position.set(Math.cos(a) * 0.12, (SEAT - 0.03) / 2, Math.sin(a) * 0.12); leg.rotation.set(Math.sin(a) * 0.08, 0, -Math.cos(a) * 0.08); stool.add(leg); }
-  shadows(g); g.traverse((o) => o.layers.enable(1)); return g;
+  return finish(g);
 }
 
-// ------------------------------------------------------------------ the plate that is a clock: a white plate, a printed dial, the fork and the knife as its hands
+// ------------------------------------------------------------------ the plate that is a clock: a white plate, a printed dial, the knife and the fork as its hands
 function cutlery(kind) {   // flat, pointing along +y from the pivot (the handle's end at the centre), in the plate's own plane
   const g = new THREE.Group(), steel = new THREE.MeshPhysicalMaterial({ color: 0xb9bec7, metalness: 0.7, roughness: 0.26, clearcoat: 0.4 });
   const sh = new THREE.Shape();
-  if (kind === 'knife') {   // handle, a slim neck, the blade with a rounded tip
+  if (kind === 'knife') {
     sh.moveTo(-0.0055, -0.012); sh.lineTo(0.0055, -0.012); sh.lineTo(0.0058, 0.05); sh.lineTo(0.0036, 0.056); sh.lineTo(0.0075, 0.062); sh.quadraticCurveTo(0.0085, 0.098, 0.0016, 0.112); sh.lineTo(-0.0055, 0.112); sh.lineTo(-0.0055, 0.062); sh.lineTo(-0.0036, 0.056); sh.lineTo(-0.0058, 0.05); sh.closePath();
-  } else {                  // handle, neck, a head with four tines
+  } else {
     sh.moveTo(-0.0055, -0.01); sh.lineTo(0.0055, -0.01); sh.lineTo(0.0052, 0.036); sh.lineTo(0.0028, 0.044); sh.lineTo(0.0078, 0.054); sh.lineTo(0.0078, 0.08);
     const tine = (x0) => { sh.lineTo(x0 + 0.0026, 0.08); sh.lineTo(x0 + 0.0026, 0.058); }; tine(0.0052 - 0.0026); sh.lineTo(0.0026, 0.058); sh.lineTo(0.0026, 0.08); sh.lineTo(0.0008, 0.08); sh.lineTo(0.0008, 0.058); sh.lineTo(-0.0008, 0.058); sh.lineTo(-0.0008, 0.08); sh.lineTo(-0.0026, 0.08); sh.lineTo(-0.0026, 0.058); sh.lineTo(-0.0052, 0.058); sh.lineTo(-0.0052, 0.08); sh.lineTo(-0.0078, 0.08); sh.lineTo(-0.0078, 0.054); sh.lineTo(-0.0028, 0.044); sh.lineTo(-0.0052, 0.036); sh.closePath();
   }
@@ -73,39 +214,37 @@ function cutlery(kind) {   // flat, pointing along +y from the pivot (the handle
   const pin = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.004, 24), steel); pin.rotation.x = Math.PI / 2; g.add(pin);
   return g;
 }
-function dialTex(windowArc) {   // the plate's printed face: hour marks round the rim, numbers, the brand under twelve (DIET); the window drawn separately
+function dialTex() {   // the plate's printed face: hour marks round the rim, the numbers
   return canvasTex(1024, 1024, (x, w) => {
-    const c = w / 2; x.fillStyle = '#d9d5cc'; x.fillRect(0, 0, w, w);
-    const gr = x.createRadialGradient(c, c, c * 0.62, c, c, c); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(120,115,105,0.18)'); x.fillStyle = gr; x.fillRect(0, 0, w, w);
+    const c = w / 2; x.fillStyle = '#e4e0d7'; x.fillRect(0, 0, w, w);
+    const gr = x.createRadialGradient(c, c, c * 0.62, c, c, c); gr.addColorStop(0, 'rgba(0,0,0,0)'); gr.addColorStop(1, 'rgba(120,115,105,0.16)'); x.fillStyle = gr; x.fillRect(0, 0, w, w);
     for (let i = 0; i < 60; i++) { const a = (i / 60) * Math.PI * 2, big = i % 5 === 0, r0 = c * (big ? 0.8 : 0.84), r1 = c * 0.9;
       x.strokeStyle = '#2a2b2f'; x.lineWidth = big ? 9 : 3; x.beginPath(); x.moveTo(c + Math.sin(a) * r0, c - Math.cos(a) * r0); x.lineTo(c + Math.sin(a) * r1, c - Math.cos(a) * r1); x.stroke(); }
     for (let h = 1; h <= 12; h++) { const a = (h / 12) * Math.PI * 2; txt(x, String(h), c + Math.sin(a) * c * 0.68, c - Math.cos(a) * c * 0.68 + 6, { font: '700 64px Archivo', color: '#2a2b2f' }); }
-    txt(x, 'DIET', c, c * 0.62, { font: '600 34px "Geist Mono"', color: '#55575d', track: 14 });
-    void windowArc;
   });
 }
+function rimLift(r) { return r < 0.09 ? 0 : (0.012 - 0.0065) * ((r - 0.09) / 0.04) + 0.0002; }   // the printed face follows the plate up its rim
 function makePlate(scene) {
   const g = new THREE.Group(); g.position.copy(PLATE); scene.add(g);
-  const prof = [[0, 0.0005], [0.07, 0.0005], [0.074, 0.004], [0.088, 0.006], [0.112, 0.012], [0.133, 0.017], [0.135, 0.0155], [0.115, 0.009], [0.09, 0.0065], [0.0, 0.0065]].map(([r, y]) => new THREE.Vector2(r, y));
-  const china = new THREE.MeshPhysicalMaterial({ color: 0xd6d2ca, roughness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.2 });
-  const body = new THREE.Mesh(new THREE.LatheGeometry(prof, 128), china); g.add(body);
-  // the printed face, on the plate's flat well and its rim
+  const prof = [[0, 0.0005], [0.07, 0.0005], [0.074, 0.004], [0.088, 0.006], [0.112, 0.012], [0.133, 0.017], [0.135, 0.0155], [0.115, 0.009], [0.09, 0.0065], [0.0, 0.0065]];
+  const china = new THREE.MeshPhysicalMaterial({ color: 0xe2ded6, roughness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.2 });
+  const body = new THREE.Mesh(lathe(prof, 128), china); g.add(body);
   const face = new THREE.Mesh(new THREE.RingGeometry(0.0001, 0.128, 128, 32), new THREE.MeshPhysicalMaterial({ map: dialTex(), roughness: 0.32, clearcoat: 0.6, clearcoatRoughness: 0.2, transparent: true }));
   face.rotation.x = -Math.PI / 2; face.position.y = 0.0068; g.add(face);
-  // bend the face's outer ring up to follow the rim
   { const P = face.geometry.attributes.position; for (let i = 0; i < P.count; i++) P.setZ(i, rimLift(Math.hypot(P.getX(i), P.getY(i)))); face.geometry.computeVertexNormals(); }
+  // the brand under twelve, printed as on a watch: DIET (it fades in when it is said)
+  const brand = new THREE.Mesh(new THREE.PlaneGeometry(0.06, 0.015), new THREE.MeshBasicMaterial({ map: canvasTex(512, 128, (x, w, h) => { x.clearRect(0, 0, w, h); txt(x, 'DIET', w / 2, h / 2 + 3, { font: '600 84px "Geist Mono"', color: '#3a3c42', track: 26 }); }), transparent: true, opacity: 0, depthWrite: false }));
+  brand.rotation.x = -Math.PI / 2; brand.position.set(0, 0.0072, -0.046); brand.renderOrder = 2; g.add(brand);
   // the eating window: a cold band on the rim, drawn as far as it reaches
   const win = new THREE.Mesh(new THREE.BufferGeometry(), new THREE.MeshBasicMaterial({ color: new THREE.Color(0x7fb2e6).multiplyScalar(1.15), transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }));
   win.rotation.x = -Math.PI / 2; win.position.y = 0.0068 + 0.0005; win.renderOrder = 3; g.add(win); face.renderOrder = 1;
-  // the hands: knife (minutes, long) and fork (hours, short)
   const hands = new THREE.Group(); hands.position.y = 0.0082; g.add(hands);
   const knife = cutlery('knife'), fork = cutlery('fork'); knife.rotation.x = -Math.PI / 2; fork.rotation.x = -Math.PI / 2;
   const kp = new THREE.Group(), fp = new THREE.Group(); kp.add(knife); fp.add(fork); fp.position.y = 0.0024; hands.add(kp, fp);
   const logo = makeLogoRing(LOGO_R); logo.g.rotation.x = -Math.PI / 2; logo.g.position.y = 0.0075; g.add(logo.g);
-  shadows(g); g.traverse((o) => o.layers.enable(1)); face.castShadow = false; win.castShadow = false;
-  return { g, face, win, kp, fp, knife, fork, logo, key: '' };
+  finish(g); face.castShadow = false; win.castShadow = false; brand.castShadow = false;
+  return { g, face, win, brand, kp, fp, knife, fork, logo, key: '' };
 }
-function rimLift(r) { return r < 0.09 ? 0 : (0.012 - 0.0065) * ((r - 0.09) / 0.04) + 0.0002; }   // the printed face follows the plate up its rim
 function setWindow(P, h0, h1, k) {   // the band from h0 o'clock to h1 o'clock (clockwise), drawn as far as k
   const key = `${h0}|${h1}|${k.toFixed(3)}`; if (key === P.key) return; P.key = key;
   const a0 = (h0 / 12) * Math.PI * 2, span = (((h1 - h0 + 12) % 12) / 12) * Math.PI * 2 * k;
@@ -114,82 +253,297 @@ function setWindow(P, h0, h1, k) {   // the band from h0 o'clock to h1 o'clock (
   P.win.geometry.dispose(); P.win.geometry = geo;
 }
 
-// ------------------------------------------------------------------ the beam balance (as in film 11), with tokens on the pans
+// ------------------------------------------------------------------ the hanging sign: EATING WINDOW, CLOSED on one side, OPEN on the other
+function makeSign(scene) {
+  const g = new THREE.Group(); g.position.copy(SIGN); g.rotation.y = -0.72; scene.add(g);   // turned toward the camera that watches it
+  const brass = phys({ color: 0xb8a07a, metalness: 1, roughness: 0.32, clearcoat: 0.3 }), black = blackMat();
+  const base = new THREE.Mesh(new RoundedBoxGeometry(0.15, 0.012, 0.07, 3, 0.004), black); base.position.y = 0.006; g.add(base);
+  const post = new THREE.Mesh(new THREE.CylinderGeometry(0.0035, 0.0035, 0.215, 16), brass); post.position.set(-0.068, 0.012 + 0.1075, 0); g.add(post);
+  const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.003, 0.003, 0.14, 16), brass); arm.rotation.z = Math.PI / 2; arm.position.set(0.002, 0.225, 0); g.add(arm);
+  const knob = new THREE.Mesh(new THREE.SphereGeometry(0.005, 16, 12), brass); knob.position.set(0.074, 0.225, 0); g.add(knob);
+  const face = (word, col) => canvasTex(640, 360, (x, w, h) => { x.fillStyle = '#efebe2'; x.fillRect(0, 0, w, h); x.strokeStyle = '#2a2b2f'; x.lineWidth = 8; x.strokeRect(14, 14, w - 28, h - 28);
+    txt(x, 'EATING WINDOW', w / 2, 82, { font: '600 40px "Geist Mono"', color: '#55575d', track: 10 }); txt(x, word, w / 2, 222, { font: '900 132px Archivo', color: col, track: 6, maxW: w * 0.84 }); });
+  const card = new THREE.Group(); card.position.set(0.002, 0.2, 0); g.add(card);
+  const CW = 0.12, CH = 0.0675;
+  for (const s of [-1, 1]) { const ring = new THREE.Mesh(new THREE.TorusGeometry(0.004, 0.0008, 8, 20), brass); ring.position.set(s * 0.042, -0.002, 0); card.add(ring); }
+  const front = new THREE.Mesh(new THREE.PlaneGeometry(CW, CH), new THREE.MeshPhysicalMaterial({ map: face('CLOSED', '#2a2b2f'), roughness: 0.6 })); front.position.set(0, -0.006 - CH / 2, 0.0013); card.add(front);
+  const back = new THREE.Mesh(new THREE.PlaneGeometry(CW, CH), new THREE.MeshPhysicalMaterial({ map: face('OPEN', '#23845a'), roughness: 0.6 })); back.position.set(0, -0.006 - CH / 2, -0.0013); back.rotation.y = Math.PI; card.add(back);
+  const core = new THREE.Mesh(new THREE.BoxGeometry(CW, CH, 0.002), black); core.position.y = -0.006 - CH / 2; card.add(core);
+  return { g: finish(g), card };
+}
+
+// ------------------------------------------------------------------ the family pizza, in its box
+function pizzaTex() {
+  return canvasTex(1024, 1024, (x, w) => {
+    const c = w / 2; x.clearRect(0, 0, w, w);
+    x.fillStyle = '#b43e1d'; x.beginPath(); x.arc(c, c, c * 0.93, 0, Math.PI * 2); x.fill();   // the sauce
+    for (let i = 0; i < 260; i++) { const a = hash(i * 1.7) * Math.PI * 2, r = Math.sqrt(hash(i * 2.3)) * c * 0.86, rr = 18 + 42 * hash(i * 3.1);   // the cheese, melted and browned in places
+      const gr = x.createRadialGradient(c + Math.cos(a) * r, c + Math.sin(a) * r, 2, c + Math.cos(a) * r, c + Math.sin(a) * r, rr);
+      const b = hash(i * 4.7); gr.addColorStop(0, b < 0.2 ? 'rgba(196,128,52,0.95)' : 'rgba(246,214,140,0.95)'); gr.addColorStop(0.7, 'rgba(240,200,120,0.75)'); gr.addColorStop(1, 'rgba(240,200,120,0)');
+      x.fillStyle = gr; x.beginPath(); x.arc(c + Math.cos(a) * r, c + Math.sin(a) * r, rr, 0, Math.PI * 2); x.fill(); }
+    for (let i = 0; i < 22; i++) { const a = (i / 22) * Math.PI * 2 * 3.3 + hash(i) , r = c * (0.18 + 0.66 * hash(i * 5.3)), px = c + Math.cos(a) * r, py = c + Math.sin(a) * r;   // pepperoni
+      x.fillStyle = '#8c2617'; x.beginPath(); x.arc(px, py, 34, 0, Math.PI * 2); x.fill(); x.fillStyle = 'rgba(60,12,6,0.45)'; for (let k = 0; k < 6; k++) { x.beginPath(); x.arc(px + (hash(i * 9 + k) - 0.5) * 40, py + (hash(i * 11 + k) - 0.5) * 40, 4, 0, Math.PI * 2); x.fill(); }
+      x.strokeStyle = 'rgba(70,16,8,0.6)'; x.lineWidth = 4; x.beginPath(); x.arc(px, py, 33, 0, Math.PI * 2); x.stroke(); }
+    for (let i = 0; i < 9; i++) { const a = hash(i * 8.1) * Math.PI * 2, r = c * (0.2 + 0.6 * hash(i * 6.2)); x.save(); x.translate(c + Math.cos(a) * r, c + Math.sin(a) * r); x.rotate(hash(i) * 6.28); x.fillStyle = '#2f6b2a'; x.beginPath(); x.ellipse(0, 0, 22, 11, 0, 0, Math.PI * 2); x.fill(); x.restore(); }   // basil
+    x.strokeStyle = 'rgba(70,30,10,0.55)'; x.lineWidth = 5; for (let k = 0; k < 4; k++) { const a = (k / 4) * Math.PI; x.beginPath(); x.moveTo(c - Math.cos(a) * c * 0.93, c - Math.sin(a) * c * 0.93); x.lineTo(c + Math.cos(a) * c * 0.93, c + Math.sin(a) * c * 0.93); x.stroke(); }   // cut in eight
+  });
+}
+function makePizza(scene) {
+  const g = new THREE.Group(); g.position.copy(PIZZA); g.rotation.y = -0.12; scene.add(g);
+  const S2 = BOX.s, H = BOX.h, th = 0.003;
+  const card = phys({ color: 0xc9a274, roughness: 0.88 }), inside = phys({ color: 0xb08a5e, roughness: 0.92 });
+  const lidTex = canvasTex(1024, 1024, (x, w) => { x.fillStyle = '#d2ad7e'; x.fillRect(0, 0, w, w);
+    for (let i = 0; i < 9000; i++) { x.fillStyle = `rgba(120,85,45,${0.05 + 0.08 * hash(i * 1.9)})`; x.fillRect(hash(i * 3.3) * w, hash(i * 5.1) * w, 2, 1); }
+    x.strokeStyle = '#b33a26'; x.lineWidth = 14; x.strokeRect(60, 60, w - 120, w - 120);
+    txt(x, 'FAMILY', w / 2, 410, { font: '900 150px Archivo', color: '#b33a26', track: 8 }); txt(x, 'SIZE', w / 2, 560, { font: '900 150px Archivo', color: '#b33a26', track: 8 });
+    txt(x, 'HOT · FRESH · HUGE', w / 2, 700, { font: '700 46px "Geist Mono"', color: '#6e4a23', track: 10 }); });
+  const bottom = new THREE.Mesh(new THREE.BoxGeometry(S2, th, S2), card); bottom.position.y = th / 2; g.add(bottom);
+  for (const [px, pz, sx, sz] of [[0, -S2 / 2, S2, th], [0, S2 / 2, S2, th], [-S2 / 2, 0, th, S2], [S2 / 2, 0, th, S2]]) { const wall = new THREE.Mesh(new THREE.BoxGeometry(sx, H, sz), [card, card, inside, inside, card, card]); wall.position.set(px, H / 2, pz); g.add(wall); }
+  // the lid, hinged along the back edge (toward the skeleton); its top printed
+  const lid = new THREE.Group(); lid.position.set(0, H, -S2 / 2); g.add(lid);
+  const lidTop = new THREE.Mesh(new THREE.BoxGeometry(S2, th, S2), [card, card, new THREE.MeshPhysicalMaterial({ map: lidTex, roughness: 0.86 }), inside, card, card]); lidTop.position.set(0, th / 2, S2 / 2); lid.add(lidTop);
+  const flap = new THREE.Mesh(new THREE.BoxGeometry(S2, H * 0.8, th), card); flap.position.set(0, -H * 0.4, S2); lid.add(flap);
+  // the pizza: the base with its toppings, a crust round it
+  const pz = new THREE.Group(); pz.position.y = th; g.add(pz);
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(0.188, 0.19, 0.008, 128), [phys({ color: 0xd9a35a, roughness: 0.7 }), new THREE.MeshPhysicalMaterial({ map: pizzaTex(), roughness: 0.55, transparent: true, sheen: 0.4, sheenColor: new THREE.Color(0xffe0a0) }), phys({ color: 0xd9a35a, roughness: 0.7 })]);
+  top.position.y = 0.004; pz.add(top);
+  const crust = new THREE.Mesh(new THREE.TorusGeometry(0.19, 0.0115, 16, 128), phys({ color: 0xc98a43, roughness: 0.62, roughnessMap: noiseTex(11, 256, 0.75, 1.0, 30), sheen: 0.4, sheenColor: new THREE.Color(0xffd28a) }));
+  crust.rotation.x = Math.PI / 2; crust.position.y = 0.009; crust.scale.set(1, 1, 0.75); pz.add(crust);
+  return { g: finish(g), lid };
+}
+
+// ------------------------------------------------------------------ the switch, FAT BURNING, and its cable to a plug on the floor (plugged into nothing)
+function makeSwitch(scene) {
+  const g = new THREE.Group(); g.position.copy(SWITCH); g.rotation.y = 0.35; scene.add(g);
+  const bake = phys({ color: 0x17181b, roughness: 0.35, clearcoat: 0.7 }), chrome = phys({ color: 0xd4d8de, metalness: 1, roughness: 0.18 });
+  const box = new THREE.Mesh(new RoundedBoxGeometry(0.14, 0.05, 0.12, 4, 0.008), bake); box.position.y = 0.025; g.add(box);
+  const plate = new THREE.Mesh(new THREE.PlaneGeometry(0.1, 0.075), new THREE.MeshPhysicalMaterial({ map: canvasTex(640, 480, (x, w, h) => { x.fillStyle = '#d9d4c8'; x.fillRect(0, 0, w, h);
+    x.strokeStyle = '#2a2b2f'; x.lineWidth = 6; x.strokeRect(12, 12, w - 24, h - 24);
+    txt(x, 'OFF', w * 0.2, 70, { font: '700 46px "Geist Mono"', color: '#55575d', track: 6 }); txt(x, 'ON', w * 0.8, 70, { font: '700 46px "Geist Mono"', color: '#55575d', track: 6 });
+    txt(x, 'FAT', w / 2, 270, { font: '900 96px Archivo', color: '#1e1f23', track: 6 }); txt(x, 'BURNING', w / 2, 370, { font: '900 82px Archivo', color: '#1e1f23', track: 4 });
+    x.fillStyle = '#2a2b2f'; for (const [sx, sy, r] of [[w * 0.84, 70, 14], [w * 0.13, 60, 9], [w * 0.9, 160, 7]]) { x.beginPath(); for (let k = 0; k < 8; k++) { const a = (k / 8) * Math.PI * 2, rr = k % 2 ? r * 0.35 : r; x.lineTo(sx + Math.cos(a) * rr, sy + Math.sin(a) * rr); } x.closePath(); x.fill(); } }), roughness: 0.5 }));
+  plate.rotation.x = -Math.PI / 2; plate.position.set(0, 0.0502, 0.016); plate.scale.setScalar(1.18); g.add(plate);
+  // the toggle: a chrome lever on a pivot across the box
+  const piv = new THREE.Group(); piv.position.set(0, 0.052, -0.034); g.add(piv);
+  const boss = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.01, 0.006, 32), chrome); boss.position.y = 0.002; g.add(boss); boss.position.set(0, 0.053, -0.034);
+  const lever = new THREE.Mesh(new THREE.CylinderGeometry(0.0035, 0.0045, 0.045, 20), chrome); lever.position.y = 0.0225; piv.add(lever);
+  const tip = new THREE.Mesh(new THREE.SphereGeometry(0.0065, 20, 14), chrome); tip.position.y = 0.046; piv.add(tip);
+  finish(g);
+  // the cable: off the back of the box, over the table's edge, down the leg side to the floor, to the plug
+  g.updateMatrixWorld(true);
+  const wp = (x, y, z) => new THREE.Vector3(x, y, z).applyMatrix4(g.matrixWorld);
+  const e = -TABLE.w / 2, cr = 0.0035, ty = TABLE.top + cr;
+  const pts = [wp(0, 0.018, -0.062), wp(-0.012, cr, -0.095), new THREE.Vector3(e + 0.06, ty, SWITCH.z - 0.1), new THREE.Vector3(e + 0.006, ty - 0.0005, SWITCH.z - 0.09),
+    new THREE.Vector3(e - 0.006, TABLE.top - 0.012, SWITCH.z - 0.085), new THREE.Vector3(e - 0.012, TABLE.top - 0.06, SWITCH.z - 0.08), new THREE.Vector3(e - 0.03, 0.4, SWITCH.z - 0.06),
+    new THREE.Vector3(e - 0.045, 0.07, SWITCH.z - 0.04), new THREE.Vector3(e - 0.07, cr + 0.002, SWITCH.z + 0.02), new THREE.Vector3(e - 0.13, cr, SWITCH.z + 0.04), new THREE.Vector3(PLUG.x + 0.07, cr, PLUG.z + 0.06), new THREE.Vector3(PLUG.x + 0.026, cr, PLUG.z)];
+  const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+  const cord = phys({ color: 0xe9e6df, roughness: 0.45, clearcoat: 0.4 });
+  const cable = new THREE.Mesh(new THREE.TubeGeometry(curve, 220, cr, 10), cord); scene.add(cable);
+  const plug = new THREE.Group(); plug.position.copy(PLUG); scene.add(plug);
+  const dir = curve.getTangent(1); plug.rotation.y = Math.atan2(dir.x, dir.z) + Math.PI / 2;
+  const pb = new THREE.Mesh(new RoundedBoxGeometry(0.044, 0.022, 0.034, 3, 0.006), cord); pb.position.y = 0.011; plug.add(pb);
+  for (const s of [-1, 1]) { const prong = new THREE.Mesh(new THREE.BoxGeometry(0.018, 0.0045, 0.0018), chrome); prong.position.set(-0.031, 0.011, s * 0.0065); plug.add(prong); }
+  finish(cable); finish(plug);
+  // a few sparks for the magic
+  const sparks = []; for (let i = 0; i < 26; i++) { const s = glowSprite(new THREE.Color(i % 3 ? 0xfff2c6 : 0xbfd8ff), 0.008); s.visible = false; s.material.depthWrite = false; scene.add(s); sparks.push({ s, a: hash(i * 3.7) * Math.PI * 2, u: 0.4 + 0.6 * hash(i * 5.3), up: 0.3 + 0.7 * hash(i * 7.1), d: hash(i * 9.9) * 0.12 }); }
+  return { g, piv, cable, plug, sparks, tipW: () => tip.getWorldPosition(new THREE.Vector3()) };
+}
+
+// ------------------------------------------------------------------ the balance (as in film 12), weights dropped on its pans
 function makeBalance(scene) {
-  const g = new THREE.Group(); g.position.set(BAL.x, 0, BAL.z); g.rotation.y = -0.5; scene.add(g);
-  const box = new THREE.Mesh(new RoundedBoxGeometry(0.46, BAL.top, 0.3, 5, 0.012), black()); box.position.y = BAL.top / 2; g.add(box);
+  const g = new THREE.Group(); g.position.set(BAL.x, 0, BAL.z); g.rotation.y = BAL.ry; scene.add(g);
+  const box = new THREE.Mesh(new RoundedBoxGeometry(0.5, BAL.top, 0.32, 5, 0.012), blackMat()); box.position.y = BAL.top / 2; g.add(box);
   const brass = phys({ color: 0xb8a07a, metalness: 1, roughness: 0.3, clearcoat: 0.4 }), dark = phys({ color: 0x1c1d21, metalness: 0.6, roughness: 0.4 });
   const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.07, 0.08, 0.02, 48), dark); foot.position.y = BAL.top + 0.01; g.add(foot);
-  const col = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.012, 0.36, 24), brass); col.position.y = BAL.top + 0.2; g.add(col);
-  const pivot = new THREE.Group(); pivot.position.y = BAL.top + 0.38; g.add(pivot);
-  const beam = new THREE.Mesh(new THREE.BoxGeometry(0.38, 0.012, 0.014), brass); pivot.add(beam);
+  const col = new THREE.Mesh(new THREE.CylinderGeometry(0.009, 0.012, 0.4, 24), brass); col.position.y = BAL.top + 0.22; g.add(col);
+  const pivot = new THREE.Group(); pivot.position.y = BAL.top + 0.42; g.add(pivot);
+  const beam = new THREE.Mesh(new THREE.BoxGeometry(0.44, 0.012, 0.014), brass); pivot.add(beam);
   const knob = new THREE.Mesh(new THREE.SphereGeometry(0.014, 24, 16), brass); pivot.add(knob);
-  const needle = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.12, 0.004), dark); needle.position.y = -0.06; pivot.add(needle);
+  const needle = new THREE.Mesh(new THREE.BoxGeometry(0.004, 0.13, 0.004), dark); needle.position.y = -0.065; pivot.add(needle);
   const pans = [];
   for (const s of [-1, 1]) {
-    const hang = new THREE.Group(); hang.position.x = s * 0.175; pivot.add(hang);
+    const hang = new THREE.Group(); hang.position.x = s * 0.2; pivot.add(hang);
     const hook = new THREE.Group(); hang.add(hook);
-    for (let k = 0; k < 3; k++) { const a = (k / 3) * Math.PI * 2, wire = new THREE.Mesh(new THREE.CylinderGeometry(0.0012, 0.0012, 0.19, 6), dark); wire.position.set(Math.cos(a) * 0.036, -0.095, Math.sin(a) * 0.036); wire.rotation.set(Math.sin(a) * 0.19, 0, -Math.cos(a) * 0.19); hook.add(wire); }
-    const pan = new THREE.Mesh(new THREE.CylinderGeometry(0.078, 0.074, 0.008, 64), brass); pan.position.y = -0.19; hook.add(pan);
-    // a token on each pan: a disc with a printed top, redrawn for each comparison
-    const c = document.createElement('canvas'); c.width = c.height = 256; const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
-    const tok = new THREE.Mesh(new THREE.CylinderGeometry(0.066, 0.066, 0.016, 64), [phys({ color: 0xe9e6df, roughness: 0.4 }), new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.35, clearcoat: 0.5 }), phys({ color: 0xe9e6df, roughness: 0.4 })]);
-    tok.position.y = -0.19 + 0.004 + 0.008; hook.add(tok);
-    pans.push({ hang, hook, pan, s, tok, c, tex, key: '' });
+    for (let k = 0; k < 3; k++) { const a = (k / 3) * Math.PI * 2, wire = new THREE.Mesh(new THREE.CylinderGeometry(0.0012, 0.0012, 0.21, 6), dark); wire.position.set(Math.cos(a) * 0.04, -0.105, Math.sin(a) * 0.04); wire.rotation.set(Math.sin(a) * 0.19, 0, -Math.cos(a) * 0.19); hook.add(wire); }
+    const pan = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.08, 0.008, 64), brass); pan.position.y = -0.21; hook.add(pan);
+    pans.push({ hang, hook, pan, s });
   }
-  const c = document.createElement('canvas'); c.width = 1024; c.height = 160; const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
-  const plate = new THREE.Mesh(new THREE.PlaneGeometry(0.44, 0.07), new THREE.MeshBasicMaterial({ map: tex, transparent: true })); plate.position.set(0, BAL.top - 0.07, 0.1505); g.add(plate);
-  shadows(g); g.traverse((o) => o.layers.enable(1));
+  // the label on the box's front: what is weighed against what
+  const c = document.createElement('canvas'); c.width = 1100; c.height = 250; const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace;
+  finish(g);
   return { g, pivot, pans, c, tex, key: '' };
 }
-function drawLabels(B, L, R) {
-  const key = L + '|' + R; if (key === B.key) return; B.key = key;
+function drawLabels(B, head, L, R) {
+  const key = head + L + '|' + R; if (key === B.key) return; B.key = key;
   const x = B.c.getContext('2d'), w = B.c.width, h = B.c.height; x.fillStyle = '#0d0e10'; x.fillRect(0, 0, w, h);
-  txt(x, L, w * 0.25, h / 2, { font: '600 38px "Geist Mono"', color: '#d5d8dd', track: 6, maxW: w * 0.44 }); txt(x, R, w * 0.75, h / 2, { font: '600 38px "Geist Mono"', color: '#d5d8dd', track: 6, maxW: w * 0.44 });
-  x.fillStyle = 'rgba(213,216,221,0.25)'; x.fillRect(w / 2 - 1, 30, 2, h - 60); B.tex.needsUpdate = true;
+  txt(x, head, w / 2, 52, { font: '600 34px "Geist Mono"', color: '#8d9198', track: 10, maxW: w * 0.9 });
+  txt(x, L, w * 0.25, 160, { font: '700 44px "Geist Mono"', color: '#e1e4e9', track: 4, maxW: w * 0.46 }); txt(x, R, w * 0.75, 160, { font: '700 44px "Geist Mono"', color: '#e1e4e9', track: 4, maxW: w * 0.46 });
+  x.fillStyle = 'rgba(213,216,221,0.25)'; x.fillRect(w / 2 - 1, 100, 2, 120); B.tex.needsUpdate = true;
 }
-function drawToken(P, kind) {   // clock: a little clock with a window; meals: three plates; kcal: a calorie card; free: an open plate, no clock
-  if (P.key === kind) return; P.key = kind;
-  const x = P.c.getContext('2d'), w = P.c.width, c = w / 2; x.fillStyle = '#ece9e2'; x.fillRect(0, 0, w, w); x.strokeStyle = '#2a2b2f'; x.fillStyle = '#2a2b2f';
-  if (kind.startsWith('clock')) { x.lineWidth = 8; x.beginPath(); x.arc(c, c, w * 0.36, 0, Math.PI * 2); x.stroke();
-    x.strokeStyle = '#4f86c6'; x.lineWidth = 18; x.beginPath(); x.arc(c, c, w * 0.3, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 4) / 3); x.stroke();
-    x.strokeStyle = '#2a2b2f'; x.lineWidth = 8; x.beginPath(); x.moveTo(c, c); x.lineTo(c, c - w * 0.22); x.moveTo(c, c); x.lineTo(c + w * 0.14, c); x.stroke(); }
-  if (kind === 'meals') for (let k = 0; k < 3; k++) { const a = -Math.PI / 2 + (k / 3) * Math.PI * 2; x.lineWidth = 6; x.beginPath(); x.arc(c + Math.cos(a) * w * 0.2, c + Math.sin(a) * w * 0.2, w * 0.14, 0, Math.PI * 2); x.stroke(); }
-  if (kind === 'kcal' || kind === 'clock+kcal') { txt(x, 'KCAL', c, kind === 'kcal' ? c : w * 0.86, { font: `800 ${kind === 'kcal' ? 64 : 34}px Archivo`, color: '#2a2b2f', track: 4 }); }
-  if (kind === 'free') { x.lineWidth = 6; x.beginPath(); x.arc(c, c, w * 0.32, 0, Math.PI * 2); x.stroke(); txt(x, 'ANY TIME', c, c, { font: '800 36px Archivo', color: '#2a2b2f', track: 3 }); }
-  if (kind === 'diet') { txt(x, 'DIETING', c, c, { font: '800 44px Archivo', color: '#2a2b2f', track: 3 }); }
-  P.tex.needsUpdate = true;
+// the weights: short cylinders, an icon on the top and the name round the side
+function weightTex(kind) {
+  const top = canvasTex(256, 256, (x, w) => { const c = w / 2; x.fillStyle = '#ece9e2'; x.fillRect(0, 0, w, w); x.strokeStyle = '#2a2b2f'; x.fillStyle = '#2a2b2f'; x.translate(w, w); x.rotate(Math.PI);
+    if (kind === 'noon8' || kind === 'win8' || kind === 'fast') { x.lineWidth = 9; x.beginPath(); x.arc(c, c, w * 0.36, 0, Math.PI * 2); x.stroke();
+      x.strokeStyle = '#4f86c6'; x.lineWidth = 20; x.beginPath(); x.arc(c, c, w * 0.29, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 4) / 3); x.stroke();
+      x.strokeStyle = '#2a2b2f'; x.lineWidth = 9; x.beginPath(); x.moveTo(c, c); x.lineTo(c, c - w * 0.2); x.moveTo(c, c); x.lineTo(c + w * 0.13, c); x.stroke(); }
+    if (kind === 'meals') for (let k = 0; k < 3; k++) { const a = -Math.PI / 2 + (k / 3) * Math.PI * 2; x.lineWidth = 7; x.beginPath(); x.arc(c + Math.cos(a) * w * 0.2, c + Math.sin(a) * w * 0.2, w * 0.13, 0, Math.PI * 2); x.stroke(); }
+    if (kind === 'kcal') txt(x, 'KCAL', c, c + 4, { font: '900 66px Archivo', color: '#2a2b2f', track: 3 });
+    if (kind === 'free') { x.lineWidth = 7; x.beginPath(); x.arc(c, c, w * 0.32, 0, Math.PI * 2); x.stroke(); txt(x, 'ANY', c, c - 18, { font: '900 44px Archivo', color: '#2a2b2f' }); txt(x, 'TIME', c, c + 30, { font: '900 44px Archivo', color: '#2a2b2f' }); }
+    if (kind === 'diet') txt(x, 'DIET', c, c + 4, { font: '900 70px Archivo', color: '#2a2b2f', track: 3 }); });
+  const name = { noon8: 'NOON TO 8 PM', meals: '3 MEALS A DAY', kcal: 'CALORIE LIMIT', win8: '8-HOUR WINDOW', fast: 'FASTING', free: 'EATING FREELY', diet: 'ORDINARY DIETING' }[kind];
+  const side = canvasTex(1024, 96, (x, w, h) => { x.fillStyle = '#e5e1d8'; x.fillRect(0, 0, w, h); txt(x, name, w * 0.25, h / 2 + 2, { font: '800 50px Archivo', color: '#2a2b2f', track: 3, maxW: w * 0.44 }); txt(x, name, w * 0.75, h / 2 + 2, { font: '800 50px Archivo', color: '#2a2b2f', track: 3, maxW: w * 0.44 }); });
+  return { top, side };
+}
+const WEIGHT = { r: 0.064, h: 0.03 };
+function makeWeight(scene, kind, small = false) {
+  const r = small ? 0.045 : WEIGHT.r, h = small ? 0.022 : WEIGHT.h, tx = weightTex(kind);
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, h, 64), [new THREE.MeshPhysicalMaterial({ map: tx.side, roughness: 0.45, clearcoat: 0.3 }), new THREE.MeshPhysicalMaterial({ map: tx.top, roughness: 0.4, clearcoat: 0.4 }), phys({ color: 0xd8d4cb, roughness: 0.5 })]);
+  m.userData = { r, h, kind }; finish(m); m.visible = false; scene.add(m); return m;
+}
+// the weighings: on which pan (0 = left as the camera sees it, the skeleton's side), when it lands, when it lifts off, what it weighs
+const WEIGHS = [
+  { kind: 'noon8', pan: 0, land: T.eight + 0.15, off: 30.35, w: 1 },
+  { kind: 'meals', pan: 1, land: T.same + 0.1, off: 30.35, w: 1 },
+  { kind: 'kcal', pan: 0, land: T.same2 + 0.3, off: 40.35, w: 1 },
+  { kind: 'kcal', pan: 1, land: T.same2 + 0.3, off: 40.35, w: 1 },
+  { kind: 'win8', pan: 0, land: T.window3 - 0.25, off: 40.35, w: 0, small: true, on: 'kcal' },
+  { kind: 'fast', pan: 0, land: T.fasting2 + 0.1, off: 99, w: 1.3 },
+  { kind: 'free', pan: 1, land: T.freely, off: T.against + 0.1, w: 0.45 },
+  { kind: 'diet', pan: 1, land: T.dieting - 0.1, off: 99, w: 1.3 },
+];
+// the beam's angle: each change of load starts a damped swing toward the new balance (a step response)
+const TILT_K = 0.2;
+const BAL_CAM = { p: [1.173, 2.379, 2.689], l: [1.173, 0.928, 0.617] };   // wide enough that the right pan's words stay clear of the button column
+function tiltAt(t) {
+  const ev = new Set(); for (const q of WEIGHS) { ev.add(q.land); ev.add(q.off); }
+  const load = (tt) => { let d = 0; for (const q of WEIGHS) if (tt >= q.land && tt < q.off) d += (q.pan === 0 ? 1 : -1) * q.w; return d; };
+  let a = 0, prev = 0; for (const te of [...ev].sort((p, q) => p - q)) { if (te > t) break; const tgt = Math.max(-1.6, Math.min(1.6, load(te + 1e-6))) * TILT_K, d = tgt - prev; prev = tgt;
+    const u = t - te, w0 = 7.5, z = 0.28, wd = w0 * Math.sqrt(1 - z * z); a += d * (1 - Math.exp(-z * w0 * u) * (Math.cos(wd * u) + (z / Math.sqrt(1 - z * z)) * Math.sin(wd * u))); }
+  return a;
 }
 
-// ------------------------------------------------------------------ the newspaper: the scare, then the stamps
-function stampTex(word, { w = 900, h = 190, color = '#c2312b', size = 92 } = {}) {
-  return canvasTex(w, h, (x) => { x.clearRect(0, 0, w, h); x.strokeStyle = color; x.lineWidth = 10; x.beginPath(); x.roundRect(10, 10, w - 20, h - 20, 18); x.stroke();
-    txt(x, word, w / 2, h / 2 + 4, { font: `900 ${size}px Archivo`, color, track: 5, maxW: w * 0.88 });
-    x.globalCompositeOperation = 'destination-out'; for (let i = 0; i < 1100; i++) { x.fillStyle = `rgba(0,0,0,${0.15 + 0.5 * hash(i * 7.3)})`; x.fillRect(hash(i) * w, hash(i * 3.1) * h, 1 + 3 * hash(i * 1.7), 1 + 2 * hash(i * 2.3)); } });
+// ------------------------------------------------------------------ the fridge: a rounded old one; inside, a light and a few things
+function makeFridge(scene) {
+  const g = new THREE.Group(); g.position.set(FRIDGE.x, 0, FRIDGE.z); g.rotation.y = FRIDGE.ry; scene.add(g);
+  const { w, h, d } = FRIDGE, t = 0.035, enamel = phys({ color: 0xe8e4da, roughness: 0.28, clearcoat: 0.8, clearcoatRoughness: 0.15 }), chrome = phys({ color: 0xd4d8de, metalness: 1, roughness: 0.16 });
+  const inner = phys({ color: 0xf2f2ee, roughness: 0.5, emissive: new THREE.Color(0xfff6e0), emissiveIntensity: 0 });
+  const box = (sx, sy, sz, x, y, z, m) => { const b = new THREE.Mesh(new RoundedBoxGeometry(sx, sy, sz, 3, Math.min(0.012, sx / 2.2, sy / 2.2, sz / 2.2)), m); b.position.set(x, y, z); g.add(b); return b; };
+  const legH = 0.06;
+  box(w, t, d, 0, legH + t / 2, 0, enamel); box(w, t, d, 0, legH + h - t / 2, 0, enamel); box(t, h, d, -w / 2 + t / 2, legH + h / 2, 0, enamel); box(t, h, d, w / 2 - t / 2, legH + h / 2, 0, enamel); box(w, h, t, 0, legH + h / 2, -d / 2 + t / 2, enamel);
+  const back = box(w - 2 * t - 0.004, h - 2 * t - 0.004, 0.004, 0, legH + h / 2, -d / 2 + t + 0.003, inner);
+  for (const sx of [-1, 1]) for (const sz of [-1, 1]) { const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.018, 0.022, legH, 16), chrome); leg.position.set(sx * (w / 2 - 0.06), legH / 2, sz * (d / 2 - 0.06)); g.add(leg); }
+  // shelves and a few things on them
+  const glass = new THREE.MeshPhysicalMaterial({ color: 0xdfe8ee, roughness: 0.1, transparent: true, opacity: 0.35, depthWrite: false });
+  for (const y of [0.36, 0.72]) { const s = new THREE.Mesh(new THREE.BoxGeometry(w - 2 * t - 0.01, 0.006, d - t - 0.06), glass); s.position.set(0, legH + y, 0.0); g.add(s); }
+  const thing = (geo, mat, x, y, z) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, legH + y, z); g.add(m); return m; };
+  thing(lathe([[0.0001, 0], [0.04, 0], [0.042, 0.02], [0.042, 0.17], [0.025, 0.21], [0.018, 0.24], [0.0001, 0.24]], 48), phys({ color: 0xf6f6f2, roughness: 0.3, clearcoat: 0.5 }), -0.15, 0.726, 0.05);   // milk
+  thing(new THREE.CylinderGeometry(0.1, 0.1, 0.08, 48), phys({ color: 0xf0d9e0, roughness: 0.5 }), 0.07, 0.726 + 0.04, 0.0);                                    // a cake
+  thing(new THREE.CylinderGeometry(0.045, 0.045, 0.1, 32), phys({ color: 0x9c3b2e, roughness: 0.3, clearcoat: 0.6 }), 0.16, 0.366 + 0.05, 0.08);               // a jar of jam
+  thing(new RoundedBoxGeometry(0.17, 0.06, 0.12, 3, 0.01), phys({ color: 0xe9d38a, roughness: 0.5 }), -0.1, 0.366 + 0.03, -0.02);                               // cheese
+  thing(new THREE.SphereGeometry(0.042, 24, 16), phys({ color: 0x7aa04a, roughness: 0.5 }), -0.12, 0.036 + 0.042 + 0.03, 0.06);                                 // an apple, in the bottom
+  // the door: hinged on its right edge, a chrome handle on the left
+  const hinge = new THREE.Group(); hinge.position.set(-w / 2, 0, d / 2); g.add(hinge);
+  const door = new THREE.Mesh(new RoundedBoxGeometry(w, h, 0.06, 5, 0.025), enamel); door.position.set(w / 2, legH + h / 2, 0.03); hinge.add(door);
+  const handle = new THREE.Mesh(new RoundedBoxGeometry(0.03, 0.26, 0.03, 3, 0.012), chrome); handle.position.set(w - 0.06, legH + h * 0.62, 0.075); hinge.add(handle);
+  const badge = new THREE.Mesh(new THREE.PlaneGeometry(0.12, 0.03), new THREE.MeshPhysicalMaterial({ map: canvasTex(512, 128, (x, cw, ch) => { x.fillStyle = '#c9ccd2'; x.fillRect(0, 0, cw, ch); txt(x, 'COLDSTORE', cw / 2, ch / 2 + 3, { font: '800 62px Archivo', color: '#2a2b2f', track: 10 }); }), metalness: 0.6, roughness: 0.3 }));
+  badge.position.set(w / 2, legH + h * 0.9, 0.0605); hinge.add(badge);
+  const light = new THREE.SpotLight(0xfff1d8, 0, 4.5, 0.75, 0.6, 2); light.position.set(0, legH + h * 0.8, 0.05); light.target.position.set(0, 0.4, 2.0); g.add(light, light.target);
+  light.castShadow = true; light.shadow.mapSize.set(1024, 1024); light.shadow.camera.near = 0.05; light.shadow.camera.far = 5; light.shadow.bias = -0.0005;
+  const bulb = new THREE.PointLight(0xfff1d8, 0, 1.2, 2); bulb.position.set(0, legH + h * 0.85, 0); g.add(bulb);
+  finish(g); badge.castShadow = false;
+  return { g, hinge, inner, light, bulb };
 }
-function makePaper(scene) {
-  const g = new THREE.Group(); g.position.copy(PAPER); g.rotation.y = -0.28; scene.add(g);
-  const tex = canvasTex(1024, 1400, (x, w, h) => { x.fillStyle = '#d3cec2'; x.fillRect(0, 0, w, h);
-    x.fillStyle = '#1d1e22'; x.fillRect(60, 60, w - 120, 6); x.fillRect(60, 150, w - 120, 3);
-    txt(x, 'HEALTH', 60, 112, { font: '700 40px "Geist Mono"', color: '#1d1e22', align: 'left', track: 12 });
-    const lines = ['EATING IN UNDER', '8 HOURS A DAY', 'LINKED TO 91%', 'HIGHER RISK OF', 'CARDIOVASCULAR', 'DEATH'];
-    lines.forEach((s, i) => txt(x, s, 60, 250 + i * 104, { font: '900 96px Archivo', color: '#141518', align: 'left', track: 0, maxW: w - 120 }));
-    for (let r = 0; r < 14; r++) { x.fillStyle = 'rgba(30,31,35,0.28)'; x.fillRect(60, 920 + r * 30, (w - 120) * (0.7 + 0.3 * hash(r)), 12); } });
-  const sheet = new THREE.Mesh(new THREE.PlaneGeometry(0.22, 0.3, 8, 8), new THREE.MeshPhysicalMaterial({ map: tex, roughness: 0.9, sheen: 0.3 }));
-  { const P = sheet.geometry.attributes.position; for (let i = 0; i < P.count; i++) P.setZ(i, 0.0025 * Math.sin((P.getX(i) / 0.22) * Math.PI * 2) * (P.getY(i) / 0.3 + 0.5)); sheet.geometry.computeVertexNormals(); }
-  sheet.rotation.x = -Math.PI / 2; sheet.position.y = 0.003; g.add(sheet);
-  const mk = (word, size, w, h, x, z, rot) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w, h), new THREE.MeshBasicMaterial({ map: stampTex(word, { size }), transparent: true, opacity: 0, depthWrite: false })); m.rotation.set(-Math.PI / 2, 0, rot); m.position.set(x, 0.0062, z); g.add(m); return m; };
-  const s1 = mk('CONFERENCE ABSTRACT', 84, 0.19, 0.038, -0.004, 0.055, 0.05), s2 = mk('NOT PEER REVIEWED', 88, 0.18, 0.036, 0.006, 0.093, -0.04);
-  const note = new THREE.Mesh(new THREE.PlaneGeometry(0.09, 0.09), new THREE.MeshPhysicalMaterial({ map: canvasTex(512, 512, (x, w) => { x.fillStyle = '#f4e27a'; x.fillRect(0, 0, w, w);
-    txt(x, 'EATING TIMES:', w / 2, 140, { font: '800 50px Archivo', color: '#1d1e22', track: 2 }); txt(x, '2 DAYS,', w / 2, 260, { font: '900 86px Archivo', color: '#1d1e22' }); txt(x, 'FROM MEMORY', w / 2, 370, { font: '800 56px Archivo', color: '#1d1e22', track: 2 }); }), roughness: 0.85, transparent: true, opacity: 0 }));
-  note.rotation.set(-Math.PI / 2, 0, 0.3); note.position.set(-0.17, 0.0015, 0.02); g.add(note);
-  const s3 = mk('A LINK, NOT PROOF', 92, 0.19, 0.038, -0.002, 0.13, 0.03);
-  shadows(g); g.traverse((o) => o.layers.enable(1));
-  return { g, s1, s2, note, s3 };
+
+// ------------------------------------------------------------------ three proper meals: breakfast, lunch, dinner, each on its plate
+function mealPlate(scene, kind) {
+  const g = new THREE.Group(); scene.add(g);
+  const china = new THREE.MeshPhysicalMaterial({ color: 0xece9e2, roughness: 0.3, clearcoat: 0.6, clearcoatRoughness: 0.2 });
+  const plate = new THREE.Mesh(lathe([[0, 0.0005], [0.06, 0.0005], [0.064, 0.004], [0.078, 0.006], [0.098, 0.011], [0.112, 0.015], [0.114, 0.0135], [0.098, 0.008], [0.078, 0.0058], [0.0, 0.0058]], 96), china); g.add(plate);
+  const add = (geo, mat, x, y, z, rx = 0, ry = 0, rz = 0) => { const m = new THREE.Mesh(geo, mat); m.position.set(x, 0.0058 + y, z); m.rotation.set(rx, ry, rz); g.add(m); return m; };
+  if (kind === 'breakfast') {
+    const white = phys({ color: 0xf7f5ef, roughness: 0.35, clearcoat: 0.4 }), yolk = phys({ color: 0xf2a91f, roughness: 0.2, clearcoat: 0.8 });
+    for (const [x, z] of [[-0.03, -0.02], [0.035, 0.028]]) { const e = add(new THREE.CylinderGeometry(0.036, 0.04, 0.005, 40), white, x, 0.0025, z); e.scale.set(1, 1, 0.85); add(new THREE.SphereGeometry(0.016, 24, 16, 0, Math.PI * 2, 0, Math.PI / 2), yolk, x + 0.004, 0.004, z); }
+    add(new RoundedBoxGeometry(0.085, 0.014, 0.07, 3, 0.006), phys({ color: 0xc98b45, roughness: 0.7, roughnessMap: noiseTex(5, 128, 0.7, 1, 20) }), 0.012, 0.007, -0.062, 0, 0.3, 0);   // toast
+  } else if (kind === 'lunch') {
+    const bread = phys({ color: 0xe0c08c, roughness: 0.8 }), leaf = phys({ color: 0x5f9a3a, roughness: 0.6 }), tom = phys({ color: 0xc8372a, roughness: 0.35 });
+    const tri = (y, m, h) => { const sh = new THREE.Shape(); sh.moveTo(-0.06, -0.035); sh.lineTo(0.06, -0.035); sh.lineTo(0, 0.06); sh.closePath(); const geo = new THREE.ExtrudeGeometry(sh, { depth: h, bevelEnabled: true, bevelThickness: 0.002, bevelSize: 0.002, bevelSegments: 2 }); geo.rotateX(-Math.PI / 2); return add(geo, m, -0.012, y, 0.005, 0, 0.4, 0); };
+    tri(0.0, bread, 0.01); tri(0.012, leaf, 0.003); tri(0.016, tom, 0.004); tri(0.021, bread, 0.01);
+    for (const [x, z] of [[0.06, -0.04], [0.07, 0.012], [0.05, 0.05]]) add(new THREE.SphereGeometry(0.014, 20, 14), tom, x, 0.012, z);
+  } else {
+    const fish = phys({ color: 0xe7865f, roughness: 0.45, sheen: 0.3, sheenColor: new THREE.Color(0xffd0b0) }), green = phys({ color: 0x3f7a30, roughness: 0.75, roughnessMap: noiseTex(9, 128, 0.6, 1, 30) }), pot = phys({ color: 0xd9bf82, roughness: 0.6 });
+    const f = add(new RoundedBoxGeometry(0.1, 0.022, 0.055, 4, 0.01), fish, -0.018, 0.011, -0.018, 0, -0.3, 0); f.scale.set(1, 1, 1);
+    for (const [x, z] of [[0.05, 0.04], [0.068, 0.0], [0.036, 0.068]]) { add(new THREE.CylinderGeometry(0.006, 0.007, 0.02, 10), phys({ color: 0x8db35a, roughness: 0.6 }), x, 0.01, z); for (let k = 0; k < 5; k++) add(new THREE.SphereGeometry(0.011, 14, 10), green, x + Math.cos(k * 1.3) * 0.009, 0.024 + 0.004 * (k % 2), z + Math.sin(k * 1.3) * 0.009); }
+    for (const [x, z] of [[-0.05, 0.045], [-0.022, 0.06], [-0.065, 0.015]]) { const p = add(new THREE.SphereGeometry(0.016, 20, 14), pot, x, 0.012, z); p.scale.set(1.2, 0.8, 1); }
+  }
+  finish(g); g.visible = false; return g;
 }
+
+// ------------------------------------------------------------------ the body: seated, forearms on the table; head turns; fingers that drum
+const SPINE_CER = ['Atlas', 'Axis', 'Third cervical vertebra', 'Fourth cervical vertebra', 'Fifth cervical vertebra', 'Sixth cervical vertebra', 'Seventh cervical vertebra'];
+let HANDS = null;
+function tableSDF(p) { return p.y - TABLE.top; }
+function solveHands() {
+  const R = W.rig, out = {};
+  for (const Side of ['Right', 'Left']) {
+    const A = R.arms[Side], H = W.hand[Side], s = A.s, e = new THREE.Vector3();
+    const at = new THREE.Vector3(s * 0.19, TABLE.top - 0.006, 0.035), elbowT = new THREE.Vector3(s * 0.29, TABLE.top + 0.028, -0.31);
+    const wq = new THREE.Vector3();
+    const extra = (A2) => { A2.elbow.getWorldPosition(e); H.wr.g.getWorldPosition(wq); return 1.5 * e.distanceTo(elbowT) + 4 * Math.max(0, TABLE.top + 0.026 - e.y) + 2 * Math.abs(wq.y - (TABLE.top + 0.024)); };   // the forearm lies on the wood: the wrist low too
+    const aims = [{ v: H.n, to: new THREE.Vector3(0, -1, 0), w: 2.5 }, { v: H.fdir, to: new THREE.Vector3(-s * 0.22, -0.04, 1).normalize(), w: 1.5 }];
+    // solve, then lift or lower the target until the lowest bone of the palm and wrist rests 3 mm above the wood
+    const palmLow = () => { let mn = 9; const v = new THREE.Vector3(); H.eg.updateMatrixWorld(true); H.eg.traverse((m) => { if (!m.isMesh || /phalanx/i.test(m.userData.name)) return; const P = m.geometry.attributes.position; for (let i = 0; i < P.count; i += 2) mn = Math.min(mn, v.fromBufferAttribute(P, i).applyMatrix4(m.matrixWorld).y); }); return mn; };
+    let sol = null;   // the forearms turned palm down (the radius crosses the ulna): pronation P0
+    for (let it = 0; it < 4; it++) {
+      const P0 = 2.1; sol = solveHand(R, Side, H, at, sol || { dir: [0.15, -0.75, 0.6], twist: 0.6, elbow: 1.3, pro: P0 }, aims, extra, it ? [] : [{ dir: [0.15, -0.75, 0.6], twist: 0.6, elbow: 1.3, pro: P0 }, { dir: [0.25, -0.6, 0.75], twist: 0.2, elbow: 1.1, pro: P0 }, { dir: [0.1, -0.85, 0.5], twist: 1.0, elbow: 1.5, pro: P0 }]);
+      poseArm(A, sol); setWrist(H.wr, sol); A.girdle.updateMatrixWorld(true); H.curl(0);
+      const d = TABLE.top + 0.004 - palmLow(); if (Math.abs(d) < 0.0008) break; at.y += d;
+    }
+    // lift the hand clear of the table, then let each finger down onto it
+    const F = H.fit(tableSDF, { need: 0.0035, kmin: -0.25, kmax: 0.9 });
+    out[Side] = { sol, F }; W.handDbg = W.handDbg || {}; W.handDbg[Side] = { ...sol.dbg, wr: +sol.wr.toFixed(2), wf: +sol.wf.toFixed(2), wd: +sol.wd.toFixed(2), tw: +sol.twist.toFixed(2), el: +sol.elbow.toFixed(2), elbow: A.elbow.getWorldPosition(new THREE.Vector3()).toArray().map((v) => +v.toFixed(3)), shoulder: A.arm.getWorldPosition(new THREE.Vector3()).toArray().map((v) => +v.toFixed(3)) };
+  }
+  return out;
+}
+function headAt(t) {   // where the head looks: yaw (+ to its left), pitch (+ down), from the moment
+  const look = [
+    [0, 0.0, 0.3], [4.2, 0.0, 0.3], [4.55, 0.42, 0.12], [6.2, 0.42, 0.12], [6.6, -0.42, 0.18], [7.9, -0.42, 0.18], [8.4, 0.0, 0.3],
+    [13.4, 0.0, 0.3], [13.9, -0.5, 0.42], [17.6, -0.5, 0.42], [18.6, 0.0, 0.25], [19.4, 0.6, 0.12], [47.9, 0.6, 0.12], [48.8, 0.0, 0.32],
+    [56.6, 0.0, 0.32], [57.4, -0.72, 0.05], [58.9, -0.72, 0.05], [59.4, 0.0, 0.34], [99, 0.0, 0.34]];
+  for (let i = 0; i < look.length - 1; i++) if (t < look[i + 1][0]) { const k = s5(look[i][0], look[i + 1][0], t); return [lerp(look[i][1], look[i + 1][1], k), lerp(look[i][2], look[i + 1][2], k)]; }
+  return [0, 0.34];
+}
+const _qa = new THREE.Quaternion();
+function poseBody(t) {
+  const R = W.rig, br = 0.5 - 0.5 * Math.cos((t / 4.4) * Math.PI * 2);
+  const [yaw, pitch] = headAt(t);
+  bendSpine(R.seg, { lum: 0.1, tho: 0.26, cer: pitch + 0.015 * br });           // the trunk stays put (the forearms rest on the table); the neck turns
+  for (const n of SPINE_CER) { const s = R.seg[n]; if (s) s.g.rotation.y += yaw / SPINE_CER.length; }
+  if (HANDS) for (const Side of ['Right', 'Left']) { const A = R.arms[Side], h = HANDS[Side]; poseArm(A, h.sol); setWrist(W.hand[Side].wr, h.sol);
+    // the right hand drums its fingers while it waits for noon (each lifts and taps down, little finger first)
+    const per = h.F.per.map((k, i) => { if (Side !== 'Right') return k; const dr = pulse(t, T.you, T.noon - 0.3, 0.3); const ph = ((t * 1.6 - (3 - i) * 0.12) % 1 + 1) % 1; return k - dr * 0.45 * Math.max(0, Math.sin(Math.PI * Math.min(1, ph / 0.7))) ** 2; });
+    W.hand[Side].curl(0, per, h.F.tk); }
+  W.body.quaternion.identity(); W.body.position.copy(W.sitP); W.body.updateMatrixWorld(true);
+  for (const Side of ['Right', 'Left']) {
+    const G = R.legs[Side]; _qa.setFromAxisAngle(X, -Math.PI / 2); G.hip.quaternion.copy(_qa);
+    const tgt = new THREE.Vector3(W.sitP.x + G.s * 0.13, G.A.y - G.ground + 0.002, W.sitP.z + 0.44);
+    legIK(R, Side, tgt, new THREE.Quaternion(), Z);
+  }
+  // the jaw drops at the pizza
+  if (W.jawG) W.jawG.rotation.x = 0.3 * pulse(t, T.pizza + 0.05, 7.6, 0.25);
+  W.body.updateMatrixWorld(true);
+}
+
+// ------------------------------------------------------------------ the clock: the time it shows (hours), by moment
+function clockAt(t) {
+  let h = 11.93 + 0.07 * s5(0, T.noon - 0.2, t);                              // the knife creeps to twelve
+  h += 36 * s5(T.your + 0.3, T.food + 0.3, t);                               // the hours fly by: three days round
+  h += (10 + 10 / 60) * s5(T.clock - 0.35, T.clock + 0.45, t);               // ten past ten, as in a watch advert: the brand shows
+  h += (2 - 10 / 60) * s5(T.raid - 0.2, T.midnight, t);                      // midnight
+  return h;
+}
+function windowAt(t) { return s5(T.window2 - 0.4, T.window2 + 0.5, t) * (1 - s5(T.raid - 0.4, T.raid, t)); }
 
 // ------------------------------------------------------------------ build
-let ARM_ON_TABLE = null;
 async function build(S, cfg) {
   const scene = S.scene;
   S.fog.near = 4; S.fog.far = 14;
@@ -199,185 +553,183 @@ async function build(S, cfg) {
   const R = W.rig = buildRig(meshes);
   W.body = new THREE.Group(); scene.add(W.body); R.root.position.copy(R.P0).negate(); W.body.add(R.root);
   for (const m of meshes) { m.castShadow = true; m.receiveShadow = true; m.layers.enable(1); }
-  W.meshes = meshes;
+  W.bones = meshes.filter((m) => ['bone', 'tooth', 'cartilage'].includes(m.userData.tissue));
   { const st = R.byName.get('Body of sternum'); st.material = st.material.clone();
     W.stampSpot = stampSpot(st, { from: [0, 0.006, 0.12], dir: [0, 0, -1], spread: 0.004 });
     if (W.stampSpot) W.stamp = stamp(st, { canvas: stampCanvas(['HUMAN FACTORY', 'SETTINGS'], '', { frame: false }), center: W.stampSpot.center, normal: W.stampSpot.normal, up: [0, 1, 0], width: 0.04, depth: 0.03, opacity: 0.6 }); }
-  // seated on the stool, as in film 9
+  // the jaw on its own hinge
+  { const at = R.seg.Atlas; W.body.updateMatrixWorld(true);
+    W.jawG = new THREE.Group(); W.jawG.position.copy(new THREE.Vector3(0, 1.668, -0.003)).sub(at.pivot); at.g.add(W.jawG); at.g.updateMatrixWorld(true);
+    for (const m of meshes) if (/^mandible$|lower .*tooth/i.test(m.userData.name)) W.jawG.attach(m); }
+  W.hand = {}; for (const Side of ['Right', 'Left']) { const Wr = makeWrist(R, Side, { pronate: true }); W.hand[Side] = rigHand(R, Side, Wr); W.hand[Side].wr = Wr; }
+  // seated on the stool
   const hipB = new THREE.Box3(); for (const m of meshes) if (/hip bone/i.test(m.userData.name)) for (const v of worldVerts(m, 3)) hipB.expandByPoint(v);
-  W.sitP = new THREE.Vector3(0, SEAT - 0.012 + (R.P0.y - hipB.min.y), SEAT_Z + 0.02);
+  W.sitP = new THREE.Vector3(0, SEAT + 0.002 + (R.P0.y - hipB.min.y), SEAT_Z + 0.02);
   // ---- the set
-  makeTable(scene); W.plate = makePlate(scene); W.bal = makeBalance(scene); W.paper = makePaper(scene);
-  // the forearms resting on the table, the hands either side of the plate
-  poseBody(0); ARM_ON_TABLE = solveArms();
+  W.table = makeTable(scene); W.plate = makePlate(scene); W.sign = makeSign(scene); W.pizza = makePizza(scene); W.sw = makeSwitch(scene);
+  W.bal = makeBalance(scene); W.fridge = makeFridge(scene);
+  W.weights = WEIGHS.map((q) => makeWeight(scene, q.kind, q.small));
+  { const c = BAL_CAM.p, dx = c[0] - BAL.x, dz = c[2] - BAL.z; W.weightYaw = Math.atan2(-dz, dx); }   // the name, printed at a quarter turn, faces the balance's camera
+  W.meals = ['breakfast', 'lunch', 'dinner'].map((k) => mealPlate(scene, k));
+  // the forearms on the table, the hands either side of the plate, the fingers down on the wood
+  poseBody(0); HANDS = solveHands(); poseBody(0);
   // ---- light
-  W.key = spot(scene, { color: 0xffe9d2, pos: new THREE.Vector3(-1.2, 2.6, 1.4), target: new THREE.Vector3(0, 0.8, -0.1), angle: 0.45, penumbra: 0.8, shadow: true, size: cfg.shadow ?? 1024 }); W.key.shadow.camera.far = 7;
+  W.key = spot(scene, { color: 0xffe9d2, pos: new THREE.Vector3(-1.2, 2.7, 1.5), target: new THREE.Vector3(0, 0.8, -0.1), angle: 0.5, penumbra: 0.8, shadow: true, size: cfg.shadow ?? 1024 }); W.key.shadow.camera.far = 7;
   W.rim = spot(scene, { color: 0xa9c4ff, pos: new THREE.Vector3(1.2, 2.2, -1.9), target: new THREE.Vector3(0, 1.0, -0.4), angle: 0.5, penumbra: 0.9 });
-  W.fill = spot(scene, { color: 0xc8d6ff, pos: new THREE.Vector3(1.6, 1.3, 1.6), target: new THREE.Vector3(0, 0.9, -0.2), angle: 0.6, penumbra: 1 });
-  W.plateLight = spot(scene, { color: 0xfff1d8, pos: new THREE.Vector3(0.25, 2.1, 0.35), target: PLATE.clone(), angle: 0.16, penumbra: 0.6 });
-  W.paperLight = spot(scene, { color: 0xfff1d8, pos: new THREE.Vector3(0.6, 2.0, 0.6), target: PAPER.clone(), angle: 0.2, penumbra: 0.6 });
-  W.balLight = spot(scene, { color: 0xfff1d8, pos: new THREE.Vector3(0.3, 2.3, 1.8), target: new THREE.Vector3(BAL.x, BAL.top + 0.25, BAL.z), angle: 0.3, penumbra: 0.7 });
-  return { stamp: W.stampSpot, sitP: W.sitP.toArray(), arms: ARM_ON_TABLE && [ARM_ON_TABLE.Right.err, ARM_ON_TABLE.Left.err] };
+  W.fill = spot(scene, { color: 0xc8d6ff, pos: new THREE.Vector3(1.6, 1.3, 1.8), target: new THREE.Vector3(0, 0.9, -0.2), angle: 0.6, penumbra: 1 });
+  W.plateLight = spot(scene, { color: 0xfff1d8, pos: new THREE.Vector3(0.25, 2.1, 0.45), target: PLATE.clone(), angle: 0.16, penumbra: 0.6 });
+  W.poolLight = spot(scene, { color: 0xfff3e2, pos: new THREE.Vector3(-0.15, 2.25, 0.75), target: new THREE.Vector3(-0.22, TABLE.top, 0.08), angle: 0.21, penumbra: 0.75 });
+  W.balLight = spot(scene, { color: 0xfff1d8, pos: new THREE.Vector3(0.4, 2.4, 1.9), target: new THREE.Vector3(BAL.x, BAL.top + 0.25, BAL.z), angle: 0.28, penumbra: 0.7 });
+  W.swLight = spot(scene, { color: 0xfff1d8, pos: new THREE.Vector3(-0.95, 2.1, -0.6), target: new THREE.Vector3(-0.72, 0.35, -0.22), angle: 0.42, penumbra: 0.7 });
+  W.auditSolids = [['table', W.table], ['plate', W.plate.g], ['sign', W.sign.g], ['pizza box', W.pizza.g], ['switch', W.sw.g], ['cable', W.sw.cable], ['plug', W.sw.plug],
+    ['balance', W.bal.g], ['fridge', W.fridge.g], ...W.meals.map((m, i) => ['meal ' + i, m])].filter((q) => q[1]);
+  W.timing = { drum: [T.you, T.noon - 0.3], boxOpen: BOX_OPEN, jaw: [T.pizza + 0.05, 7.6], noon: T.noon, flip: FLIP, window: [T.window2 - 0.4, T.window2 + 0.5], boxShut: BOX_SHUT, boxGone: BOX_GONE,
+    hours: [T.your + 0.3, T.food + 0.3], magic: MAGIC, cable: CABLE_LOOK, weights: WEIGHS.map((q) => [q.kind, q.pan, q.land, q.off]),
+    brand: [T.one - 0.2, T.less + 0.2], fridge: [T.fridge - 0.15, T.fridge + 0.45], midnight: T.midnight, meals: MEAL_T, logo: T.logo };
+  return { stamp: W.stampSpot, sitP: W.sitP.toArray().map((v) => +v.toFixed(3)), hands: HANDS && ['Right', 'Left'].map((s) => +HANDS[s].sol.err.toFixed(4)), fingers: HANDS && ['Right', 'Left'].map((s) => HANDS[s].F.per.map((v) => +v.toFixed(2))) };
 }
-
-// ------------------------------------------------------------------ the body: seated, forearms on the table, looking at the plate
-function solveArms() {
-  const R = W.rig, out = {};
-  for (const Side of ['Right', 'Left']) {
-    const A = R.arms[Side], hand = new THREE.Vector3(A.s * 0.2, TABLE.top + 0.022, PLATE.z - 0.02), e = new THREE.Vector3(), h = new THREE.Vector3();
-    const elbowT = new THREE.Vector3(A.s * 0.24, TABLE.top + 0.04, -0.27);
-    const err = (p) => { poseArm(A, p); A.girdle.updateMatrixWorld(true); A.mc.getWorldPosition(h); A.elbow.getWorldPosition(e); return h.distanceTo(hand) + 0.5 * e.distanceTo(elbowT) + 3 * Math.max(0, TABLE.top + 0.02 - e.y) + 3 * Math.max(0, TABLE.top + 0.012 - h.y); };
-    let best = { dir: [0.15, -0.75, 0.6], twist: 0.6, elbow: 1.3, retract: 0, elevate: 0 }, bestE = err(best);
-    for (const st of [0.25, 0.12, 0.06, 0.03, 0.015, 0.007, 0.003]) for (let it = 0; it < 40; it++) {
-      let improved = false;
-      for (const key of ['d0', 'd1', 'd2', 'twist', 'elbow']) for (const sg of [-1, 1]) {
-        const c = { ...best, dir: [...best.dir] }; if (key[0] === 'd') c.dir[+key[1]] += sg * st; else c[key] += sg * st * 2;
-        c.elbow = Math.min(2.6, Math.max(0, c.elbow)); const E = err(c); if (E < bestE) { bestE = E; best = c; improved = true; } }
-      if (!improved) break; }
-    out[Side] = { ...best, err: bestE };
-  }
-  return out;
-}
-const _qa = new THREE.Quaternion();
-function poseBody(t) {
-  const R = W.rig, br = 0.5 - 0.5 * Math.cos((t / 4.4) * Math.PI * 2);
-  const look = 0.32 - 0.12 * pulse(t, 29.0, 47.0, 0.8);   // eyes on the plate; on the paper, a little less bent
-  bendSpine(R.seg, { lum: 0.08, tho: 0.16 + 0.01 * br, cer: look, twist: 0.12 * pulse(t, 29.0, 47.0, 0.8) });
-  if (ARM_ON_TABLE) { poseArm(R.arms.Right, ARM_ON_TABLE.Right); poseArm(R.arms.Left, ARM_ON_TABLE.Left); }
-  else { const a = { dir: [0.15, -0.75, 0.6], twist: 0.6, elbow: 1.3 }; poseArm(R.arms.Right, a); poseArm(R.arms.Left, a); }
-  W.body.quaternion.identity(); W.body.position.copy(W.sitP); W.body.updateMatrixWorld(true);
-  for (const Side of ['Right', 'Left']) {
-    const G = R.legs[Side]; _qa.setFromAxisAngle(X, -Math.PI / 2); G.hip.quaternion.copy(_qa);
-    const tgt = new THREE.Vector3(W.sitP.x + G.s * 0.13, G.A.y - G.ground + 0.002, W.sitP.z + 0.44);
-    legIK(R, Side, tgt, new THREE.Quaternion(), Z);
-  }
-  W.body.updateMatrixWorld(true);
-}
-
-// ------------------------------------------------------------------ the clock: the time it shows (hours, 0 to 12), by moment
-function clockAt(t) {
-  // waiting before noon (11:54 to noon), then fast forward through the windows, then stopped for the warnings
-  const k1 = s5(T.trial, T.noon, t), k2 = s5(T.eight - 0.3, T.noCal + 0.4, t);
-  let h = 11.9 + (t / 4.3) * 0.1 * (1 - k1);   // the knife creeps toward twelve
-  h = lerp(h, 12, k1); h = lerp(h, 20, k2);
-  const k3 = s5(T.one - 0.2, T.eight2, t), k4 = s5(T.four - 0.2, T.noSig, t); h = lerp(h, 24 + 8, k3); h = lerp(h, 24 + 16, k4);
-  const k5 = s5(T.works - 0.4, T.works + 0.6, t); h = lerp(h, 48 + 10 + 10 / 60, k5);   // ten past ten for the punchline, as in a watch advert: the brand shows
-  return h;
-}
-function windowAt(t) {   // which window, and how far it is drawn
-  if (t < T.year) return { h0: 12, h1: 8, k: s5(T.noon - 0.1, T.eight + 0.3, t) * (1 - s5(T.year - 0.6, T.year, t)) };
-  return { h0: 8, h1: 4, k: s5(T.eight2 - 0.2, T.four + 0.3, t) * (1 - s5(T.scare - 0.6, T.scare, t)) };
-}
+const MEAL_T = [T.three2, T.proper + 0.18, T.meals3 + 0.1];
 
 // ------------------------------------------------------------------ the camera: one path, no cuts
 let CAM = null;
 function buildCam() {
-  const P = PLATE, B = BAL, Pa = PAPER, Sk = W.sitP;
-  const balC = new THREE.Vector3(B.x, B.top + 0.24, B.z), balD = new THREE.Vector3(Math.sin(-0.5), 0, Math.cos(-0.5));   // the balance faces this way
-  const bp = (d, h) => V3(balC.x + balD.x * d, h, balC.z + balD.z * d);
+  const P = PLATE;
+  const toward = (p, l, k) => p.map((v, i) => l[i] + (v - l[i]) * k);
+  const orbit = (p, l, a) => { const dx = p[0] - l[0], dz = p[2] - l[2], c = Math.cos(a), s = Math.sin(a); return [l[0] + dx * c + dz * s, p[1], l[2] - dx * s + dz * c]; };
+  const SIGNV = { p: [-0.833, 1.214, 0.674], l: [-0.22, 0.809, 0.06] };              // the sign, the plate, the drumming hand
+  const NOON = { p: [1.346, 2.031, 2.799], l: [0.261, 1.181, -0.185] };              // the skeleton, the pizza, the plate (the box's words clear of the button column)
+  const WIN = { p: [0.101, 1.539, 0.504], l: [-0.008, 0.788, -0.117] };              // the plate from above: the window, the brand
+  const HOURS = { p: [0.0, 2.496, 1.639], l: [0.0, 1.166, -0.259] };                 // the skeleton waiting, the hands flying round
+  const SWV = { p: [-0.64, 1.493, 0.296], l: [-0.549, 0.876, -0.215] };              // the switch (its label above the bottom fifth)
+  const PLUGV = { p: [-0.687, 1.996, -0.795], l: [-0.687, 0.477, -0.087] };            // down the cable to the plug, from behind
+  const FRV = { p: [0.549, 2.301, 2.746], l: [-1.418, 0.935, 1.096] };               // the fridge
+  const MEALV = { p: [1.289, 2.262, 2.216], l: [-0.055, 1.176, -0.113] };             // three meals; the warnings
   return camTrack([
-    { t: -3.0, p: V3(P.x + 0.02, P.y + 0.6, P.z + 0.42), l: V3(P.x, P.y, P.z - 0.02), fov: 38 },
-    { t: 0.0, p: V3(P.x + 0.02, P.y + 0.58, P.z + 0.41), l: V3(P.x, P.y, P.z - 0.02), fov: 38, tens: 0.5 },          // the plate that is a clock
-    { t: 4.0, p: V3(P.x + 0.03, P.y + 0.55, P.z + 0.4), l: V3(P.x, P.y, P.z - 0.03), fov: 38, tens: 0.4 },
-    { t: 6.5, p: V3(P.x + 0.5, P.y + 0.78, P.z + 1.0), l: V3(P.x, P.y + 0.16, P.z - 0.2), fov: 34, stop: true },        // the skeleton waits
-    { t: 10.2, p: V3(P.x + 0.48, P.y + 0.76, P.z + 0.97), l: V3(P.x, P.y + 0.16, P.z - 0.2), fov: 34, stop: true },
-    { t: 11.6, p: bp(1.65, 1.15), l: V3(balC.x, balC.y, balC.z), fov: 32, stop: true },                                // the balance
-    { t: 28.4, p: bp(1.6, 1.14), l: V3(balC.x, balC.y, balC.z), fov: 32, stop: true },
-    { t: 29.45, p: V3(Pa.x + 0.32, Pa.y + 0.95, Pa.z + 0.62), l: V3(Pa.x + 0.02, Pa.y, Pa.z), fov: 38 },
-    { t: 30.2, p: V3(Pa.x + 0.01, Pa.y + 0.72, Pa.z + 0.3), l: V3(Pa.x, Pa.y, Pa.z - 0.01), fov: 38, stop: true },     // the newspaper
-    { t: 46.6, p: V3(Pa.x + 0.01, Pa.y + 0.7, Pa.z + 0.29), l: V3(Pa.x, Pa.y, Pa.z - 0.01), fov: 38, stop: true },
-    { t: 48.1, p: bp(1.62, 1.15), l: V3(balC.x, balC.y, balC.z), fov: 32, stop: true },                                  // the balance again
-    { t: 56.0, p: bp(1.58, 1.13), l: V3(balC.x, balC.y, balC.z), fov: 32, stop: true },
-    { t: 57.4, p: V3(P.x + 0.04, P.y + 0.36, P.z + 0.14), l: V3(P.x, P.y, P.z - 0.01), fov: 30, tens: 0.3 },         // the plate
-    { t: 59.0, p: V3(P.x + 0.005, P.y + 0.24, P.z + 0.07), l: V3(P.x, P.y, P.z - 0.035), fov: 30, stop: true },       // its brand: DIET
-    { t: 60.1, p: V3(P.x + 0.004, P.y + 0.235, P.z + 0.068), l: V3(P.x, P.y, P.z - 0.035), fov: 30, stop: true },
-    { t: 61.7, p: V3(Sk.x + 1.05, 1.3, Sk.z + 1.55), l: V3(Sk.x, 0.86, Sk.z + 0.2), fov: 30, stop: true },           // the warnings: the table, the skeleton
-    { t: 71.8, p: V3(Sk.x + 1.0, 1.28, Sk.z + 1.5), l: V3(Sk.x, 0.86, Sk.z + 0.2), fov: 30, stop: true },
-    { t: 73.3, p: V3(P.x + 0.08, P.y + 0.4, P.z + 0.22), l: V3(P.x, P.y, P.z), fov: 30 },
-    { t: T.logo, p: V3(P.x, P.y + 0.3, P.z + 0.004), l: V3(P.x, P.y + 0.0075, P.z), fov: 30, stop: true },            // straight down on the plate: the logo
+    { t: -3.0, p: V3(...toward(SIGNV.p, SIGNV.l, 1.08)), l: V3(...SIGNV.l), fov: 34 },
+    { t: 0.0, p: V3(...toward(SIGNV.p, SIGNV.l, 1.05)), l: V3(...SIGNV.l), fov: 34, tens: 0.4 },
+    { t: 3.05, p: V3(...SIGNV.p), l: V3(...SIGNV.l), fov: 34, stop: true },
+    { t: 3.7, p: V3(...NOON.p), l: V3(...NOON.l), fov: 34, stop: true },
+    { t: 6.25, p: V3(...toward(NOON.p, NOON.l, 0.95)), l: V3(...NOON.l), fov: 34, stop: true },
+    { t: 6.8, p: V3(...toward(SIGNV.p, SIGNV.l, 0.97)), l: V3(...SIGNV.l), fov: 34, stop: true },
+    { t: 8.05, p: V3(...toward(SIGNV.p, SIGNV.l, 0.95)), l: V3(...SIGNV.l), fov: 34, stop: true },
+    { t: 8.65, p: V3(...WIN.p), l: V3(...WIN.l), fov: 32, stop: true },
+    { t: 10.35, p: V3(...toward(WIN.p, WIN.l, 0.97)), l: V3(...WIN.l), fov: 32, stop: true },
+    { t: 11.0, p: V3(...HOURS.p), l: V3(...HOURS.l), fov: 34, stop: true },
+    { t: 13.35, p: V3(...toward(HOURS.p, HOURS.l, 0.96)), l: V3(...HOURS.l), fov: 34, stop: true },
+    { t: 14.05, p: V3(...SWV.p), l: V3(...SWV.l), fov: 30, stop: true },
+    { t: CABLE_LOOK[0], p: V3(...toward(SWV.p, SWV.l, 0.96)), l: V3(...SWV.l), fov: 30, stop: true },
+    { t: CABLE_LOOK[1], p: V3(...PLUGV.p), l: V3(...PLUGV.l), fov: 32, stop: true },
+    { t: 18.35, p: V3(...toward(PLUGV.p, PLUGV.l, 0.98)), l: V3(...PLUGV.l), fov: 32, stop: true },
+    { t: 19.15, p: V3(...BAL_CAM.p), l: V3(...BAL_CAM.l), fov: 32, stop: true },
+    { t: 47.95, p: V3(...toward(BAL_CAM.p, BAL_CAM.l, 0.95)), l: V3(...BAL_CAM.l), fov: 32, stop: true },
+    { t: 48.75, p: V3(...WIN.p), l: V3(...WIN.l), fov: 32, stop: true },
+    { t: 56.45, p: V3(...toward(WIN.p, WIN.l, 0.96)), l: V3(...WIN.l), fov: 32, stop: true },
+    { t: 57.3, p: V3(...FRV.p), l: V3(...FRV.l), fov: 34, stop: true },
+    { t: 58.9, p: V3(...toward(FRV.p, FRV.l, 0.97)), l: V3(...FRV.l), fov: 34, stop: true },
+    { t: 59.45, p: V3(...MEALV.p), l: V3(...MEALV.l), fov: 34, stop: true },
+    { t: 73.6, p: V3(...orbit(MEALV.p, MEALV.l, -0.42)), l: V3(...MEALV.l), fov: 34, stop: true },
+    { t: 74.9, p: V3(P.x, P.y + 0.58, P.z + 0.14), l: V3(P.x, P.y, P.z), fov: 30, stop: true },
+    { t: T.logo, p: V3(P.x, P.y + 0.4, P.z + 0.004), l: V3(P.x, P.y + 0.0075, P.z), fov: 30, stop: true },   // straight down on the plate: the logo
   ]);
 }
 function camPose(S, t) {
   const v = S.cfg.view; if (v && typeof v === 'object') return v;
   if (!CAM) CAM = buildCam();
   if (t <= T.logo) return CAM(t);
-  const Q = CAM(T.logo), k = ss(T.logo, T.end, t); return { p: [Q.p[0], lerp(Q.p[1], Q.p[1] - 0.025, k), Q.p[2]], l: Q.l, fov: 30 };
+  const Q = CAM(T.logo), k = ss(T.logo, T.end, t); return { p: [Q.p[0], lerp(Q.p[1], Q.p[1] - 0.03, k), Q.p[2]], l: Q.l, fov: 30 };
 }
-W.camAt = (t) => camPose({ cfg: {} }, t);
 function focusAt(S, t, P) { return Math.hypot(P.p[0] - P.l[0], P.p[1] - P.l[1], P.p[2] - P.l[2]); }
 
 // ------------------------------------------------------------------ one moment of the film
+const _v = new THREE.Vector3();
 function update(S, t) {
-  const scene = S.scene, endDark = ss(T.factory - 0.5, T.logo - 0.3, t);
+  const scene = S.scene, endDark = ss(T.final + 0.2, T.factory + 0.25, t);   // dark early, so the plate never sits bright behind the last words
   poseBody(t);
-  // ---- the plate-clock: the hands (knife = minutes, fork = hours), the window
-  { const P = W.plate, h = clockAt(t), logoK = s5(T.back + 0.2, T.logo - 0.4, t);
-    const mins = h < 12 ? h % 1 : (10 / 60) * s5(T.works - 0.4, T.works + 0.6, t);   // the knife shows minutes while it creeps to noon, and at ten past ten; on the hour in between
-    P.kp.rotation.y = -(mins * Math.PI * 2); P.fp.rotation.y = -(((h % 12) / 12) * Math.PI * 2);
+  // ---- the plate-clock: the hands (knife = minutes, fork = hours), the window, the brand
+  { const P = W.plate, h = clockAt(t), logoK = s5(T.final + 0.4, T.logo - 0.4, t);
+    P.kp.rotation.y = -((h % 1) * Math.PI * 2); P.fp.rotation.y = -(((h % 12) / 12) * Math.PI * 2);
     const hk = 1 - logoK; P.knife.visible = P.fork.visible = hk > 0.02; P.kp.scale.setScalar(Math.max(0.001, hk)); P.fp.scale.setScalar(Math.max(0.001, hk));
-    const w = windowAt(t); setWindow(P, w.h0, w.h1, Math.max(0.001, w.k)); P.win.material.opacity = 0.85 * (w.k > 0.002 ? 1 : 0);
+    const w = windowAt(t); setWindow(P, 12, 8, Math.max(0.001, w)); P.win.material.opacity = 0.85 * (w > 0.002 ? 1 : 0);
+    P.brand.material.opacity = s5(T.one - 0.2, T.less + 0.2, t) * (1 - logoK);
     P.face.material.opacity = 1 - 0.85 * logoK;
     P.logo.set({ weight: logoK, white: logoK, hours: 0, hand: ss(T.logo - 0.4, T.logo - 0.15, t), handScale: outBack(clamp01((t - (T.logo - 0.4)) / 0.35), 1.8) }); }
-  // ---- the balance: what it weighs, by moment
-  { const B = W.bal; let L = 'NOON TO 8 PM', R2 = '3 MEALS A DAY', kL = 'clock', kR = 'meals', tilt = 0;
-    if (t > 18.0) { L = '8 AM TO 4 PM + CALORIE LIMIT'; R2 = 'CALORIE LIMIT ALONE'; kL = 'clock+kcal'; kR = 'kcal'; }
-    if (t > 47.0) { L = 'FASTING, ANY STYLE'; R2 = 'EATING FREELY'; kL = 'clock'; kR = 'free'; tilt = 0.2 * s5(T.beat - 0.3, T.beat + 0.5, t) * (1 - s5(T.against - 0.4, T.against + 0.4, t)); }
-    if (t > T.against - 0.2) { L = 'FASTING, ANY STYLE'; R2 = 'ORDINARY DIETING'; kL = 'clock'; kR = 'diet'; }
-    drawLabels(B, L, R2); drawToken(B.pans[0], kL); drawToken(B.pans[1], kR);
-    const wob = 0.012 * Math.sin(t * 5.1) * Math.exp(-((t - 13.0) ** 2) / 1.5) + 0.01 * Math.sin(t * 4.7) * Math.exp(-((t - 21.5) ** 2) / 1.5) + 0.01 * Math.sin(t * 4.9) * Math.exp(-((t - 54.0) ** 2) / 1.2);
-    const tl = tilt + wob; B.pivot.rotation.z = tl; for (const P of B.pans) P.hook.rotation.z = -tl; }
-  // ---- the newspaper: the stamps, the note
-  { const Pa = W.paper, st = (m, at) => { const k = s5(at, at + 0.08, t); m.material.opacity = k; m.scale.setScalar(1 + 0.3 * (1 - k)); };
-    st(Pa.s1, T.conf + 0.05); st(Pa.s2, T.notPeer + 0.1); st(Pa.s3, T.link + 0.1);
-    const nk = s5(T.times - 0.1, T.times + 0.4, t); Pa.note.material.opacity = nk; Pa.note.position.y = 0.0075 + 0.03 * (1 - nk); }
+  // ---- the sign: spun round to OPEN at noon's punchline; back to CLOSED at midnight
+  { const f = s5(FLIP[0], FLIP[1], t) - s5(T.raid - 0.3, T.raid + 0.3, t), wob = 0.12 * Math.exp(-Math.max(0, t - FLIP[1]) * 6) * Math.sin(Math.max(0, t - FLIP[1]) * 24) * (t > FLIP[1] ? 1 : 0);
+    W.sign.card.rotation.y = Math.PI * f + wob; }
+  // ---- the pizza box: flies open; shuts; slides off the table and is gone
+  { const Pz = W.pizza, o = s5(BOX_OPEN[0], BOX_OPEN[1], t) * (1 - s5(BOX_SHUT[0], BOX_SHUT[1], t)), bounce = 0.12 * Math.exp(-Math.max(0, t - BOX_OPEN[1]) * 7) * Math.sin(Math.max(0, t - BOX_OPEN[1]) * 20) * (t > BOX_OPEN[1] && t < BOX_SHUT[0] ? 1 : 0);
+    Pz.lid.rotation.x = -(1.95 * o + bounce);
+    const gk = s5(BOX_GONE[0], BOX_GONE[1], t); Pz.g.position.set(PIZZA.x + 0.9 * gk, PIZZA.y - 0.25 * Math.max(0, gk - 0.35) ** 2, PIZZA.z); Pz.g.visible = gk < 0.999; }
+  // ---- the switch: flipped on, a burst of sparks; nothing happens
+  { const Sw = W.sw, k = s5(MAGIC - 0.12, MAGIC + 0.08, t); Sw.piv.rotation.x = lerp(-0.55, 0.55, k) + 0.08 * Math.exp(-Math.max(0, t - MAGIC - 0.08) * 9) * Math.sin(Math.max(0, t - MAGIC) * 30) * (t > MAGIC ? 1 : 0);
+    const tip = Sw.tipW(), u0 = t - MAGIC;
+    Sw.sparks.forEach((q) => { const u = (u0 - q.d) / 0.9; q.s.visible = u > 0 && u < 1; if (!q.s.visible) return; const r = 0.12 * q.u * Math.sqrt(u);
+      q.s.position.set(tip.x + Math.cos(q.a) * r, tip.y + 0.15 * q.up * u - 0.1 * u * u, tip.z + Math.sin(q.a) * r); q.s.material.opacity = Math.sin(Math.PI * u) * (0.6 + 0.4 * Math.abs(Math.sin(t * 40 + q.a * 7))); q.s.scale.setScalar(0.006 + 0.006 * Math.sin(Math.PI * u)); }); }
+  // ---- the balance: the weights land and lift off; the beam swings and settles
+  { const B = W.bal;
+    const a = tiltAt(t); B.pivot.rotation.z = a; B.g.updateMatrixWorld(true);
+    for (const P of B.pans) P.hook.rotation.z = -a;
+    const stack = [0, 0];
+    WEIGHS.forEach((q, i) => { const m = W.weights[i], P = B.pans[q.pan];
+      const fall = drop(t, q.land, 0.55, 0.05), lift = Math.max(0, t - q.off); m.visible = t > q.land - 0.6 && lift < 0.8;
+      if (!m.visible) return;
+      P.hook.updateMatrixWorld(true); const base = q.on ? WEIGHT.h : 0; _v.set(0, -0.21 + 0.004 + base + m.userData.h / 2, 0).applyMatrix4(P.hook.matrixWorld);
+      m.position.set(_v.x, _v.y + fall + 2.5 * lift * lift, _v.z); m.quaternion.setFromAxisAngle(Y, W.weightYaw ?? 0); stack[q.pan]++; }); }
+  // ---- the fridge: midnight, the door flies open, its light out over the floor and the skeleton
+  { const Fr = W.fridge, o = s5(T.fridge - 0.15, T.fridge + 0.45, t) * (1 - s5(61.0, 61.8, t)), sw = 0.06 * Math.exp(-Math.max(0, t - T.fridge - 0.45) * 5) * Math.sin(Math.max(0, t - T.fridge - 0.45) * 16) * (t > T.fridge + 0.45 && t < 61 ? 1 : 0);
+    Fr.hinge.rotation.y = -(1.9 * o + sw); const on = ss(T.fridge - 0.1, T.fridge + 0.2, t) * (1 - ss(61.2, 61.8, t));
+    Fr.light.intensity = 9 * on; Fr.bulb.intensity = 0.7 * on; Fr.inner.emissiveIntensity = 0.22 * on; }
+  // ---- three proper meals land on the table
+  W.meals.forEach((m, i) => { const at = MEAL_T[i]; m.visible = t > at - 0.5; if (!m.visible) return; m.position.set(MEALS[i].x, MEALS[i].y + drop(t, at, 0.4, 0.02), MEALS[i].z); m.rotation.y = 0.4 * i - 0.3; });
   // ---- light
-  const fig = 1 - endDark;
-  W.key.intensity = 9 * fig; W.rim.intensity = 4 * fig; W.fill.intensity = 1.0 * fig;
-  W.plateLight.intensity = 2.2 * fig; W.paperLight.intensity = 2.0 * fig * ss(28.6, 29.8, t) * (1 - ss(46.6, 47.8, t)); W.balLight.intensity = 10 * fig;
-  S.tableMat.color.setScalar(0.32 * (1 - endDark * 0.9)); scene.environmentIntensity = 0.12 * (1 - endDark); S.reflAmt = 0.5 * (1 - endDark);
+  const fig = 1 - endDark, night = pulse(t, T.raid - 0.2, 61.4, 0.5);
+  const close = Math.max(pulse(t, -1, 3.25, 0.3), pulse(t, 6.35, 10.5, 0.3), pulse(t, 48.6, 56.55, 0.35), ss(74.1, 74.6, t)), dk = 1 - 0.97 * close;
+  W.key.intensity = 9 * fig * (1 - 0.6 * night) * dk; W.rim.intensity = 4 * fig * dk; W.fill.intensity = 1.0 * fig * (1 - 0.5 * night) * dk;
+  W.plateLight.intensity = 2.2 * fig * (1 + 0.8 * close); W.poolLight.intensity = 6 * fig * close; W.balLight.intensity = 10 * fig * pulse(t, 18.4, 48.6, 0.6); W.swLight.intensity = 5 * fig * pulse(t, 13.6, 18.6, 0.5);
+  S.tableMat.color.setScalar(0.32 * (1 - endDark * 0.9)); scene.environmentIntensity = 0.12 * (1 - endDark) * (1 - 0.85 * close); S.reflAmt = 0.5 * (1 - endDark);
 }
 
 // ------------------------------------------------------------------ the words on screen
 const CAPS = [
-  { t0: 0.35, t1: 2.0, top: 300, size: 96, html: 'Intermittent <em>fasting.</em>' },
-  { t0: 2.26, t1: 4.6, top: 292, size: 82, html: 'Trust the clock<br>to do the <em>dieting</em>' },
-  { t0: 4.91, t1: 10.5, top: 292, size: 74, html: 'In one trial, people ate<br>only from <em>noon to eight,</em><br>with no calorie target' },
-  { t0: 11.01, t1: 15.4, top: 292, size: 74, html: 'After 12 weeks: <em>no more</em><br><em>effective</em> than three<br>meals a day' },
-  { t0: 15.64, t1: 18.1, top: 300, size: 84, html: 'Calories eaten:<br><em>no different</em>' },
-  { t0: 18.58, t1: 23.0, top: 292, size: 74, html: 'In a year-long trial, both<br>groups had the <em>same</em><br><em>calorie limit</em>' },
-  { t0: 23.21, t1: 26.35, top: 292, size: 78, html: 'One also ate only<br>from <em>eight to four</em>' },
-  { t0: 26.56, t1: 29.0, top: 292, size: 78, html: 'No significant<br>difference in <em>weight</em>' },
-  { t0: 29.54, t1: 38.1, top: 292, size: 66, html: 'The scare: eating in under<br>8 hours a day, linked to a<br><em>91% higher risk</em> of<br>cardiovascular death' },
-  { t0: 38.6, t1: 41.75, top: 292, size: 78, html: 'A conference abstract,<br><em>not peer reviewed</em>' },
-  { t0: 41.96, t1: 44.9, top: 292, size: 78, html: 'Eating times: <em>two days,</em><br>from memory' },
-  { t0: 45.11, t1: 46.9, top: 300, size: 90, html: 'A link, <em>not proof.</em>' },
-  { t0: 47.32, t1: 52.75, top: 292, size: 72, html: 'Across <em>99 trials,</em> every<br>style of fasting beat<br>eating freely' },
-  { t0: 52.96, t1: 56.3, top: 292, size: 78, html: 'Against ordinary dieting,<br>mostly <em>a tie</em>' },
-  { t0: 56.74, t1: 58.5, top: 300, size: 90, html: 'It works like a diet.' },
-  { t0: 58.72, t1: 60.4, top: 300, size: 90, html: '<em>Because it is one.</em>' },
-  { t0: 60.8, t1: 65.9, top: 292, size: 70, html: 'Pregnant, breastfeeding,<br>or a history of eating<br>disorders? <em>Don&rsquo;t fast.</em>' },
-  { t0: 66.12, t1: 71.8, top: 292, size: 72, html: 'Diabetes?<br>Don&rsquo;t skip meals.<br>On medication? <em>Tell</em><br><em>your doctor first.</em>' },
-  { t0: 72.53, t1: 99, top: 360, size: 96, html: 'Back to<br><em>factory settings.</em>' },
+  { t0: T.you, t1: 3.1, top: 292, size: 86, html: 'You skip <em>breakfast</em>,<br>call it intermittent<br>fasting,' },
+  { t0: T.and, t1: 7.95, top: 292, size: 82, html: 'and then eat a<br><em>family pizza</em> at noon<br>because the<br>window is open.' },
+  { t0: T.lets, t1: 10.3, top: 300, size: 92, html: 'Let’s talk about<br>the <em>window</em>.' },
+  { t0: T.your, t1: 12.95, top: 292, size: 86, html: 'Your body was built<br>to go <em>hours</em><br>without food,' },
+  { t0: T.but, t1: 18.4, top: 292, size: 82, html: 'but a long gap<br>between meals isn’t<br>a <em>magic</em><br>fat-burning switch.' },
+  { t0: T.in, t1: 24.3, top: 292, size: 78, html: 'In one trial, people ate<br>only from <em>noon to 8 pm</em>,<br>with no calorie limit,' },
+  { t0: T.after - 0.04, t1: 30.5, top: 292, size: 76, html: 'and after 12 weeks,<br>they lost about the<br><em>same weight</em> as people<br>eating three meals a day.' },
+  { t0: T.in2, t1: 34.6, top: 292, size: 82, html: 'In a year-long trial,<br>both groups had the<br><em>same calorie limits</em>,' },
+  { t0: 34.69, t1: 40.3, top: 292, size: 80, html: 'and adding an 8-hour<br>eating window made<br><em>no clear difference</em><br>to their weight.' },
+  { t0: T.across, t1: 44.1, top: 292, size: 86, html: 'Across 99 trials,<br>fasting <em>beat</em><br>eating freely,' },
+  { t0: T.but2, t1: 48.3, top: 292, size: 84, html: 'but against ordinary<br>dieting, it was<br>mostly <em>a tie</em>.' },
+  { t0: 48.61, t1: 52.5, top: 292, size: 84, html: 'The clock isn’t magic.<br>It’s just one way<br>to <em>eat less</em>.' },
+  { t0: T.so, t1: 55.85, top: 292, size: 80, html: 'So if an eating window<br>helps you snack less,<br><em>use it</em>,' },
+  { t0: T.and2, t1: 58.9, top: 292, size: 86, html: 'and if it makes you<br><em>raid the fridge</em><br>at midnight,' },
+  { t0: T.eat3, t1: 61.9, top: 300, size: 90, html: 'eat <em>three proper</em><br><em>meals</em> instead.' },
+  { t0: T.dont, t1: 68.3, top: 292, size: 72, html: 'Don’t fast if you’re<br>pregnant or breastfeeding,<br>have diabetes, or have ever<br>had an eating disorder,' },
+  { t0: T.and3, t1: 74.0, top: 292, size: 80, html: 'and if you take<br>medication, tell your<br><em>doctor</em> before you<br>change how you eat.' },
+  { t0: T.final, t1: 99, top: 360, size: 92, html: 'Let’s get you back to<br><em>factory settings.</em>' },
 ];
 const OVL = {};
 function overlayInit(S) {
   const O = S.O, tag = (cls, txt2, size, bsize) => { const e = O.tag(cls, txt2); e.style.fontSize = size + 'px'; const b = e.querySelector('b'); if (b && bsize) b.style.fontSize = bsize + 'px'; return e; };
-  OVL.t1 = tag('tag', '12 weeks, 116 adults<b>difference 0.26 kg, not significant</b>', 22, 32);
-  OVL.t2 = tag('tag', '12 months, 139 adults<b>difference 1.8 kg, not significant</b>', 22, 32);
-  OVL.t3 = tag('tag', '99 trials<b>6,582 adults</b>', 22, 38);
+  OVL.t1 = tag('tag', 'One trial<b>12 weeks</b>', 22, 40);
+  OVL.t2 = tag('tag', 'One trial, same calorie limit<b>1 year</b>', 22, 40);
+  OVL.t3 = tag('tag', 'Across<b>99 trials</b>', 22, 40);
 }
 function overlay(S, t) {
-  const top = new THREE.Vector3(BAL.x, BAL.top + 0.06, BAL.z);
-  place(S, OVL.t1, top, -200, -150, pulse(t, T.noMore + 0.4, 17.9));
-  place(S, OVL.t2, top, -200, -150, pulse(t, T.noSig, 28.9));
-  place(S, OVL.t3, top, -110, -150, pulse(t, T.t99, T.against));
+  const top = new THREE.Vector3(BAL.x, BAL.top + 0.42, BAL.z);
+  place(S, OVL.t1, top, -140, -150, pulse(t, T.trial, 30.3));
+  place(S, OVL.t2, top, -200, -150, pulse(t, T.year, 40.3));
+  place(S, OVL.t3, top, -90, -150, pulse(t, T.ninetynine, 48.2));
   const c = new THREE.Vector3(PLATE.x, PLATE.y + 0.0075, PLATE.z);
   logoEnd(S, t, { t0: T.logo, center: c, edge: c.clone().add(new THREE.Vector3(0, 0, LOGO_R)) });
 }
 
 makeFilm({
   T, caps: CAPS, subs: [], build, update, pose: camPose, overlay, overlayInit, focus: focusAt,
-  stage: { bg: 0x07080a, reflSize: 6, env: 0.12, far: 30 },
-  aperture: [[0, 0.004], [6.5, 0.003], [11.6, 0.003], [30.2, 0.004], [48.1, 0.003], [57.4, 0.004], [61.2, 0.003], [73.3, 0.003]],
-  bloom: [[0, 0.45], [72, 0.55]],
+  stage: { bg: 0x07080a, reflSize: 8, env: 0.12, far: 30 },
+  aperture: [[0, 0.004], [3.7, 0.003], [6.8, 0.004], [8.65, 0.004], [11.0, 0.003], [14.05, 0.004], [17.95, 0.003], [19.15, 0.003], [48.75, 0.004], [57.3, 0.003], [59.45, 0.003], [75.0, 0.004]],
+  bloom: [[0, 0.45], [74, 0.55]],
+  fast: [[3.0, 3.75, 2], [6.2, 6.85, 2], [8.0, 8.7, 2], [10.3, 11.05, 2], [13.3, 14.1, 2], [16.6, 17.95, 2], [18.3, 19.2, 2], [47.9, 48.8, 2], [56.4, 57.35, 2], [58.85, 59.5, 2], [73.6, 75.1, 2]],
 });

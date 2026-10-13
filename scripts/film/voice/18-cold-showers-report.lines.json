@@ -1,0 +1,134 @@
+[
+ {
+  "line": 1,
+  "start": 0.35,
+  "end": 8.0,
+  "text": "You scream through a cold shower every morning because a podcast promised it would fix your whole life. Let's see what it does.",
+  "words": 23,
+  "sents": [
+   [
+    0.35,
+    6.34,
+    "You scream through a cold shower every morning because a podcast promised it would fix your whole life."
+   ],
+   [
+    6.79,
+    8.0,
+    "Let's see what it does."
+   ]
+  ]
+ },
+ {
+  "line": 2,
+  "start": 8.9,
+  "end": 16.05,
+  "text": "In the biggest trial, Dutch adults ended their shower with thirty to ninety seconds of cold water every day for a month.",
+  "words": 22,
+  "sents": [
+   [
+    8.9,
+    16.05,
+    "In the biggest trial, Dutch adults ended their shower with thirty to ninety seconds of cold water every day for a month."
+   ]
+  ]
+ },
+ {
+  "line": 3,
+  "start": 16.8,
+  "end": 25.57,
+  "text": "They reported about thirty percent fewer days off sick, but no fewer days feeling ill. They still felt ill, but they went to more meetings.",
+  "words": 25,
+  "sents": [
+   [
+    16.8,
+    22.17,
+    "They reported about thirty percent fewer days off sick, but no fewer days feeling ill."
+   ],
+   [
+    22.62,
+    25.57,
+    "They still felt ill, but they went to more meetings."
+   ]
+  ]
+ },
+ {
+  "line": 4,
+  "start": 26.32,
+  "end": 33.68,
+  "text": "But across eleven trials, mostly of ice baths, there was no proof that cold water boosts immunity or mood.",
+  "words": 19,
+  "sents": [
+   [
+    26.32,
+    33.68,
+    "But across eleven trials, mostly of ice baths, there was no proof that cold water boosts immunity or mood."
+   ]
+  ]
+ },
+ {
+  "line": 5,
+  "start": 34.43,
+  "end": 41.44,
+  "text": "If you lift weights, skip the ice bath straight after training, because in trials it may blunt muscle growth.",
+  "words": 19,
+  "sents": [
+   [
+    34.43,
+    41.44,
+    "If you lift weights, skip the ice bath straight after training, because in trials it may blunt muscle growth."
+   ]
+  ]
+ },
+ {
+  "line": 6,
+  "start": 42.19,
+  "end": 54.63,
+  "text": "And for fat loss, one small trial found people lost about seven hundred grams of fat in six weeks, from two hours a day at seventeen degrees Celsius. I hope your showers are shorter.",
+  "words": 34,
+  "sents": [
+   [
+    42.19,
+    52.49,
+    "And for fat loss, one small trial found people lost about seven hundred grams of fat in six weeks, from two hours a day at seventeen degrees Celsius."
+   ],
+   [
+    52.94,
+    54.63,
+    "I hope your showers are shorter."
+   ]
+  ]
+ },
+ {
+  "line": 7,
+  "start": 55.38,
+  "end": 75.04,
+  "text": "Plunging into cold water triggers a gasp and a racing heart in the first minute, and that shock can cause heart attacks, even in fairly young, healthy people. So if you have a heart condition, high blood pressure, diabetes or poor circulation, or you're pregnant, talk to your doctor before you start.",
+  "words": 52,
+  "sents": [
+   [
+    55.38,
+    65.1,
+    "Plunging into cold water triggers a gasp and a racing heart in the first minute, and that shock can cause heart attacks, even in fairly young, healthy people."
+   ],
+   [
+    65.55,
+    75.04,
+    "So if you have a heart condition, high blood pressure, diabetes or poor circulation, or you're pregnant, talk to your doctor before you start."
+   ]
+  ]
+ },
+ {
+  "line": 8,
+  "start": 75.94,
+  "end": 78.03,
+  "text": "Let's get you back to factory settings.",
+  "words": 7,
+  "sents": [
+   [
+    75.94,
+    78.03,
+    "Let's get you back to factory settings."
+   ]
+  ]
+ }
+]

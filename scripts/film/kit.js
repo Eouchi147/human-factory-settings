@@ -380,6 +380,8 @@ export async function createStage(cfg, o = {}) {
   const vg = S.ctx.createRadialGradient(Wd / 2, Hd * 0.46, Hd * 0.18, Wd / 2, Hd * 0.46, Hd * 0.72);
   vg.addColorStop(0, 'rgba(0,0,0,0)'); vg.addColorStop(0.55, 'rgba(0,0,0,0.12)'); vg.addColorStop(1, 'rgba(0,0,0,0.62)'); S.vig = vg;
   const sg = S.ctx.createLinearGradient(0, 0, 0, Hd * 0.5); sg.addColorStop(0, 'rgba(0,0,0,0.5)'); sg.addColorStop(0.45, 'rgba(0,0,0,0.3)'); sg.addColorStop(1, 'rgba(0,0,0,0)'); S.scrim = sg;
+  // the shade: a deeper scrim for the moments a camera move must carry the skeleton up behind the words (F.shade windows)
+  const sh = S.ctx.createLinearGradient(0, 0, 0, Hd * 0.48); sh.addColorStop(0, 'rgba(0,0,0,0.92)'); sh.addColorStop(0.76, 'rgba(0,0,0,0.88)'); sh.addColorStop(1, 'rgba(0,0,0,0)'); S.shade = sh;
   return S;
 }
 
@@ -475,6 +477,8 @@ export function timeMap(R) {
 
 // ------------------------------------------------------------------ a film: one continuous shot, from a definition
 // F = { T, caps, subs, stage, build(S, cfg), update(S, t), pose(S, t) -> {p, l, fov}, focus?(S, t, pose), aperture?, bloom?, preRender?(S, t), overlay?(S, t) }
+// how deep the shade is at time t: F.shade = [[t0, t1], ...], each fading in over its first 0.2 s and out over its last 0.2 s
+export function shadeAt(F, t) { let k = 0; for (const [a, b] of F.shade || []) k = Math.max(k, ss(a, a + 0.2, t) * (1 - ss(b - 0.2, b, t))); return k; }
 export function makeFilm(F) {
   let S;
   const dist = (P) => Math.hypot(P.p[0] - P.l[0], P.p[1] - P.l[1], P.p[2] - P.l[2]);
@@ -519,6 +523,8 @@ export function makeFilm(F) {
     const tf = M(t);
     const words = Math.max(0, ...(F.caps || []).filter((c) => !c.noScrim).map((c) => ss(c.t0 - 0.3, c.t0 + 0.2, tf) * (1 - ss(c.t1 - 0.3, c.t1 + 0.3, tf))));
     if (words > 0.001) { ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = words; ctx.fillStyle = S.scrim; ctx.fillRect(0, 0, S.size.x, S.size.y * 0.5); ctx.globalAlpha = 1; }
+    const shd = shadeAt(F, tf) * words;
+    if (shd > 0.001) { ctx.globalCompositeOperation = 'source-over'; ctx.globalAlpha = shd; ctx.fillStyle = S.shade; ctx.fillRect(0, 0, S.size.x, S.size.y * 0.48); ctx.globalAlpha = 1; }
     ctx.globalCompositeOperation = 'multiply'; ctx.fillStyle = S.vig; ctx.fillRect(0, 0, S.size.x, S.size.y);
     ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = 0.16;
     const f = Math.round(t * 24), pat = S.grain[f % S.grain.length];
