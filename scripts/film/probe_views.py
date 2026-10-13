@@ -3,7 +3,7 @@ import asyncio, subprocess, sys, time, os, json
 from PIL import Image, ImageDraw
 HERE = os.path.dirname(os.path.abspath(__file__))
 film, out, jobs = sys.argv[1], sys.argv[2], json.loads(sys.argv[3])
-W, Hh, port = 360, 640, int(os.environ.get('PORT', 8931))
+W, Hh, port = int(os.environ.get('PW', 360)), int(os.environ.get('PH', 640)), int(os.environ.get('PORT', 8931))
 os.makedirs(out, exist_ok=True)
 async def main():
     from playwright.async_api import async_playwright
@@ -16,6 +16,7 @@ async def main():
             await pg.goto(f'http://127.0.0.1:{port}/film.html?f={film}'); await pg.wait_for_function('!!(window.HFS && window.HFS.filmReady)', timeout=180000)
             info = await pg.evaluate('c => window.HFS.film.init(c)', {'width': W, 'height': Hh, 'shadow': 1024})
             print('INFO', json.dumps({k: v for k, v in info.items() if k not in ('T', 'fast')}), logs[:4], flush=True)
+            if os.environ.get('PRE'): print('PRE', await pg.evaluate(os.environ['PRE']), flush=True)
             fs = []
             for i, (t, view) in enumerate(jobs):
                 await pg.evaluate('v => { window.HFS.film.debug().cfg.view = v; }', view)
