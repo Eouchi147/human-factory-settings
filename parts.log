@@ -1,0 +1,120 @@
+== plog/p0-a.log
+1600 t=66.67 sub=1 1.69s 
+1700 t=70.83 sub=1 2.00s 
+1800 t=75.00 sub=2 3.78s 
+1900 t=79.17 sub=1 1.43s 
+== plog/p0-b.log
+1601 t=66.71 sub=1 0.97s 
+1701 t=70.88 sub=1 1.04s 
+1801 t=75.04 sub=2 2.08s 
+1901 t=79.21 sub=1 0.74s 
+== plog/p0-retry.log
+pass 1: missing 0
+== plog/p1-a.log
+1602 t=66.75 sub=1 1.73s 
+1702 t=70.92 sub=1 1.95s 
+1802 t=75.08 sub=2 2.99s 
+1902 t=79.25 sub=1 1.18s 
+== plog/p1-b.log
+1603 t=66.79 sub=1 0.97s 
+1703 t=70.96 sub=1 0.92s 
+1803 t=75.12 sub=2 1.76s 
+1903 t=79.29 sub=1 0.72s 
+== plog/p1-retry.log
+pass 1: missing 0
+== plog/p2-a.log
+1604 t=66.83 sub=1 1.72s 
+1704 t=71.00 sub=1 1.57s 
+1804 t=75.17 sub=2 3.03s 
+1904 t=79.33 sub=1 1.23s 
+== plog/p2-b.log
+1605 t=66.88 sub=1 1.00s 
+1705 t=71.04 sub=1 0.93s 
+1805 t=75.21 sub=2 1.69s 
+1905 t=79.38 sub=1 0.73s 
+== plog/p2-retry.log
+pass 1: missing 0
+== plog/p3-a.log
+1606 t=66.92 sub=1 1.39s 
+1706 t=71.08 sub=1 1.28s 
+1806 t=75.25 sub=2 2.11s 
+1906 t=79.42 sub=1 0.99s 
+== plog/p3-b.log
+1607 t=66.96 sub=1 1.10s 
+1707 t=71.12 sub=1 0.73s 
+1807 t=75.29 sub=2 1.07s 
+1907 t=79.46 sub=1 0.57s 
+== plog/p3-retry.log
+pass 1: missing 0
+== plog/p4-a.log
+1608 t=67.00 sub=1 1.14s 
+1708 t=71.17 sub=1 0.99s 
+1808 t=75.33 sub=2 1.42s 
+1908 t=79.50 sub=1 0.82s 
+== plog/p4-b.log
+1609 t=67.04 sub=1 0.61s 
+1709 t=71.21 sub=1 0.58s 
+1809 t=75.38 sub=2 0.79s 
+1909 t=79.54 sub=1 0.44s 
+== plog/p4-retry.log
+pass 1: missing 0
+== plog/p5-a.log
+1610 t=67.08 sub=1 1.79s 
+1710 t=71.25 sub=1 1.71s 
+1810 t=75.42 sub=2 2.32s 
+1910 t=79.58 sub=1 1.32s 
+== plog/p5-b.log
+1611 t=67.12 sub=1 1.91s 
+1711 t=71.29 sub=1 0.94s 
+1811 t=75.46 sub=2 1.32s 
+1911 t=79.62 sub=1 0.72s 
+== plog/p5-retry.log
+pass 1: missing 0
+== plog/p6-a.log
+1612 t=67.17 sub=1 1.87s 
+1712 t=71.33 sub=1 1.79s 
+1812 t=75.50 sub=2 1.78s 
+1912 t=79.67 sub=1 1.30s 
+== plog/p6-b.log
+1613 t=67.21 sub=1 1.83s 
+1713 t=71.38 sub=1 0.97s 
+1813 t=75.54 sub=2 1.25s 
+1913 t=79.71 sub=1 0.72s 
+== plog/p6-retry.log
+pass 1: missing 0
+== plog/p7-a.log
+1614 t=67.25 sub=1 1.81s 
+1714 t=71.42 sub=1 1.76s 
+1814 t=75.58 sub=2 2.27s 
+1914 t=79.75 sub=1 1.27s 
+== plog/p7-b.log
+1615 t=67.29 sub=1 1.76s 
+1715 t=71.46 sub=1 0.97s 
+1815 t=75.62 sub=2 1.22s 
+1915 t=79.79 sub=1 0.72s 
+== plog/p7-retry.log
+pass 1: missing 0
+== plog/p8-a.log
+1616 t=67.33 sub=1 1.73s 
+1716 t=71.50 sub=1 1.86s 
+1816 t=75.67 sub=2 2.31s 
+1916 t=79.83 sub=1 1.33s 
+== plog/p8-b.log
+1617 t=67.38 sub=1 0.92s 
+1717 t=71.54 sub=1 2.41s 
+1817 t=75.71 sub=2 1.23s 
+1917 t=79.88 sub=1 0.73s 
+== plog/p8-retry.log
+pass 1: missing 0
+== plog/p9-a.log
+1618 t=67.42 sub=1 1.11s 
+1718 t=71.58 sub=1 1.03s 
+1818 t=75.75 sub=2 1.43s 
+1918 t=79.92 sub=1 0.82s 
+== plog/p9-b.log
+1619 t=67.46 sub=1 0.62s 
+1719 t=71.62 sub=1 0.58s 
+1819 t=75.79 sub=2 0.76s 
+1919 t=79.96 sub=1 0.45s 
+== plog/p9-retry.log
+pass 1: missing 0
