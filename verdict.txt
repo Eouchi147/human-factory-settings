@@ -1,0 +1,12 @@
+PASS check film19
+ok   collisions (audit_film) [qa_audit_audit0.log]: 0 problems
+ok   collisions (audit_film) [qa_audit_audit1.log]: 0 problems
+ok   collisions (audit_film) [qa_audit_audit2.log]: 0 problems
+ok   collisions (audit_film) [qa_audit_audit3.log]: 0 problems
+ok   pops (jump_check) [qa_jump_jump0.log]: 0 pops
+ok   pops (jump_check) [qa_jump_jump1.log]: 0 pops
+ok   printed words in the bottom fifth or button column (tags_check) [qa_tags.log]: 0 stretches
+ok   bones behind the captions (caps_clear) [qa_clear.log]: 0 stretches
+ok   captions fit their lines (check_caps) [qa_caps.log]: 0 problems
+ok   page errors (pgerr): none
+ok   contact sheet: sheet.png
