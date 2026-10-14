@@ -21,7 +21,7 @@ const CH = { x: 0.58, seat: 0.46, z: -0.14 };       // the sturdy chair: seat ce
 const BOARD = { x: -0.35, y: 1.36, z: -1.0 };       // the score board
 const DIAL = { x: 1.06, y: 1.0, z: -0.8, R: 0.115 }; // the logo dial on its pedestal
 const SIGN = { x: -0.66, z: 0.5, y: 0.88 };        // the warning sign, front left
-const SOFA_ARM = { x: -0.5, top: 0.615, z: 0.0 };   // the sofa arm he grabs
+const SOFA_ARM = { x: -0.62, top: 0.615, z: 0.0 };   // the sofa arm he grabs
 const pulse = (t, a, b, r = 0.35) => ss(a, a + r, t) * (1 - ss(b - r, b, t));
 function canvasTex(w, h, draw, { srgb = true } = {}) {
   const c = document.createElement('canvas'); c.width = w; c.height = h; draw(c.getContext('2d'), w, h, c);
@@ -46,13 +46,13 @@ function label(w, h, lines, { color = '#c9ccd2', size = 64, font = '"Geist Mono"
 function makeSofa(scene) {
   const g = new THREE.Group(); scene.add(g);
   const fab = phys({ color: 0x2c3242, roughness: 0.92, sheen: 0.5, sheenColor: new THREE.Color(0x5a6a8a) });
-  const seat = new THREE.Mesh(new RoundedBoxGeometry(0.78, 0.22, 0.58, 3, 0.03), fab); seat.position.set(-0.86, 0.31, -0.04); g.add(seat);
-  const base = new THREE.Mesh(new RoundedBoxGeometry(0.8, 0.2, 0.6, 3, 0.02), fab); base.position.set(-0.86, 0.1, -0.04); g.add(base);
-  const back = new THREE.Mesh(new RoundedBoxGeometry(0.8, 0.5, 0.14, 3, 0.03), fab); back.position.set(-0.86, 0.62, -0.33); g.add(back);
-  const armL = new THREE.Mesh(new RoundedBoxGeometry(0.12, 0.42, 0.6, 3, 0.03), fab); armL.position.set(-1.31, 0.4, -0.04); g.add(armL);
+  const seat = new THREE.Mesh(new RoundedBoxGeometry(0.78, 0.22, 0.58, 3, 0.03), fab); seat.position.set(-0.98, 0.31, -0.04); g.add(seat);
+  const base = new THREE.Mesh(new RoundedBoxGeometry(0.8, 0.2, 0.6, 3, 0.02), fab); base.position.set(-0.98, 0.1, -0.04); g.add(base);
+  const back = new THREE.Mesh(new RoundedBoxGeometry(0.8, 0.5, 0.14, 3, 0.03), fab); back.position.set(-0.98, 0.62, -0.33); g.add(back);
+  const armL = new THREE.Mesh(new RoundedBoxGeometry(0.12, 0.42, 0.6, 3, 0.03), fab); armL.position.set(-1.43, 0.4, -0.04); g.add(armL);
   const armR = new THREE.Mesh(new RoundedBoxGeometry(0.12, 0.42, 0.6, 3, 0.03), fab); armR.position.set(SOFA_ARM.x, 0.405, -0.04); g.add(armR);
-  const cush = new THREE.Mesh(new RoundedBoxGeometry(0.34, 0.09, 0.5, 3, 0.03), fab); cush.position.set(-1.03, 0.455, -0.02); g.add(cush);
-  const cush2 = cush.clone(); cush2.position.x = -0.68; g.add(cush2);
+  const cush = new THREE.Mesh(new RoundedBoxGeometry(0.34, 0.09, 0.5, 3, 0.03), fab); cush.position.set(-1.15, 0.455, -0.02); g.add(cush);
+  const cush2 = cush.clone(); cush2.position.x = -0.8; g.add(cush2);
   shadows(g); g.traverse((o) => o.layers.enable(1));
   return g;
 }
@@ -182,7 +182,7 @@ const SIT_ARM = { dir: [0.24, -1, 0.22], twist: 0.35, elbow: 0.62, pro: 1.3, wf:
 const CLASP_ARM = { dir: [0.28, -1, 0.6], twist: 0.5, elbow: 0.55, pro: 1.3, wf: 0.25 };
 const REACH_ARM = { dir: [0.3, -0.55, 0.75], twist: 0.2, elbow: 0.5, pro: 1.2, wf: 0.1 };
 const FSIT_ARM = { dir: [0.25, -1, 0.05], twist: 0.3, elbow: 0.35, pro: 1.35, wf: 0.08 };
-const GRIP_NAMES = new Set(['floorR', 'sofaR', 'seatR', 'seatL', 'backR', 'fsitR', 'fsitL']);
+const GRIP_NAMES = new Set(['floorR', 'sofaR', 'seatR', 'seatL', 'backR']);
 function boxSDF(cx, cy, cz, hx, hy, hz) { return (p) => { const dx = Math.abs(p.x - cx) - hx, dy = Math.abs(p.y - cy) - hy, dz = Math.abs(p.z - cz) - hz;
   return Math.hypot(Math.max(dx, 0), Math.max(dy, 0), Math.max(dz, 0)) + Math.min(Math.max(dx, Math.max(dy, dz)), 0); }; }
 
@@ -214,12 +214,12 @@ async function build(S, cfg) {
   const AH = W.ankleH.Right;
   const F = {
     standFB: { base: [FB.x, FB.z], py: GY, fR: [FB.x - 0.11, AH, FB.z + 0.02], fL: [FB.x + 0.11, AH, FB.z + 0.02], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 0, 1], kfL: [0, 0, 1], spine: [0, -0.02, 0.01], armR: 'stand', armL: 'stand', curlR: 0.3, curlL: 0.3 },
-    floorFB: { base: [FB.x, FB.z], py: FY, fR: [FB.x - 0.15, AH, FB.z + 0.4], fL: [FB.x + 0.15, AH, FB.z + 0.4], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.1, 1, 0.35], kfL: [0.1, 1, 0.35], spine: [0, 0.05, 0.03], armR: 'fsitR', armL: 'fsitL', curlR: 0.3, curlL: 0.3 },
+    floorFB: { base: [FB.x, FB.z], py: FY, fR: [FB.x - 0.15, AH, FB.z + 0.4], fL: [FB.x + 0.15, AH, FB.z + 0.4], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.1, 1, 0.35], kfL: [0.1, 1, 0.35], spine: [0, 0.05, 0.03], armR: 'sit', armL: 'sit', curlR: 0.12, curlL: 0.3 },
     squatFB: { base: [FB.x, FB.z], py: SQY, fR: [FB.x - 0.12, AH, FB.z + 0.05], fL: [FB.x + 0.12, AH, FB.z + 0.05], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 0, 1], kfL: [0, 0, 1], spine: [0.08, 0.3, 0.1], armR: 'reach', armL: 'reach', curlR: 0.25, curlL: 0.25 },
   };
   F.floorSlump = { ...F.floorFB, spine: [0.05, 0.34, 0.18] };
-  F.floorHand = { ...F.floorFB, spine: [0.04, 0.2, 0.1], armR: 'floorR' };
-  F.kneelFB = { base: [FB.x, FB.z + 0.02], py: KNY, fR: [FB.x - 0.13, 0.11, FB.z - 0.3], fL: [FB.x + 0.13, AH, FB.z + 0.34], fpR: -1.15, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.15, 0, -1], kfL: [0, 1], spine: [0.04, 0.16, 0.06], armR: 'sit', armL: 'sit', curlR: 0.3, curlL: 0.3 };
+  F.floorHand = { ...F.floorFB, spine: [0.04, 0.22, 0.1], armR: 'floorR' };
+  F.kneelFB = { base: [FB.x, FB.z + 0.02], py: KNY, fR: [FB.x - 0.13, 0.11, FB.z - 0.3], fL: [FB.x + 0.13, AH, FB.z + 0.34], fpR: -1.15, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.15, 0, -1], kfL: [0, 1], spine: [0.04, 0.16, 0.06], armR: 'sit', armL: 'sit', curlR: 0.15, curlL: 0.3 };
   F.kneelSofa = { ...F.kneelFB, armR: 'sofaR', curlR: 0.55 };
   F.standClasp = { ...F.standFB, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 };
   F.floorClasp = { ...F.floorFB, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 };
@@ -229,19 +229,15 @@ async function build(S, cfg) {
   F.calfStand = { base: [0.02, 0.02], py: GY, fR: [-0.09, AH, 0.08], fL: [0.13, AH, 0.08], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 0, 1], kfL: [0, 0, 1], spine: [0, -0.02, 0.01], armR: 'stand', armL: 'stand', curlR: 0.3, curlL: 0.3 };
   F.standC = { ...F.calfStand, armR: 'stand', curlR: 0.3 };
   F.squatC = { base: [0.02, 0.02], py: SQY, fR: [-0.11, AH, 0.11], fL: [0.15, AH, 0.11], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.3, 0, 1], kfL: [0.3, 0, 1], spine: [0.08, 0.3, 0.1], armR: 'reach', armL: 'reach', curlR: 0.25, curlL: 0.25 };
-  F.floorC = { base: [0.02, 0.02], py: FY, fR: [-0.13, AH, 0.44], fL: [0.17, AH, 0.44], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.1, 1, 0.35], kfL: [0.1, 1, 0.35], spine: [0, 0.05, 0.03], armR: 'fsitR', armL: 'fsitL', curlR: 0.3, curlL: 0.3 };
+  F.floorC = { base: [0.02, 0.02], py: FY, fR: [-0.13, AH, 0.44], fL: [0.17, AH, 0.44], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.1, 1, 0.35], kfL: [0.1, 1, 0.35], spine: [0, 0.05, 0.03], armR: 'sit', armL: 'sit', curlR: 0.12, curlL: 0.3 };
   W.F = F;
   // ---- solved arm poses, each solved in the body pose where it is used
   const POSES = { stand: STAND_ARM, sit: SIT_ARM, clasp: CLASP_ARM, reach: REACH_ARM, fsit: FSIT_ARM };
   W.POSES = POSES;
   const solveIn = (P, Side, H, at, aims, extra) => { applyPose(P, { Right: STAND_ARM, Left: STAND_ARM }); return solveHand(R, Side, H, at, { dir: [0.5, -0.8, 0.3], twist: 0.2, elbow: 0.8 }, aims, extra); };
   const palmDown = (H, fdir) => [{ v: H.n, to: new THREE.Vector3(0, -1, 0), w: 0.55 }, { v: H.fdir, to: fdir, w: 0.25 }];
-  POSES.floorR = solveIn(F.floorFB, 'Right', W.handR, new THREE.Vector3(FB.x - 0.36, 0.016, FB.z + 0.3), palmDown(W.handR, new THREE.Vector3(0.2, 0, 1).normalize()));
+  POSES.floorR = solveIn(F.floorFB, 'Right', W.handR, new THREE.Vector3(FB.x - 0.34, 0.016, FB.z + 0.3), palmDown(W.handR, new THREE.Vector3(0.2, 0, 1).normalize()));
   POSES.floorR.fit = W.handR.fit((p) => p.y, { need: 0.004, kmin: 0.05, kmax: 0.6 });
-  POSES.fsitR = solveIn(F.floorFB, 'Right', W.handR, new THREE.Vector3(FB.x - 0.33, 0.016, FB.z + 0.18), palmDown(W.handR, new THREE.Vector3(0.2, 0, 1).normalize()));
-  POSES.fsitR.fit = W.handR.fit((p) => p.y, { need: 0.004, kmin: 0.05, kmax: 0.6 });
-  POSES.fsitL = solveIn(F.floorFB, 'Left', W.handL, new THREE.Vector3(FB.x + 0.33, 0.016, FB.z + 0.18), palmDown(W.handL, new THREE.Vector3(-0.2, 0, 1).normalize()));
-  POSES.fsitL.fit = W.handL.fit((p) => p.y, { need: 0.004, kmin: 0.05, kmax: 0.6 });
   POSES.sofaR = solveIn(F.kneelFB, 'Right', W.handR, new THREE.Vector3(SOFA_ARM.x + 0.01, SOFA_ARM.top + 0.012, SOFA_ARM.z), palmDown(W.handR, new THREE.Vector3(1, 0, 0.15).normalize()));
   POSES.sofaR.fit = W.handR.fit(boxSDF(SOFA_ARM.x, SOFA_ARM.top - 0.045, -0.04, 0.06, 0.045, 0.3), { need: 0.004, kmin: 0.05, kmax: 0.7 });
   POSES.seatR = solveIn(F.chairSit, 'Right', W.handR, new THREE.Vector3(CH.x - 0.185, CH.seat + 0.012, 0.02), palmDown(W.handR, new THREE.Vector3(0, 0, 1)));
@@ -257,7 +253,7 @@ async function build(S, cfg) {
     K(T.haveNot - 0.4, F.standFB), K(T.basic + 0.6, F.standFB),
     K(T.sit2 + 0.5, F.squatFB), K(T.strength - 0.3, F.floorClasp), K(T.flexibility + 0.9, F.floorClasp),
     K(T.sat3 + 0.4, F.squatFB), K(T.rose + 0.5, F.standClasp), K(T.every - 0.3, F.standClasp),
-    K(T.hand2 + 0.3, { ...F.squatFB, armR: 'floorR', curlR: 0.4 }), K(T.cost + 0.55, F.floorHand), K(T.low + 0.7, F.floorFB),
+    K(T.hand2 + 0.3, { ...F.squatFB, armR: 'floorR', curlR: 0.12 }), K(T.cost + 0.55, F.floorHand), K(T.low + 0.7, F.floorFB),
     K(T.linked4 + 0.5, F.kneelFB), K(T.death + 0.75, F.standFB), K(T.win - 0.9, F.standFB),
     K(T.win - 0.25, F.chairStand), K(T.win + 0.45, F.chairSit), K(T.seatFirst + 0.95, F.chairStand),
     K(T.oneHand + 0.75, { ...F.chairSit, armR: 'seatR', armL: 'sit', curlL: 0.3 }), K(T.fingertip + 0.35, { ...F.chairStand, armL: 'sit' }),
@@ -330,7 +326,7 @@ let CAM = null;
 function buildCam() {
   const DC = V3(DIAL.x, DIAL.y, DIAL.z + 0.002);
   const MAST = { p: V3(0.05, 1.65, 3.62), l: V3(0.0, 1.3, 0.0) };
-  const HOOK = { p: V3(-0.12, 1.68, 3.0), l: V3(-0.05, 1.24, 0.02) };
+  const HOOK = { p: V3(-0.12, 1.62, 3.0), l: V3(-0.05, 1.14, 0.02) };
   const HOOKC = { p: V3(-0.32, 1.18, 2.15), l: V3(-0.28, 0.68, 0.0) };
   const BOARDV = { p: V3(BOARD.x, 2.05, BOARD.z + 2.6), l: V3(BOARD.x, 1.28, BOARD.z) };
   const CHAIRV = { p: V3(0.58, 1.62, 3.5), l: V3(0.58, 1.34, -0.02) };
