@@ -17,7 +17,7 @@ const T = { end: 77.15, logo: 74.65, you: 0.35, floor1: 1.33, lava: 1.69, down1:
 const W = {}; window.HFS_W = W;
 const X = new THREE.Vector3(1, 0, 0), Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
 const FB = { x: 0, z: 0.06 };                       // the floor spot, centre stage
-const CH = { x: 0.55, seat: 0.46, z: -0.14 };       // the sturdy chair: seat centre, seat top
+const CH = { x: 0.58, seat: 0.46, z: -0.14 };       // the sturdy chair: seat centre, seat top
 const BOARD = { x: -0.35, y: 1.36, z: -1.0 };       // the score board
 const DIAL = { x: 1.06, y: 1.0, z: -0.8, R: 0.115 }; // the logo dial on its pedestal
 const SIGN = { x: -0.66, z: 0.5, y: 0.88 };        // the warning sign, front left
@@ -135,7 +135,7 @@ function drawWay(Wy, ks, train) {
 
 // ------------------------------------------------------------------ the warning sign
 const SIGN_ROWS = ['HEAD, BACK, NECK OR HIP HURT', 'YOU CANNOT GET UP', 'CALL FOR EMERGENCY HELP', 'KEEP WARM WHILE YOU WAIT'];
-const SIGN_IN = T.plain - 0.15, SIGN_OUT = T.doctor + 1.6;
+const SIGN_IN = T.fallen + 0.1, SIGN_OUT = T.doctor + 1.6;
 function makeSign(scene) {
   const g = new THREE.Group(); g.position.set(SIGN.x, 0, SIGN.z); scene.add(g);
   const SW = 0.34, SH = 0.3, PH = SIGN.y - SH / 2 + 0.01;
@@ -304,8 +304,9 @@ const mixArm = (a, b, k) => ({ dir: a.dir.map((v, i) => lerp(v, b.dir[i], k)), t
 // ------------------------------------------------------------------ arm poses
 const STAND_ARM = { dir: [0.1, -1, 0.0], twist: 0.15, elbow: 0.2, pro: 1.45, wf: 0.08 };
 const SIT_ARM = { dir: [0.24, -1, 0.22], twist: 0.35, elbow: 0.62, pro: 1.3, wf: 0.1 };
-const CLASP_ARM = { dir: [0.2, -1, 0.3], twist: 0.8, elbow: 1.35, pro: 1.2, wf: 0.3 };
+const CLASP_ARM = { dir: [0.28, -1, 0.35], twist: 0.5, elbow: 0.85, pro: 1.3, wf: 0.25 };
 const REACH_ARM = { dir: [0.3, -0.55, 0.75], twist: 0.2, elbow: 0.5, pro: 1.2, wf: 0.1 };
+const FSIT_ARM = { dir: [0.5, -1, 0.05], twist: 0.3, elbow: 0.35, pro: 1.35, wf: 0.08 };
 const GRIP_NAMES = new Set(['floorR', 'sofaR', 'seatR', 'seatL', 'backR']);
 function boxSDF(cx, cy, cz, hx, hy, hz) { return (p) => { const dx = Math.abs(p.x - cx) - hx, dy = Math.abs(p.y - cy) - hy, dz = Math.abs(p.z - cz) - hz;
   return Math.hypot(Math.max(dx, 0), Math.max(dy, 0), Math.max(dz, 0)) + Math.min(Math.max(dx, Math.max(dy, dz)), 0); }; }
@@ -338,29 +339,29 @@ async function build(S, cfg) {
   const AH = W.ankleH.Right;
   const F = {
     standFB: { base: [FB.x, FB.z], py: GY, fR: [FB.x - 0.11, AH, FB.z + 0.02], fL: [FB.x + 0.11, AH, FB.z + 0.02], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0, -0.02, 0.01], armR: 'stand', armL: 'stand', curlR: 0.3, curlL: 0.3 },
-    floorFB: { base: [FB.x, FB.z], py: FY, fR: [FB.x - 0.15, AH, FB.z + 0.4], fL: [FB.x + 0.15, AH, FB.z + 0.4], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0.35, 1], kfL: [-0.35, 1], spine: [0, 0.05, 0.03], armR: 'sit', armL: 'sit', curlR: 0.3, curlL: 0.3 },
+    floorFB: { base: [FB.x, FB.z], py: FY, fR: [FB.x - 0.15, AH, FB.z + 0.4], fL: [FB.x + 0.15, AH, FB.z + 0.4], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.35, 1], kfL: [0.35, 1], spine: [0, 0.05, 0.03], armR: 'fsit', armL: 'fsit', curlR: 0.3, curlL: 0.3 },
     squatFB: { base: [FB.x, FB.z], py: SQY, fR: [FB.x - 0.12, AH, FB.z + 0.05], fL: [FB.x + 0.12, AH, FB.z + 0.05], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0.08, 0.3, 0.1], armR: 'reach', armL: 'reach', curlR: 0.25, curlL: 0.25 },
   };
   F.floorSlump = { ...F.floorFB, spine: [0.05, 0.34, 0.18] };
   F.floorHand = { ...F.floorFB, spine: [0.04, 0.2, 0.1], armR: 'floorR' };
-  F.kneelFB = { base: [FB.x, FB.z + 0.02], py: KNY, fR: [FB.x - 0.13, 0.11, FB.z - 0.3], fL: [FB.x + 0.13, AH, FB.z + 0.34], fpR: -1.15, fpL: 0, fyR: 0, fyL: 0, kfR: [0.15, -1], kfL: [0, 1], spine: [0.04, 0.16, 0.06], armR: 'sit', armL: 'sit', curlR: 0.3, curlL: 0.3 };
+  F.kneelFB = { base: [FB.x, FB.z + 0.02], py: KNY, fR: [FB.x - 0.13, 0.11, FB.z - 0.3], fL: [FB.x + 0.13, AH, FB.z + 0.34], fpR: -1.15, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.15, -1], kfL: [0, 1], spine: [0.04, 0.16, 0.06], armR: 'sit', armL: 'sit', curlR: 0.3, curlL: 0.3 };
   F.kneelSofa = { ...F.kneelFB, armR: 'sofaR', curlR: 0.55 };
   F.standClasp = { ...F.standFB, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 };
   F.floorClasp = { ...F.floorFB, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 };
   const CHF = { fR: [CH.x - 0.11, AH, 0.3], fL: [CH.x + 0.11, AH, 0.3] };
   F.chairSit = { base: [CH.x, CH.z], py: CY, ...CHF, fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0.01, 0.08, 0.04], armR: 'seatR', armL: 'seatL', curlR: 0.55, curlL: 0.55 };
   F.chairStand = { base: [CH.x, 0.02], py: GY, ...CHF, fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0, -0.02, 0.01], armR: 'stand', armL: 'stand', curlR: 0.3, curlL: 0.3 };
-  F.calfStand = { base: [0.16, 0.02], py: GY, fR: [0.05, AH, 0.08], fL: [0.27, AH, 0.08], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0, -0.02, 0.01], armR: 'backR', armL: 'stand', curlR: 0.55, curlL: 0.3 };
+  F.calfStand = { base: [0.13, 0.02], py: GY, fR: [0.02, AH, 0.08], fL: [0.24, AH, 0.08], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0, -0.02, 0.01], armR: 'backR', armL: 'stand', curlR: 0.55, curlL: 0.3 };
   F.standC = { ...F.calfStand, armR: 'stand', curlR: 0.3 };
-  F.squatC = { base: [0.16, 0.02], py: SQY, fR: [0.03, AH, 0.11], fL: [0.29, AH, 0.11], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0.3, 1], kfL: [-0.3, 1], spine: [0.08, 0.3, 0.1], armR: 'reach', armL: 'reach', curlR: 0.25, curlL: 0.25 };
-  F.floorC = { base: [0.16, 0.02], py: FY, fR: [0.01, AH, 0.44], fL: [0.31, AH, 0.44], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0.35, 1], kfL: [-0.35, 1], spine: [0, 0.05, 0.03], armR: 'sit', armL: 'sit', curlR: 0.3, curlL: 0.3 };
+  F.squatC = { base: [0.13, 0.02], py: SQY, fR: [0.0, AH, 0.11], fL: [0.26, AH, 0.11], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.3, 1], kfL: [0.3, 1], spine: [0.08, 0.3, 0.1], armR: 'reach', armL: 'reach', curlR: 0.25, curlL: 0.25 };
+  F.floorC = { base: [0.13, 0.02], py: FY, fR: [-0.02, AH, 0.44], fL: [0.28, AH, 0.44], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.35, 1], kfL: [0.35, 1], spine: [0, 0.05, 0.03], armR: 'fsit', armL: 'fsit', curlR: 0.3, curlL: 0.3 };
   W.F = F;
   // ---- solved arm poses, each solved in the body pose where it is used
-  const POSES = { stand: STAND_ARM, sit: SIT_ARM, clasp: CLASP_ARM, reach: REACH_ARM };
+  const POSES = { stand: STAND_ARM, sit: SIT_ARM, clasp: CLASP_ARM, reach: REACH_ARM, fsit: FSIT_ARM };
   W.POSES = POSES;
   const solveIn = (P, Side, H, at, aims, extra) => { applyPose(P, { Right: STAND_ARM, Left: STAND_ARM }); return solveHand(R, Side, H, at, { dir: [0.5, -0.8, 0.3], twist: 0.2, elbow: 0.8 }, aims, extra); };
   const palmDown = (H, fdir) => [{ v: H.n, to: new THREE.Vector3(0, -1, 0), w: 0.55 }, { v: H.fdir, to: fdir, w: 0.25 }];
-  POSES.floorR = solveIn(F.floorFB, 'Right', W.handR, new THREE.Vector3(FB.x - 0.44, 0.016, FB.z + 0.2), palmDown(W.handR, new THREE.Vector3(0.2, 0, 1).normalize()));
+  POSES.floorR = solveIn(F.floorFB, 'Right', W.handR, new THREE.Vector3(FB.x - 0.36, 0.016, FB.z + 0.3), palmDown(W.handR, new THREE.Vector3(0.2, 0, 1).normalize()));
   POSES.floorR.fit = W.handR.fit((p) => p.y, { need: 0.004, kmin: 0.05, kmax: 0.6 });
   POSES.sofaR = solveIn(F.kneelFB, 'Right', W.handR, new THREE.Vector3(SOFA_ARM.x + 0.01, SOFA_ARM.top + 0.012, SOFA_ARM.z), palmDown(W.handR, new THREE.Vector3(1, 0, 0.15).normalize()));
   POSES.sofaR.fit = W.handR.fit(boxSDF(SOFA_ARM.x, SOFA_ARM.top - 0.045, -0.04, 0.06, 0.045, 0.3), { need: 0.004, kmin: 0.05, kmax: 0.7 });
@@ -368,8 +369,8 @@ async function build(S, cfg) {
   POSES.seatR.fit = W.handR.fit((p) => (Math.abs(p.x - CH.x) < 0.23 && p.z > -0.35 && p.z < 0.07 ? p.y - CH.seat : 9), { need: 0.004, kmin: 0.05, kmax: 0.7 });
   POSES.seatL = solveIn(F.chairSit, 'Left', W.handL, new THREE.Vector3(CH.x + 0.185, CH.seat + 0.012, 0.02), palmDown(W.handL, new THREE.Vector3(0, 0, 1)));
   POSES.seatL.fit = W.handL.fit((p) => (Math.abs(p.x - CH.x) < 0.23 && p.z > -0.35 && p.z < 0.07 ? p.y - CH.seat : 9), { need: 0.004, kmin: 0.05, kmax: 0.7 });
-  POSES.backR = solveIn(F.calfStand, 'Right', W.handR, new THREE.Vector3(CH.x - 0.17, 1.045 + 0.012, CH.z - 0.19), palmDown(W.handR, new THREE.Vector3(0, 0, -1)));
-  POSES.backR.fit = W.handR.fit(boxSDF(CH.x - 0.17, 1.0, CH.z - 0.19, 0.06, 0.045, 0.015), { need: 0.004, kmin: 0.05, kmax: 0.7 });
+  POSES.backR = solveIn(F.calfStand, 'Right', W.handR, new THREE.Vector3(CH.x - 0.21, 1.045 + 0.012, CH.z - 0.19), palmDown(W.handR, new THREE.Vector3(0, 0, -1)));
+  POSES.backR.fit = W.handR.fit(boxSDF(CH.x - 0.21, 1.0, CH.z - 0.19, 0.05, 0.045, 0.015), { need: 0.004, kmin: 0.05, kmax: 0.7 });
   // ---- the pose keys over time (what the body is doing, beat by beat)
   const K = (t, P) => ({ t, ...P });
   W.keys = [
@@ -382,8 +383,8 @@ async function build(S, cfg) {
     K(T.win - 0.25, F.chairStand), K(T.win + 0.45, F.chairSit), K(T.seatFirst + 0.95, F.chairStand),
     K(T.oneHand + 0.75, { ...F.chairSit, armR: 'seatR', armL: 'sit', curlL: 0.3 }), K(T.fingertip + 0.35, { ...F.chairStand, armL: 'sit' }),
     K(T.then3 + 0.62, { ...F.chairSit, armR: 'seatR', armL: 'sit', curlR: 0.12, curlL: 0.3 }), K(T.nothing + 0.85, { ...F.chairStand, armL: 'sit' }),
-    K(T.train + 0.15, { ...F.chairSit, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 }), K(T.twice + 0.55, { ...F.chairStand, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 }),
-    K(T.calf - 0.5, { ...F.chairStand, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 }),
+    K(T.train + 0.15, { ...F.chairSit, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 }), K(T.twice + 0.55, { ...F.chairStand, armR: 'clasp', armL: 'clasp', curlR: 0.1, curlL: 0.5 }),
+    K(T.calf - 0.5, { ...F.chairStand, armR: 'clasp', armL: 'clasp', curlR: 0.1, curlL: 0.5 }),
     K(T.calf + 0.5, F.calfStand), K(T.slow + 0.15, F.calfStand),
     K(T.trips + 0.5, F.squatC), K(T.floor7 + 0.7, F.floorC), K(T.back7 + 1.05, F.standC),
     K(T.plain, F.standC), K(T.end, F.standC),
@@ -449,20 +450,20 @@ function poseBody(t) {
 let CAM = null;
 function buildCam() {
   const DC = V3(DIAL.x, DIAL.y, DIAL.z + 0.002);
-  const MAST = { p: V3(0.05, 1.62, 3.62), l: V3(0.0, 1.27, 0.0) };
-  const HOOK = { p: V3(-0.12, 1.4, 3.0), l: V3(-0.05, 0.92, 0.02) };
+  const MAST = { p: V3(0.05, 1.65, 3.62), l: V3(0.0, 1.3, 0.0) };
+  const HOOK = { p: V3(-0.12, 1.48, 3.0), l: V3(-0.05, 1.0, 0.02) };
   const HOOKC = { p: V3(-0.32, 1.18, 2.15), l: V3(-0.28, 0.68, 0.0) };
   const BOARDV = { p: V3(BOARD.x, 1.5, BOARD.z + 2.35), l: V3(BOARD.x, 1.33, BOARD.z) };
-  const CHAIRV = { p: V3(0.55, 1.58, 3.5), l: V3(0.55, 1.29, -0.02) };
-  const CALFV = { p: V3(0.3, 1.55, 3.35), l: V3(0.27, 1.24, 0.0) };
+  const CHAIRV = { p: V3(0.58, 1.62, 3.5), l: V3(0.58, 1.34, -0.02) };
+  const CALFV = { p: V3(0.3, 1.62, 3.35), l: V3(0.27, 1.32, 0.0) };
   const SIGNV = { p: V3(-0.55, 1.15, 1.9), l: V3(SIGN.x, 0.86, SIGN.z) };
   return camTrack([
     { t: -3.0, p: V3(-0.12, 1.42, 3.1), l: HOOK.l, fov: 38 },
     { t: 0.0, p: HOOK.p, l: HOOK.l, fov: 38, tens: 0.5 },
     { t: T.up1, p: HOOK.p, l: HOOK.l, fov: 38, stop: true },
     { t: T.prayer + 0.3, p: HOOKC.p, l: HOOKC.l, fov: 36, stop: true },
-    { t: T.haveNot + 0.3, p: HOOKC.p, l: HOOKC.l, fov: 36, stop: true },
-    { t: T.body + 0.7, p: MAST.p, l: MAST.l, fov: 38, stop: true },
+    { t: T.haveNot - 0.1, p: HOOKC.p, l: HOOKC.l, fov: 36, stop: true },
+    { t: T.party + 0.9, p: MAST.p, l: MAST.l, fov: 38, stop: true },
     { t: T.flexibility + 0.6, p: MAST.p, l: MAST.l, fov: 38, stop: true },
     { t: T.researchers + 0.85, p: BOARDV.p, l: BOARDV.l, fov: 34, stop: true },
     { t: T.sat3 + 0.2, p: BOARDV.p, l: BOARDV.l, fov: 34, stop: true },
@@ -475,15 +476,15 @@ function buildCam() {
     { t: T.slow + 0.5, p: CALFV.p, l: CALFV.l, fov: 37, stop: true },
     { t: T.trips + 0.7, p: MAST.p, l: MAST.l, fov: 38, stop: true },
     { t: T.plain + 0.4, p: MAST.p, l: MAST.l, fov: 38, stop: true },
-    { t: T.doctor - 1.0, p: SIGNV.p, l: SIGNV.l, fov: 36, stop: true },
+    { t: T.fallen + 0.9, p: SIGNV.p, l: SIGNV.l, fov: 36, stop: true },
     { t: T.doctor + 1.0, p: SIGNV.p, l: SIGNV.l, fov: 36, stop: true },
     { t: T.final + 1.1, p: V3(DIAL.x - 0.1, DIAL.y + 0.12, DIAL.z + 0.95), l: DC, fov: 32 },
     { t: T.logo, p: V3(DC[0], DC[1], DC[2] + DIAL.R / 0.115), l: DC, fov: 30, stop: true },
   ]);
 }
-const CAM_MOVES = [[T.up1, T.prayer + 0.3], [T.haveNot + 0.3, T.body + 0.7], [T.flexibility + 0.6, T.researchers + 0.85], [T.sat3 + 0.2, T.rose + 0.6],
+const CAM_MOVES = [[T.up1, T.prayer + 0.3], [T.haveNot - 0.1, T.party + 0.9], [T.flexibility + 0.6, T.researchers + 0.85], [T.sat3 + 0.2, T.rose + 0.6],
   [T.each + 0.8, T.survival + 0.55], [T.survival + 0.55, T.win + 0.75], [T.train + 0.4, T.calf + 0.6], [T.slow + 0.5, T.trips + 0.7],
-  [T.plain + 0.4, T.doctor - 1.0], [T.doctor + 1.0, T.final + 1.1], [T.final + 1.1, T.logo]];
+  [T.plain + 0.4, T.fallen + 0.9], [T.doctor + 1.0, T.final + 1.1], [T.final + 1.1, T.logo]];
 function camPose(S, t) {
   const v = S.cfg.view; if (v && typeof v === 'object') return v;
   if (!CAM) CAM = buildCam();
@@ -574,7 +575,7 @@ W.timing = { handDown: T.hand1 + 0.35, kneeDown: T.knee1 + 0.5, sofaGrab: T.pray
 
 makeFilm({
   T, caps: CAPS, subs: [], build, update, pose: camPose, overlay, overlayInit, focus: focusAt,
-  shade: [[T.prayer - 0.1, T.haveNot + 0.35], [T.sat3 + 0.1, T.rose + 0.65], [T.flexibility + 0.6, T.researchers + 0.85], [T.doctor + 1.0, T.final + 1.1]],
+  shade: [[T.prayer - 0.1, T.party + 0.95], [T.sat3 + 0.1, T.rose + 0.65], [T.flexibility + 0.6, T.researchers + 0.85], [T.survival + 0.5, T.win + 0.8], [T.plain + 0.35, T.fallen + 0.95], [T.doctor + 1.0, T.final + 1.1]],
   stage: { bg: 0x07080a, reflSize: 9, env: 0.12, far: 30 },
   aperture: [[0, 0.004], [T.researchers, 0.003], [T.final, 0.003]],
   bloom: [[0, 0.5], [T.final, 0.55]],
