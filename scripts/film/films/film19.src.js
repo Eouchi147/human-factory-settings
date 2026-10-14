@@ -214,7 +214,7 @@ async function build(S, cfg) {
   const AH = W.ankleH.Right;
   const F = {
     standFB: { base: [FB.x, FB.z], py: GY, fR: [FB.x - 0.11, AH, FB.z + 0.02], fL: [FB.x + 0.11, AH, FB.z + 0.02], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0, -0.02, 0.01], armR: 'stand', armL: 'stand', curlR: 0.3, curlL: 0.3 },
-    floorFB: { base: [FB.x, FB.z], py: FY, fR: [FB.x - 0.15, AH, FB.z + 0.4], fL: [FB.x + 0.15, AH, FB.z + 0.4], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.12, 1], kfL: [0.12, 1], spine: [0, 0.05, 0.03], armR: 'fsit', armL: 'fsit', curlR: 0.3, curlL: 0.3 },
+    floorFB: { base: [FB.x, FB.z], py: FY, fR: [FB.x - 0.14, AH, FB.z + 0.78], fL: [FB.x + 0.14, AH, FB.z + 0.78], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0, 0.05, 0.03], armR: 'fsit', armL: 'fsit', curlR: 0.3, curlL: 0.3 },
     squatFB: { base: [FB.x, FB.z], py: SQY, fR: [FB.x - 0.12, AH, FB.z + 0.05], fL: [FB.x + 0.12, AH, FB.z + 0.05], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0.08, 0.3, 0.1], armR: 'reach', armL: 'reach', curlR: 0.25, curlL: 0.25 },
   };
   F.floorSlump = { ...F.floorFB, spine: [0.05, 0.34, 0.18] };
@@ -229,7 +229,7 @@ async function build(S, cfg) {
   F.calfStand = { base: [0.02, 0.02], py: GY, fR: [-0.09, AH, 0.08], fL: [0.13, AH, 0.08], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0, -0.02, 0.01], armR: 'stand', armL: 'stand', curlR: 0.3, curlL: 0.3 };
   F.standC = { ...F.calfStand, armR: 'stand', curlR: 0.3 };
   F.squatC = { base: [0.02, 0.02], py: SQY, fR: [-0.11, AH, 0.11], fL: [0.15, AH, 0.11], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.3, 1], kfL: [0.3, 1], spine: [0.08, 0.3, 0.1], armR: 'reach', armL: 'reach', curlR: 0.25, curlL: 0.25 };
-  F.floorC = { base: [0.02, 0.02], py: FY, fR: [-0.13, AH, 0.44], fL: [0.17, AH, 0.44], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.12, 1], kfL: [0.12, 1], spine: [0, 0.05, 0.03], armR: 'fsit', armL: 'fsit', curlR: 0.3, curlL: 0.3 };
+  F.floorC = { base: [0.02, 0.02], py: FY, fR: [-0.12, AH, 0.8], fL: [0.16, AH, 0.8], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0, 0.05, 0.03], armR: 'fsit', armL: 'fsit', curlR: 0.3, curlL: 0.3 };
   W.F = F;
   // ---- solved arm poses, each solved in the body pose where it is used
   const POSES = { stand: STAND_ARM, sit: SIT_ARM, clasp: CLASP_ARM, reach: REACH_ARM, fsit: FSIT_ARM };
