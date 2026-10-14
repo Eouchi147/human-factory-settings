@@ -240,7 +240,8 @@ async function build(S, cfg) {
   POSES.floorR.fit = W.handR.fit((p) => p.y, { need: 0.004, kmin: 0.05, kmax: 0.9, tmin: -0.8 });
   POSES.sofaR = solveIn(F.kneelFB, 'Right', W.handR, new THREE.Vector3(SOFA_ARM.x + 0.01, SOFA_ARM.top + 0.012, SOFA_ARM.z), palmDown(W.handR, new THREE.Vector3(-1, 0, 0.15).normalize(), 0.45, 0.3), () => 2 * handGap(W.handR, boxSDF(SOFA_ARM.x, 0.405, -0.04, 0.06, 0.21, 0.3), { palmOnly: true }).E, { dir: [0.3, -1, 0.35], twist: 0.4, elbow: 0.25, pro: 1.35 }, [{ dir: [0.3, -1, 0.35], twist: 0.4, elbow: 0.25, pro: 1.35 }, { dir: [0.5, -0.8, 0.3], twist: 0.2, elbow: 0.8 }, { dir: [0.1, -1, 0.15], twist: 0.2, elbow: 0.3 }]);
   POSES.sofaR.fit = W.handR.fit(boxSDF(SOFA_ARM.x, 0.405, -0.04, 0.06, 0.21, 0.3), { need: 0.004, kmin: 0.05, kmax: 0.9, tmin: -0.8 });
-  POSES.seatR = solveIn(F.chairSit, 'Right', W.handR, new THREE.Vector3(CH.x - 0.215, CH.seat + 0.012, 0.05), palmDown(W.handR, new THREE.Vector3(0, 0, 1), 0.35, 0.2), keepOut(R, 'Right', W.handR, [{ c: new THREE.Vector3(CH.x, 1.0, -0.02), r: new THREE.Vector3(0.2, 0.22, 0.12) }, { c: new THREE.Vector3(CH.x, 0.72, -0.02), r: new THREE.Vector3(0.215, 0.22, 0.12) }]));
+  POSES.sofaAim = { ...POSES.sofaR };
+  POSES.seatR = solveIn(F.chairSit, 'Right', W.handR, new THREE.Vector3(CH.x - 0.215, CH.seat + 0.012, 0.05), palmDown(W.handR, new THREE.Vector3(0, 0, 1)), keepOut(R, 'Right', W.handR, [{ c: new THREE.Vector3(CH.x, 1.0, -0.02), r: new THREE.Vector3(0.2, 0.22, 0.12) }, { c: new THREE.Vector3(CH.x, 0.72, -0.02), r: new THREE.Vector3(0.215, 0.22, 0.12) }]));
   POSES.seatR.fit = W.handR.fit((p) => (Math.abs(p.x - CH.x) < 0.23 && p.z > -0.35 && p.z < 0.07 ? p.y - CH.seat : 9), { need: 0.004, kmin: 0.05, kmax: 0.7 });
   POSES.seatL = solveIn(F.chairSit, 'Left', W.handL, new THREE.Vector3(CH.x + 0.215, CH.seat + 0.012, 0.05), palmDown(W.handL, new THREE.Vector3(0, 0, 1)), keepOut(R, 'Left', W.handL, [{ c: new THREE.Vector3(CH.x, 1.0, -0.02), r: new THREE.Vector3(0.2, 0.22, 0.12) }, { c: new THREE.Vector3(CH.x, 0.72, -0.02), r: new THREE.Vector3(0.215, 0.22, 0.12) }]));
   POSES.seatL.fit = W.handL.fit((p) => (Math.abs(p.x - CH.x) < 0.23 && p.z > -0.35 && p.z < 0.07 ? p.y - CH.seat : 9), { need: 0.004, kmin: 0.05, kmax: 0.7 });
@@ -249,8 +250,8 @@ async function build(S, cfg) {
   // ---- the pose keys over time (what the body is doing, beat by beat)
   const K = (t, P) => ({ t, ...P });
   W.keys = [
-    K(-1, F.floorSlump), K(T.hand1 - 0.5, F.floorSlump), K(T.hand1 + 0.35, F.floorHand), K(T.knee1 + 0.5, F.kneelFB), K(T.prayer - 0.2, { ...F.kneelFB, armR: 'liftR', curlR: 0.2 }), K(T.prayer + 0.3, F.kneelSofa),
-    K(T.prayer + 1.25, { ...F.standFB, armR: 'liftR', curlR: 0.08 }), K(T.haveNot - 0.4, F.standFB), K(T.basic + 0.6, F.standFB),
+    K(-1, F.floorSlump), K(T.hand1 - 0.5, F.floorSlump), K(T.hand1 + 0.35, F.floorHand), K(T.knee1 + 0.5, F.kneelFB), K(T.prayer - 0.2, { ...F.kneelFB, armR: 'liftR', curlR: 0.2 }), K(T.prayer + 0.05, { ...F.kneelSofa, armR: 'sofaAim', curlR: 0.2 }), K(T.prayer + 0.3, F.kneelSofa),
+    K(T.prayer + 0.95, { ...F.kneelSofa, armR: 'sofaAim', curlR: 0.2 }), K(T.prayer + 1.25, { ...F.standFB, armR: 'liftR', curlR: 0.08 }), K(T.haveNot - 0.4, F.standFB), K(T.basic + 0.6, F.standFB),
     K(T.sit2 + 0.5, F.squatFB), K(T.strength - 0.3, F.floorClasp), K(T.flexibility + 0.9, F.floorClasp),
     K(T.sat3 + 0.4, F.squatFB), K(T.rose + 0.5, F.standClasp), K(T.every - 0.3, F.standClasp),
     K(T.hand2 + 0.3, { ...F.squatFB, armR: 'floorR', curlR: 0.12 }), K(T.cost + 0.55, F.floorHand), K(T.low + 0.7, F.floorFB),
