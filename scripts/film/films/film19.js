@@ -375,7 +375,7 @@ async function build(S, cfg) {
   // ---- the pose keys over time (what the body is doing, beat by beat)
   const K = (t, P) => ({ t, ...P });
   W.keys = [
-    K(-1, F.floorSlump), K(T.hand1 - 0.5, F.floorSlump), K(T.hand1 + 0.35, F.floorHand), K(T.knee1 + 0.5, F.kneelFB), K(T.prayer - 0.2, { ...F.kneelFB, armR: 'liftR', curlR: 0.2 }), K(T.prayer + 0.3, F.kneelSofa),
+    K(-1, F.floorSlump), K(T.hand1 - 0.5, F.floorSlump), K(T.hand1 + 0.35, F.floorHand), K(T.knee1 + 0.5, F.kneelFB), K(T.prayer - 0.08, { ...F.kneelFB, armR: 'liftR', curlR: 0.2 }), K(T.prayer + 0.3, F.kneelSofa),
     K(T.prayer + 1.25, { ...F.standFB, armR: 'liftR', curlR: 0.08 }), K(T.haveNot - 0.4, F.standFB), K(T.basic + 0.6, F.standFB),
     K(T.sit2 + 0.5, F.squatFB), K(T.strength - 0.3, F.floorClasp), K(T.flexibility + 0.9, F.floorClasp),
     K(T.sat3 + 0.4, F.squatFB), K(T.rose + 0.5, F.standClasp), K(T.every - 0.3, F.standClasp),
