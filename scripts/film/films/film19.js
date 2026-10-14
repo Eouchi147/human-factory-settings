@@ -17,10 +17,10 @@ const T = { end: 77.15, logo: 74.65, you: 0.35, floor1: 1.33, lava: 1.69, down1:
 const W = {}; window.HFS_W = W;
 const X = new THREE.Vector3(1, 0, 0), Y = new THREE.Vector3(0, 1, 0), Z = new THREE.Vector3(0, 0, 1);
 const FB = { x: 0, z: 0.06 };                       // the floor spot, centre stage
-const CH = { x: 0.62, seat: 0.46, z: -0.14 };       // the sturdy chair: seat centre, seat top
-const BOARD = { x: 0.42, y: 1.36, z: -0.92 };       // the score board
+const CH = { x: 0.55, seat: 0.46, z: -0.14 };       // the sturdy chair: seat centre, seat top
+const BOARD = { x: -0.35, y: 1.36, z: -1.0 };       // the score board
 const DIAL = { x: 1.06, y: 1.0, z: -0.8, R: 0.115 }; // the logo dial on its pedestal
-const SIGN = { x: -0.95, z: 0.62, y: 0.88 };        // the warning sign, front left
+const SIGN = { x: -0.66, z: 0.5, y: 0.88 };        // the warning sign, front left
 const SOFA_ARM = { x: -0.5, top: 0.615, z: 0.0 };   // the sofa arm he grabs
 const pulse = (t, a, b, r = 0.35) => ss(a, a + r, t) * (1 - ss(b - r, b, t));
 function canvasTex(w, h, draw, { srgb = true } = {}) {
@@ -62,15 +62,15 @@ function makeBoard(scene) {
   const g = new THREE.Group(); g.position.set(BOARD.x, 0, BOARD.z); scene.add(g);
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.014, 0.014, BOARD.y, 16), black()); pole.position.y = BOARD.y / 2; g.add(pole);
   const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.19, 0.025, 40), black()); foot.position.y = 0.0125; g.add(foot);
-  const back = new THREE.Mesh(new RoundedBoxGeometry(0.84, 0.68, 0.025, 3, 0.008), phys({ color: 0x1a1c20, roughness: 0.55, clearcoat: 0.3 })); back.position.set(0, BOARD.y, -0.015); g.add(back);
+  const back = new THREE.Mesh(new RoundedBoxGeometry(0.70, 0.56, 0.025, 3, 0.008), phys({ color: 0x1a1c20, roughness: 0.55, clearcoat: 0.3 })); back.position.set(0, BOARD.y, -0.015); g.add(back);
   const c = document.createElement('canvas'); c.width = 1200; c.height = 960; const tex = new THREE.CanvasTexture(c); tex.colorSpace = THREE.SRGBColorSpace; tex.anisotropy = 8;
-  const face = new THREE.Mesh(new THREE.PlaneGeometry(0.8, 0.64), phys({ map: tex, roughness: 0.6 })); face.position.set(0, BOARD.y, 0.0); g.add(face);
+  const face = new THREE.Mesh(new THREE.PlaneGeometry(0.66, 0.52), phys({ map: tex, roughness: 0.6 })); face.position.set(0, BOARD.y, 0.0); g.add(face);
   // the big digit, its own plane so it can pop as it flips
   const dc = document.createElement('canvas'); dc.width = 400; dc.height = 400; const dtex = new THREE.CanvasTexture(dc); dtex.colorSpace = THREE.SRGBColorSpace;
-  const digit = new THREE.Mesh(new THREE.PlaneGeometry(0.21, 0.21), new THREE.MeshBasicMaterial({ map: dtex, transparent: true, depthWrite: false })); digit.position.set(0.24, BOARD.y + 0.1, 0.004); g.add(digit);
+  const digit = new THREE.Mesh(new THREE.PlaneGeometry(0.17, 0.17), new THREE.MeshBasicMaterial({ map: dtex, transparent: true, depthWrite: false })); digit.position.set(0.19, BOARD.y + 0.08, 0.004); g.add(digit);
   // three bars for the survival line, grown in update
   const bars = [], bm = phys({ color: 0x67b3e6, roughness: 0.4, clearcoat: 0.5 });
-  for (let k = 0; k < 3; k++) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.09, 1, 0.012), bm); b.position.set(-0.22 + k * 0.15, BOARD.y - 0.19, 0.004); b.visible = false; g.add(b); bars.push(b); }
+  for (let k = 0; k < 3; k++) { const b = new THREE.Mesh(new THREE.BoxGeometry(0.07, 1, 0.012), bm); b.position.set(-0.17 + k * 0.115, BOARD.y - 0.26, 0.004); b.visible = false; g.add(b); bars.push(b); }
   shadows(g); g.traverse((o) => o.layers.enable(1)); digit.castShadow = false;
   return { g, c, tex, dc, dtex, digit, bars, key: '', dkey: '' };
 }
@@ -80,9 +80,9 @@ function drawBoard(B, mode) {   // mode: 0 blank, 1 the test, 2 hand or knee, 3 
   if (mode === B.key) return; B.key = mode; const x = B.c.getContext('2d'), w = B.c.width, h = B.c.height;
   x.fillStyle = '#101216'; x.fillRect(0, 0, w, h);
   if (mode >= 1) {
-    txt(x, 'THE SITTING RISING TEST', w * 0.36, h * 0.11, { font: '800 74px Archivo', color: '#eceef1', track: 4 });
-    txt(x, 'SIT ON THE FLOOR. STAND BACK UP.', w * 0.36, h * 0.215, { font: '700 44px "Geist Mono"', color: '#9aa0aa', track: 2 });
-    txt(x, '2,002 ADULTS', w * 0.36, h * 0.325, { font: '700 52px "Geist Mono"', color: '#c9ccd2', track: 2 });
+    txt(x, 'THE SITTING RISING TEST', w * 0.34, h * 0.11, { font: '800 56px Archivo', color: '#eceef1', track: 4 });
+    txt(x, 'SIT ON THE FLOOR. STAND BACK UP.', w * 0.34, h * 0.215, { font: '700 40px "Geist Mono"', color: '#9aa0aa', track: 2 });
+    txt(x, '2,002 ADULTS', w * 0.34, h * 0.325, { font: '700 54px "Geist Mono"', color: '#c9ccd2', track: 2 });
     txt(x, 'SCORE', w * 0.855, h * 0.13, { font: '700 44px "Geist Mono"', color: '#9aa0aa', track: 4 });
   }
   if (mode === 2) txt(x, 'EVERY HAND OR KNEE DOWN: ONE POINT GONE', w / 2, h * 0.62, { font: '700 54px "Geist Mono"', color: '#eceef1', track: 2, maxW: w * 0.92 });
@@ -108,7 +108,7 @@ function makeChair(scene) {
 // ------------------------------------------------------------------ the way back board, beside the chair
 const WAY_ROWS = ['PUSH ON THE SEAT', 'ONE HAND', 'A FINGERTIP', 'NOTHING'];
 function makeWay(scene) {
-  const g = new THREE.Group(); g.position.set(1.14, 0, -0.52); g.rotation.y = -0.28; scene.add(g);
+  const g = new THREE.Group(); g.position.set(0.08, 0, -0.55); g.rotation.y = -0.06; scene.add(g);
   const pole = new THREE.Mesh(new THREE.CylinderGeometry(0.011, 0.011, 1.02, 12), black()); pole.position.y = 0.51; g.add(pole);
   const foot = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.14, 0.02, 32), black()); foot.position.y = 0.01; g.add(foot);
   const back = new THREE.Mesh(new RoundedBoxGeometry(0.34, 0.3, 0.014, 3, 0.006), black()); back.position.set(0, 1.06, -0.008); g.add(back);
@@ -306,7 +306,7 @@ const STAND_ARM = { dir: [0.1, -1, 0.0], twist: 0.15, elbow: 0.2, pro: 1.45, wf:
 const SIT_ARM = { dir: [0.24, -1, 0.22], twist: 0.35, elbow: 0.62, pro: 1.3, wf: 0.1 };
 const CLASP_ARM = { dir: [0.2, -1, 0.3], twist: 0.8, elbow: 1.35, pro: 1.2, wf: 0.3 };
 const REACH_ARM = { dir: [0.3, -0.55, 0.75], twist: 0.2, elbow: 0.5, pro: 1.2, wf: 0.1 };
-const GRIP_NAMES = new Set(['floorR', 'sofaL', 'seatR', 'seatL', 'backR']);
+const GRIP_NAMES = new Set(['floorR', 'sofaR', 'seatR', 'seatL', 'backR']);
 function boxSDF(cx, cy, cz, hx, hy, hz) { return (p) => { const dx = Math.abs(p.x - cx) - hx, dy = Math.abs(p.y - cy) - hy, dz = Math.abs(p.z - cz) - hz;
   return Math.hypot(Math.max(dx, 0), Math.max(dy, 0), Math.max(dz, 0)) + Math.min(Math.max(dx, Math.max(dy, dz)), 0); }; }
 
@@ -338,38 +338,38 @@ async function build(S, cfg) {
   const AH = W.ankleH.Right;
   const F = {
     standFB: { base: [FB.x, FB.z], py: GY, fR: [FB.x - 0.11, AH, FB.z + 0.02], fL: [FB.x + 0.11, AH, FB.z + 0.02], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0, -0.02, 0.01], armR: 'stand', armL: 'stand', curlR: 0.3, curlL: 0.3 },
-    floorFB: { base: [FB.x, FB.z], py: FY, fR: [FB.x + 0.05, AH, FB.z + 0.36], fL: [FB.x - 0.05, AH, FB.z + 0.4], fpR: 0, fpL: 0, fyR: -0.5, fyL: 0.5, kfR: [0.8, 0.5], kfL: [-0.8, 0.5], spine: [0, 0.05, 0.03], armR: 'sit', armL: 'sit', curlR: 0.3, curlL: 0.3 },
+    floorFB: { base: [FB.x, FB.z], py: FY, fR: [FB.x - 0.15, AH, FB.z + 0.4], fL: [FB.x + 0.15, AH, FB.z + 0.4], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0.35, 1], kfL: [-0.35, 1], spine: [0, 0.05, 0.03], armR: 'sit', armL: 'sit', curlR: 0.3, curlL: 0.3 },
     squatFB: { base: [FB.x, FB.z], py: SQY, fR: [FB.x - 0.12, AH, FB.z + 0.05], fL: [FB.x + 0.12, AH, FB.z + 0.05], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0.08, 0.3, 0.1], armR: 'reach', armL: 'reach', curlR: 0.25, curlL: 0.25 },
   };
   F.floorSlump = { ...F.floorFB, spine: [0.05, 0.34, 0.18] };
   F.floorHand = { ...F.floorFB, spine: [0.04, 0.2, 0.1], armR: 'floorR' };
   F.kneelFB = { base: [FB.x, FB.z + 0.02], py: KNY, fR: [FB.x - 0.13, 0.11, FB.z - 0.3], fL: [FB.x + 0.13, AH, FB.z + 0.34], fpR: -1.15, fpL: 0, fyR: 0, fyL: 0, kfR: [0.15, -1], kfL: [0, 1], spine: [0.04, 0.16, 0.06], armR: 'sit', armL: 'sit', curlR: 0.3, curlL: 0.3 };
-  F.kneelSofa = { ...F.kneelFB, armL: 'sofaL', curlL: 0.55 };
+  F.kneelSofa = { ...F.kneelFB, armR: 'sofaR', curlR: 0.55 };
   F.standClasp = { ...F.standFB, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 };
   F.floorClasp = { ...F.floorFB, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 };
   const CHF = { fR: [CH.x - 0.11, AH, 0.3], fL: [CH.x + 0.11, AH, 0.3] };
   F.chairSit = { base: [CH.x, CH.z], py: CY, ...CHF, fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0.01, 0.08, 0.04], armR: 'seatR', armL: 'seatL', curlR: 0.55, curlL: 0.55 };
   F.chairStand = { base: [CH.x, 0.02], py: GY, ...CHF, fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0, -0.02, 0.01], armR: 'stand', armL: 'stand', curlR: 0.3, curlL: 0.3 };
-  F.calfStand = { base: [0.28, 0.02], py: GY, fR: [0.17, AH, 0.08], fL: [0.39, AH, 0.08], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0, -0.02, 0.01], armR: 'backR', armL: 'stand', curlR: 0.55, curlL: 0.3 };
+  F.calfStand = { base: [0.16, 0.02], py: GY, fR: [0.05, AH, 0.08], fL: [0.27, AH, 0.08], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0, -0.02, 0.01], armR: 'backR', armL: 'stand', curlR: 0.55, curlL: 0.3 };
   F.standC = { ...F.calfStand, armR: 'stand', curlR: 0.3 };
-  F.squatC = { base: [0.28, 0.02], py: SQY, fR: [0.16, AH, 0.11], fL: [0.4, AH, 0.11], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 1], kfL: [0, 1], spine: [0.08, 0.3, 0.1], armR: 'reach', armL: 'reach', curlR: 0.25, curlL: 0.25 };
-  F.floorC = { base: [0.28, 0.02], py: FY, fR: [0.33, AH, 0.4], fL: [0.23, AH, 0.44], fpR: 0, fpL: 0, fyR: -0.5, fyL: 0.5, kfR: [0.8, 0.5], kfL: [-0.8, 0.5], spine: [0, 0.05, 0.03], armR: 'sit', armL: 'sit', curlR: 0.3, curlL: 0.3 };
+  F.squatC = { base: [0.16, 0.02], py: SQY, fR: [0.03, AH, 0.11], fL: [0.29, AH, 0.11], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0.3, 1], kfL: [-0.3, 1], spine: [0.08, 0.3, 0.1], armR: 'reach', armL: 'reach', curlR: 0.25, curlL: 0.25 };
+  F.floorC = { base: [0.16, 0.02], py: FY, fR: [0.01, AH, 0.44], fL: [0.31, AH, 0.44], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0.35, 1], kfL: [-0.35, 1], spine: [0, 0.05, 0.03], armR: 'sit', armL: 'sit', curlR: 0.3, curlL: 0.3 };
   W.F = F;
   // ---- solved arm poses, each solved in the body pose where it is used
   const POSES = { stand: STAND_ARM, sit: SIT_ARM, clasp: CLASP_ARM, reach: REACH_ARM };
   W.POSES = POSES;
   const solveIn = (P, Side, H, at, aims, extra) => { applyPose(P, { Right: STAND_ARM, Left: STAND_ARM }); return solveHand(R, Side, H, at, { dir: [0.5, -0.8, 0.3], twist: 0.2, elbow: 0.8 }, aims, extra); };
   const palmDown = (H, fdir) => [{ v: H.n, to: new THREE.Vector3(0, -1, 0), w: 0.55 }, { v: H.fdir, to: fdir, w: 0.25 }];
-  POSES.floorR = solveIn(F.floorFB, 'Right', W.handR, new THREE.Vector3(FB.x + 0.44, 0.016, FB.z + 0.2), palmDown(W.handR, new THREE.Vector3(0.2, 0, 1).normalize()));
+  POSES.floorR = solveIn(F.floorFB, 'Right', W.handR, new THREE.Vector3(FB.x - 0.44, 0.016, FB.z + 0.2), palmDown(W.handR, new THREE.Vector3(0.2, 0, 1).normalize()));
   POSES.floorR.fit = W.handR.fit((p) => p.y, { need: 0.004, kmin: 0.05, kmax: 0.6 });
-  POSES.sofaL = solveIn(F.kneelFB, 'Left', W.handL, new THREE.Vector3(SOFA_ARM.x + 0.01, SOFA_ARM.top + 0.012, SOFA_ARM.z), palmDown(W.handL, new THREE.Vector3(1, 0, 0.15).normalize()));
-  POSES.sofaL.fit = W.handL.fit(boxSDF(SOFA_ARM.x, SOFA_ARM.top - 0.045, -0.04, 0.06, 0.045, 0.3), { need: 0.004, kmin: 0.05, kmax: 0.7 });
+  POSES.sofaR = solveIn(F.kneelFB, 'Right', W.handR, new THREE.Vector3(SOFA_ARM.x + 0.01, SOFA_ARM.top + 0.012, SOFA_ARM.z), palmDown(W.handR, new THREE.Vector3(1, 0, 0.15).normalize()));
+  POSES.sofaR.fit = W.handR.fit(boxSDF(SOFA_ARM.x, SOFA_ARM.top - 0.045, -0.04, 0.06, 0.045, 0.3), { need: 0.004, kmin: 0.05, kmax: 0.7 });
   POSES.seatR = solveIn(F.chairSit, 'Right', W.handR, new THREE.Vector3(CH.x - 0.185, CH.seat + 0.012, 0.02), palmDown(W.handR, new THREE.Vector3(0, 0, 1)));
   POSES.seatR.fit = W.handR.fit((p) => (Math.abs(p.x - CH.x) < 0.23 && p.z > -0.35 && p.z < 0.07 ? p.y - CH.seat : 9), { need: 0.004, kmin: 0.05, kmax: 0.7 });
   POSES.seatL = solveIn(F.chairSit, 'Left', W.handL, new THREE.Vector3(CH.x + 0.185, CH.seat + 0.012, 0.02), palmDown(W.handL, new THREE.Vector3(0, 0, 1)));
   POSES.seatL.fit = W.handL.fit((p) => (Math.abs(p.x - CH.x) < 0.23 && p.z > -0.35 && p.z < 0.07 ? p.y - CH.seat : 9), { need: 0.004, kmin: 0.05, kmax: 0.7 });
-  POSES.backR = solveIn(F.calfStand, 'Right', W.handR, new THREE.Vector3(CH.x - 0.05, 1.045 + 0.012, CH.z - 0.19), palmDown(W.handR, new THREE.Vector3(0, 0, -1)));
-  POSES.backR.fit = W.handR.fit(boxSDF(CH.x, 1.0, CH.z - 0.19, 0.23, 0.045, 0.015), { need: 0.004, kmin: 0.05, kmax: 0.7 });
+  POSES.backR = solveIn(F.calfStand, 'Right', W.handR, new THREE.Vector3(CH.x - 0.17, 1.045 + 0.012, CH.z - 0.19), palmDown(W.handR, new THREE.Vector3(0, 0, -1)));
+  POSES.backR.fit = W.handR.fit(boxSDF(CH.x - 0.17, 1.0, CH.z - 0.19, 0.06, 0.045, 0.015), { need: 0.004, kmin: 0.05, kmax: 0.7 });
   // ---- the pose keys over time (what the body is doing, beat by beat)
   const K = (t, P) => ({ t, ...P });
   W.keys = [
@@ -379,12 +379,12 @@ async function build(S, cfg) {
     K(T.sat3 + 0.4, F.squatFB), K(T.rose + 0.5, F.standClasp), K(T.every - 0.3, F.standClasp),
     K(T.hand2 + 0.3, { ...F.squatFB, armR: 'floorR', curlR: 0.4 }), K(T.cost + 0.55, F.floorHand), K(T.low + 0.7, F.floorFB),
     K(T.linked4 + 0.5, F.kneelFB), K(T.death + 0.75, F.standFB), K(T.win - 0.9, F.standFB),
-    K(T.win - 0.25, F.chairStand), K(T.win + 0.45, F.chairSit), K(T.seatFirst + 1.0, F.chairStand),
-    K(T.then1 + 0.6, { ...F.chairSit, armR: 'seatR', armL: 'sit', curlL: 0.3 }), K(T.oneHand + 1.05, { ...F.chairStand, armL: 'sit' }),
-    K(T.then2 + 0.55, { ...F.chairSit, armR: 'seatR', armL: 'sit', curlR: 0.12, curlL: 0.3 }), K(T.fingertip + 0.8, { ...F.chairStand, armL: 'sit' }),
-    K(T.then3 + 0.55, { ...F.chairSit, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 }), K(T.nothing + 1.3, { ...F.chairStand, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 }),
-    K(T.twice + 0.3, { ...F.chairSit, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 }), K(T.calf - 0.15, { ...F.chairStand, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 }),
-    K(T.calf + 0.55, F.calfStand), K(T.slow + 0.15, F.calfStand),
+    K(T.win - 0.25, F.chairStand), K(T.win + 0.45, F.chairSit), K(T.seatFirst + 0.95, F.chairStand),
+    K(T.oneHand + 0.75, { ...F.chairSit, armR: 'seatR', armL: 'sit', curlL: 0.3 }), K(T.fingertip + 0.35, { ...F.chairStand, armL: 'sit' }),
+    K(T.then3 + 0.62, { ...F.chairSit, armR: 'seatR', armL: 'sit', curlR: 0.12, curlL: 0.3 }), K(T.nothing + 0.85, { ...F.chairStand, armL: 'sit' }),
+    K(T.train + 0.15, { ...F.chairSit, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 }), K(T.twice + 0.55, { ...F.chairStand, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 }),
+    K(T.calf - 0.5, { ...F.chairStand, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 }),
+    K(T.calf + 0.5, F.calfStand), K(T.slow + 0.15, F.calfStand),
     K(T.trips + 0.5, F.squatC), K(T.floor7 + 0.7, F.floorC), K(T.back7 + 1.05, F.standC),
     K(T.plain, F.standC), K(T.end, F.standC),
   ];
@@ -400,7 +400,7 @@ async function build(S, cfg) {
   const sp = (x, y, z, tx, ty, tz, a = 0.3, I = 8) => { const L = spot(scene, { color: 0xfff1d8, pos: new THREE.Vector3(x, y, z), target: new THREE.Vector3(tx, ty, tz), angle: a, penumbra: 0.7 }); L.userData.I = I; return L; };
   W.lights = [sp(BOARD.x + 0.2, 2.6, 1.2, BOARD.x, BOARD.y, BOARD.z, 0.3, 6), sp(CH.x + 0.2, 2.4, 1.3, CH.x, 0.7, CH.z, 0.32), sp(SIGN.x + 0.25, 2.2, 1.7, SIGN.x, SIGN.y, SIGN.z, 0.22, 7), sp(-0.85, 2.2, 1.4, -0.85, 0.45, -0.04, 0.34, 6), sp(DIAL.x + 0.1, 1.7, DIAL.z + 0.9, DIAL.x, DIAL.y, DIAL.z, 0.2, 5)];
   W.auditSolids = [['sofa', W.sofa], ['chair', W.chair], ['score board', W.board.g], ['way board', W.way.g], ['sign', W.sign.g], ['dial', W.dial.g]];
-  return { stamp: W.stampSpot && W.stampSpot.center, solves: { floorR: POSES.floorR.err, sofaL: POSES.sofaL.err, seatR: POSES.seatR.err, seatL: POSES.seatL.err, backR: POSES.backR.err } };
+  return { stamp: W.stampSpot && W.stampSpot.center, solves: { floorR: POSES.floorR.err, sofaR: POSES.sofaR.err, seatR: POSES.seatR.err, seatL: POSES.seatL.err, backR: POSES.backR.err } };
 }
 
 // ------------------------------------------------------------------ posing the body from the keys
@@ -436,8 +436,7 @@ function evalPose(t) {
 function poseBody(t) {
   const { P, arms, grips } = evalPose(t);
   // calf raises: the heels lift three times, slow cosine bumps, while he holds the chair back
-  if (t > T.calf - 0.2 && t < T.slow - 0.3) { const u = (t - (T.calf + 0.15)) / 1.35, n = Math.floor(u), f = u - n;
-    if (n >= 0 && n < 3 && f < 0.85) { const b = Math.sin(Math.PI * clamp01(f / 0.85)) ** 2; P.py += 0.05 * b; P.fR[1] += 0.05 * b; P.fL[1] += 0.05 * b; P.fR[2] -= 0.025 * b; P.fL[2] -= 0.025 * b; P.fpR = -0.55 * b; P.fpL = -0.55 * b; } }
+  { const b = ss(T.calf + 0.6, T.calf + 1.3, t) * (1 - ss(T.slow + 0.05, T.slow + 0.75, t)); if (b > 0.001) { P.py += 0.05 * b; P.fR[1] += 0.05 * b; P.fL[1] += 0.05 * b; P.fR[2] -= 0.025 * b; P.fL[2] -= 0.025 * b; P.fpR = -0.55 * b; P.fpL = -0.55 * b; } }
   // a wobble as he first gets up, settling as he stands tall
   if (t > T.haveNot - 0.4 && t < T.party + 1.2) { const d = Math.exp(-(t - (T.haveNot - 0.4)) * 0.9); P.base[0] += 0.009 * d * Math.sin((t - T.haveNot) * 8.5); }
   applyPose(P, arms);
@@ -450,38 +449,41 @@ function poseBody(t) {
 let CAM = null;
 function buildCam() {
   const DC = V3(DIAL.x, DIAL.y, DIAL.z + 0.002);
-  const MAST = { p: V3(0.08, 1.52, 3.05), l: V3(0.02, 0.98, 0.0) };
-  const BOARDV = { p: V3(BOARD.x, 1.42, BOARD.z + 1.5), l: V3(BOARD.x, BOARD.y, BOARD.z) };
-  const CHAIRV = { p: V3(CH.x, 1.34, 2.3), l: V3(CH.x, 0.82, -0.05) };
+  const MAST = { p: V3(0.05, 1.62, 3.62), l: V3(0.0, 1.27, 0.0) };
+  const HOOK = { p: V3(-0.12, 1.4, 3.0), l: V3(-0.05, 0.92, 0.02) };
+  const HOOKC = { p: V3(-0.32, 1.18, 2.15), l: V3(-0.28, 0.68, 0.0) };
+  const BOARDV = { p: V3(BOARD.x, 1.5, BOARD.z + 2.35), l: V3(BOARD.x, 1.33, BOARD.z) };
+  const CHAIRV = { p: V3(0.55, 1.58, 3.5), l: V3(0.55, 1.29, -0.02) };
+  const CALFV = { p: V3(0.3, 1.55, 3.35), l: V3(0.27, 1.24, 0.0) };
+  const SIGNV = { p: V3(-0.55, 1.15, 1.9), l: V3(SIGN.x, 0.86, SIGN.z) };
   return camTrack([
-    { t: -3.0, p: V3(0.1, 1.56, 3.2), l: V3(0.0, 1.0, 0.0), fov: 38 },
-    { t: 0.0, p: MAST.p, l: MAST.l, fov: 38, tens: 0.5 },
-    { t: T.up1, p: MAST.p, l: MAST.l, fov: 38, stop: true },
-    { t: T.prayer + 0.3, p: V3(-0.18, 1.28, 2.25), l: V3(-0.12, 0.72, 0.02), fov: 36, stop: true },
-    { t: T.party + 0.6, p: V3(-0.16, 1.29, 2.2), l: V3(-0.1, 0.74, 0.02), fov: 36, stop: true },
+    { t: -3.0, p: V3(-0.12, 1.42, 3.1), l: HOOK.l, fov: 38 },
+    { t: 0.0, p: HOOK.p, l: HOOK.l, fov: 38, tens: 0.5 },
+    { t: T.up1, p: HOOK.p, l: HOOK.l, fov: 38, stop: true },
+    { t: T.prayer + 0.3, p: HOOKC.p, l: HOOKC.l, fov: 36, stop: true },
+    { t: T.haveNot + 0.3, p: HOOKC.p, l: HOOKC.l, fov: 36, stop: true },
     { t: T.body + 0.7, p: MAST.p, l: MAST.l, fov: 38, stop: true },
     { t: T.flexibility + 0.6, p: MAST.p, l: MAST.l, fov: 38, stop: true },
     { t: T.researchers + 0.85, p: BOARDV.p, l: BOARDV.l, fov: 34, stop: true },
     { t: T.sat3 + 0.2, p: BOARDV.p, l: BOARDV.l, fov: 34, stop: true },
     { t: T.rose + 0.6, p: MAST.p, l: MAST.l, fov: 38, stop: true },
-    { t: T.low + 0.4, p: V3(0.72, 1.36, 2.25), l: V3(0.25, 0.88, -0.15), fov: 36, stop: true },
-    { t: T.death + 0.6, p: V3(0.72, 1.36, 2.2), l: V3(0.25, 0.88, -0.15), fov: 36, stop: true },
-    { t: T.each + 0.8, p: BOARDV.p, l: BOARDV.l, fov: 34, stop: true },
+    { t: T.each + 0.8, p: MAST.p, l: MAST.l, fov: 38, stop: true },
     { t: T.survival + 0.55, p: BOARDV.p, l: BOARDV.l, fov: 34, stop: true },
-    { t: T.win + 0.75, p: CHAIRV.p, l: CHAIRV.l, fov: 36, stop: true },
-    { t: T.train + 0.4, p: CHAIRV.p, l: CHAIRV.l, fov: 36, stop: true },
-    { t: T.calf + 0.6, p: V3(0.5, 1.3, 2.25), l: V3(0.42, 0.88, -0.05), fov: 36, stop: true },
-    { t: T.slow + 0.5, p: V3(0.5, 1.3, 2.2), l: V3(0.42, 0.88, -0.05), fov: 36, stop: true },
+    { t: T.win + 0.75, p: CHAIRV.p, l: CHAIRV.l, fov: 37, stop: true },
+    { t: T.train + 0.4, p: CHAIRV.p, l: CHAIRV.l, fov: 37, stop: true },
+    { t: T.calf + 0.6, p: CALFV.p, l: CALFV.l, fov: 37, stop: true },
+    { t: T.slow + 0.5, p: CALFV.p, l: CALFV.l, fov: 37, stop: true },
     { t: T.trips + 0.7, p: MAST.p, l: MAST.l, fov: 38, stop: true },
-    { t: T.plain + 0.4, p: V3(-0.3, 1.26, 2.55), l: V3(-0.25, 0.84, 0.1), fov: 36, stop: true },
-    { t: T.doctor + 1.0, p: V3(-0.3, 1.26, 2.5), l: V3(-0.25, 0.84, 0.1), fov: 36, stop: true },
+    { t: T.plain + 0.4, p: MAST.p, l: MAST.l, fov: 38, stop: true },
+    { t: T.doctor - 1.0, p: SIGNV.p, l: SIGNV.l, fov: 36, stop: true },
+    { t: T.doctor + 1.0, p: SIGNV.p, l: SIGNV.l, fov: 36, stop: true },
     { t: T.final + 1.1, p: V3(DIAL.x - 0.1, DIAL.y + 0.12, DIAL.z + 0.95), l: DC, fov: 32 },
     { t: T.logo, p: V3(DC[0], DC[1], DC[2] + DIAL.R / 0.115), l: DC, fov: 30, stop: true },
   ]);
 }
-const CAM_MOVES = [[T.up1, T.prayer + 0.3], [T.party + 0.6, T.body + 0.7], [T.flexibility + 0.6, T.researchers + 0.85], [T.sat3 + 0.2, T.rose + 0.6],
-  [T.rose + 0.6, T.low + 0.4], [T.death + 0.6, T.each + 0.8], [T.survival + 0.55, T.win + 0.75], [T.train + 0.4, T.calf + 0.6], [T.slow + 0.5, T.trips + 0.7],
-  [T.trips + 0.7, T.plain + 0.4], [T.doctor + 1.0, T.final + 1.1], [T.final + 1.1, T.logo]];
+const CAM_MOVES = [[T.up1, T.prayer + 0.3], [T.haveNot + 0.3, T.body + 0.7], [T.flexibility + 0.6, T.researchers + 0.85], [T.sat3 + 0.2, T.rose + 0.6],
+  [T.each + 0.8, T.survival + 0.55], [T.survival + 0.55, T.win + 0.75], [T.train + 0.4, T.calf + 0.6], [T.slow + 0.5, T.trips + 0.7],
+  [T.plain + 0.4, T.doctor - 1.0], [T.doctor + 1.0, T.final + 1.1], [T.final + 1.1, T.logo]];
 function camPose(S, t) {
   const v = S.cfg.view; if (v && typeof v === 'object') return v;
   if (!CAM) CAM = buildCam();
@@ -502,7 +504,7 @@ function scoreAt(t) {
   if (t > T.point5 + 0.25) n = 10;
   return n;
 }
-function boardMode(t) { return t < T.researchers ? 0 : t < T.hand2 ? 1 : t < T.linked4 ? 2 : t < T.each ? 3 : 4; }
+function boardMode(t) { return t >= T.plain - 0.3 ? 0 : t < T.researchers ? 0 : t < T.hand2 ? 1 : t < T.linked4 ? 2 : t < T.each ? 3 : 4; }
 
 // ------------------------------------------------------------------ one moment of the film
 function update(S, t) {
@@ -510,7 +512,7 @@ function update(S, t) {
   poseBody(t);
   // ---- the score board: its face, the digit popping as it flips, the bars rising point by point
   { const B = W.board; drawBoard(B, boardMode(t)); drawDigit(B, scoreAt(t));
-    B.digit.visible = t > T.researchers;
+    B.digit.visible = t > T.researchers && t < T.plain - 0.3;
     const flip = Math.max(pulse(t, T.cost + 0.45, T.cost + 0.85, 0.18), pulse(t, T.linked4 + 0.4, T.linked4 + 0.8, 0.18), pulse(t, T.extra + 0.1, T.extra + 0.5, 0.18), pulse(t, T.point5 + 0.25, T.point5 + 0.65, 0.18));
     B.digit.scale.setScalar(1 + 0.25 * flip);
     const barH = [0.07, 0.12, 0.17];
@@ -535,27 +537,27 @@ function update(S, t) {
 
 // ------------------------------------------------------------------ the words on screen
 const CAPS = [
-  { t0: T.you, t1: T.down1 - 0.05, top: 300, size: 88, html: 'You treat the floor<br>like <em>lava</em> now:' },
-  { t0: T.down1, t1: T.prayer - 0.05, top: 292, size: 84, html: 'down is easy, but up<br>needs a <em>hand</em>, a <em>knee</em>,' },
-  { t0: T.prayer, t1: T.haveNot - 0.05, top: 300, size: 88, html: 'and a small <em>prayer</em><br>to the sofa.' },
-  { t0: T.haveNot, t1: T.basic - 0.05, top: 292, size: 84, html: 'You have not lost<br>a <em>party trick</em>.' },
-  { t0: T.basic, t1: T.body - 0.1, top: 300, size: 88, html: 'You have lost<br>a <em>basic move</em>.' },
-  { t0: T.body, t1: T.onePiece - 0.05, top: 292, size: 80, html: 'Your body was built to<br><em>sit on the floor</em> and<br>stand back up' },
-  { t0: T.onePiece, t1: T.researchers - 0.1, top: 292, size: 80, html: 'in <em>one piece</em>, using<br>strength, balance and<br>flexibility together.' },
-  { t0: T.researchers, t1: T.twoThousand - 0.05, top: 300, size: 84, html: 'Researchers <em>scored</em><br>exactly that move in' },
-  { t0: T.twoThousand, t1: T.every - 0.1, top: 292, size: 84, html: '<em>2,002 adults</em> who sat<br>on the floor and<br>rose again.' },
-  { t0: T.every, t1: T.low - 0.05, top: 300, size: 84, html: '<em>Every hand or knee</em><br>cost a point,' },
-  { t0: T.low, t1: T.each - 0.1, top: 292, size: 80, html: 'and <em>low scores</em> were<br>linked to <em>higher</em><br><em>death rates</em> afterwards.' },
-  { t0: T.each, t1: T.twentyOne - 0.05, top: 300, size: 84, html: '<em>Each extra point</em> was<br>linked to a' },
-  { t0: T.twentyOne, t1: T.so6 - 0.1, top: 300, size: 84, html: '<em>21% improvement</em><br>in survival.' },
-  { t0: T.so6, t1: T.seatFirst - 0.05, top: 300, size: 84, html: 'So <em>win the points back</em><br>beside a sturdy chair:' },
-  { t0: T.seatFirst, t1: T.train - 0.1, top: 292, size: 76, html: 'its <em>seat</em> first, then<br><em>one hand</em>, then a<br><em>fingertip</em>, then <em>nothing</em>.' },
-  { t0: T.train, t1: T.chairStands - 0.05, top: 300, size: 88, html: '<em>Train the parts</em><br>twice a week:' },
-  { t0: T.chairStands, t1: T.plain - 0.1, top: 292, size: 80, html: '<em>chair stands</em>, <em>calf raises</em>,<br>and <em>slow trips</em> down<br>to the floor and back.' },
-  { t0: T.plain, t1: T.cannot - 0.05, top: 292, size: 76, html: '<em>Plain warning:</em> if you<br>have fallen, hurt your<br>head, back, neck or hip,' },
-  { t0: T.cannot, t1: T.keepWarm - 0.05, top: 300, size: 84, html: 'or you <em>cannot get up</em>,<br>call for <em>emergency help</em>' },
-  { t0: T.keepWarm, t1: T.ifNot - 0.05, top: 300, size: 88, html: 'and <em>keep warm</em><br>while you wait.' },
-  { t0: T.ifNot, t1: T.final - 0.1, top: 292, size: 80, html: 'If you have not exercised<br>for a while, talk to<br>your <em>doctor</em> first.' },
+  { t0: T.you, t1: T.down1 - 0.05, top: 268, size: 78, html: 'You treat the floor<br>like <em>lava</em> now:' },
+  { t0: T.down1, t1: T.prayer - 0.05, top: 268, size: 76, html: 'down is easy, but up<br>needs a <em>hand</em>, a <em>knee</em>,' },
+  { t0: T.prayer, t1: T.haveNot - 0.05, top: 268, size: 78, html: 'and a small <em>prayer</em><br>to the sofa.' },
+  { t0: T.haveNot, t1: T.basic - 0.05, top: 268, size: 76, html: 'You have not lost<br>a <em>party trick</em>.' },
+  { t0: T.basic, t1: T.body - 0.1, top: 268, size: 78, html: 'You have lost<br>a <em>basic move</em>.' },
+  { t0: T.body, t1: T.onePiece - 0.05, top: 268, size: 74, html: 'Your body was built to<br><em>sit on the floor</em> and<br>stand back up' },
+  { t0: T.onePiece, t1: T.researchers - 0.1, top: 268, size: 74, html: 'in <em>one piece</em>, using<br>strength, balance and<br>flexibility together.' },
+  { t0: T.researchers, t1: T.twoThousand - 0.05, top: 268, size: 76, html: 'Researchers <em>scored</em><br>exactly that move in' },
+  { t0: T.twoThousand, t1: T.every - 0.1, top: 268, size: 76, html: '<em>2,002 adults</em> who sat<br>on the floor and<br>rose again.' },
+  { t0: T.every, t1: T.low - 0.05, top: 268, size: 76, html: '<em>Every hand or knee</em><br>cost a point,' },
+  { t0: T.low, t1: T.each - 0.1, top: 268, size: 74, html: 'and <em>low scores</em> were<br>linked to <em>higher</em><br><em>death rates</em> afterwards.' },
+  { t0: T.each, t1: T.twentyOne - 0.05, top: 268, size: 76, html: '<em>Each extra point</em> was<br>linked to a' },
+  { t0: T.twentyOne, t1: T.so6 - 0.1, top: 268, size: 76, html: '<em>21% improvement</em><br>in survival.' },
+  { t0: T.so6, t1: T.seatFirst - 0.05, top: 268, size: 76, html: 'So <em>win the points back</em><br>beside a sturdy chair:' },
+  { t0: T.seatFirst, t1: T.train - 0.1, top: 268, size: 76, html: 'its <em>seat</em> first, then<br><em>one hand</em>, then a<br><em>fingertip</em>, then <em>nothing</em>.' },
+  { t0: T.train, t1: T.chairStands - 0.05, top: 268, size: 78, html: '<em>Train the parts</em><br>twice a week:' },
+  { t0: T.chairStands, t1: T.plain - 0.1, top: 268, size: 74, html: '<em>chair stands</em>, <em>calf raises</em>,<br>and <em>slow trips</em> down<br>to the floor and back.' },
+  { t0: T.plain, t1: T.cannot - 0.05, top: 268, size: 76, html: '<em>Plain warning:</em> if you<br>have fallen, hurt your<br>head, back, neck or hip,' },
+  { t0: T.cannot, t1: T.keepWarm - 0.05, top: 268, size: 76, html: 'or you <em>cannot get up</em>,<br>call for <em>emergency help</em>' },
+  { t0: T.keepWarm, t1: T.ifNot - 0.05, top: 268, size: 78, html: 'and <em>keep warm</em><br>while you wait.' },
+  { t0: T.ifNot, t1: T.final - 0.1, top: 268, size: 74, html: 'If you have not exercised<br>for a while, talk to<br>your <em>doctor</em> first.' },
   { t0: T.final, t1: 99, top: 360, size: 92, html: 'Let’s get you back to<br><em>factory settings.</em>' },
 ];
 function overlayInit(S) {}
@@ -567,12 +569,12 @@ function overlay(S, t) {
 // ------------------------------------------------------------------ the timing table the sound reads (timing19.json)
 W.timing = { handDown: T.hand1 + 0.35, kneeDown: T.knee1 + 0.5, sofaGrab: T.prayer + 0.3, upFirst: T.haveNot - 0.4, descend1: [T.sit2 + 0.5, T.strength - 0.3], rise1: [T.sat3 + 0.4, T.rose + 0.5],
   handDown2: T.hand2 + 0.3, flips: [T.cost + 0.45, T.linked4 + 0.4], scoreUp: [T.extra + 0.1, T.point5 + 0.25], bars: [T.extra, T.point5, T.twentyOne],
-  seat: T.seatFirst, stands: [T.seatFirst + 1.0, T.oneHand + 1.05, T.fingertip + 0.8, T.nothing + 1.3, T.calf - 0.15], ticks: [T.seatFirst, T.oneHand, T.fingertip, T.nothing], train: T.twice,
-  calf: [T.calf + 0.15, 1.35, 3], trip: [T.trips + 0.6, T.back7 + 1.1], sign: [SIGN_IN, SIGN_OUT], checks: [T.hip8, T.cannot, T.call, T.keepWarm], doctor: T.doctor, logo: T.logo, moves: CAM_MOVES };
+  seat: T.seatFirst, stands: [T.seatFirst + 0.95, T.fingertip + 0.35, T.nothing + 0.85, T.twice + 0.55], ticks: [T.seatFirst, T.oneHand, T.fingertip, T.nothing], train: T.twice,
+  calf: [T.calf + 0.6, 1.35, 1], trip: [T.trips + 0.6, T.back7 + 1.1], sign: [SIGN_IN, SIGN_OUT], checks: [T.hip8, T.cannot, T.call, T.keepWarm], doctor: T.doctor, logo: T.logo, moves: CAM_MOVES };
 
 makeFilm({
   T, caps: CAPS, subs: [], build, update, pose: camPose, overlay, overlayInit, focus: focusAt,
-  shade: [[T.flexibility + 0.6, T.researchers + 0.85], [T.doctor + 1.0, T.final + 1.1]],
+  shade: [[T.prayer - 0.1, T.haveNot + 0.35], [T.sat3 + 0.1, T.rose + 0.65], [T.flexibility + 0.6, T.researchers + 0.85], [T.doctor + 1.0, T.final + 1.1]],
   stage: { bg: 0x07080a, reflSize: 9, env: 0.12, far: 30 },
   aperture: [[0, 0.004], [T.researchers, 0.003], [T.final, 0.003]],
   bloom: [[0, 0.5], [T.final, 0.55]],
