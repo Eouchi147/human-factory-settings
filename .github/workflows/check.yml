@@ -1,0 +1,151 @@
+# The checks, on GitHub's machines: pushed by `branch.py check NN` or `branch.py voice NN` to check/filmNN (never main).
+#   mode check: every quality check on the picture, split across machines, then a contact sheet and verdict.txt
+#               (PASS or FAIL, gate by gate), handed back on check-out/filmNN.
+#   mode voice: the AI voice guide and its word timings from the film's script, handed back on check-out/filmNN-voice.
+# Source: scripts/film/agent/workflows/check.yml (branch.py puts it on every check branch).
+name: check
+on:
+  push:
+    branches: ['check/*']
+permissions:
+  contents: write
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      mode: ${{ steps.m.outputs.mode }}
+      film: ${{ steps.m.outputs.film }}
+      t1: ${{ steps.m.outputs.t1 }}
+      tasks: ${{ steps.m.outputs.tasks }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: render/queue.json
+          sparse-checkout-cone-mode: false
+      - id: m
+        run: |
+          python3 - <<'PY'
+          import json, os
+          q = json.load(open('render/queue.json')); f = q['films'][0]; t1 = float(f['t1'] or 0)
+          # the long checks in time slices, one machine each; the screen checks and the contact sheet on one more
+          tasks = [{'task': 'audit', 't0': round(t1 * i / 4, 2), 't1': round(t1 * (i + 1) / 4 + 0.1, 2), 'id': f'audit{i}'} for i in range(4)]
+          tasks += [{'task': 'jump', 't0': round(max(0, t1 * i / 2 - 0.5), 2), 't1': round(t1 * (i + 1) / 2, 2), 'id': f'jump{i}'} for i in range(2)]
+          tasks += [{'task': 'screen', 't0': 0, 't1': t1, 'id': 'screen'}]
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as o:
+              o.write(f"mode={q.get('mode', 'check')}\nfilm={f['film']}\nt1={t1}\n")
+              o.write('tasks=' + json.dumps({'include': tasks}) + '\n')
+          PY
+
+  voice:
+    needs: plan
+    if: needs.plan.outputs.mode == 'voice'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Set up the voice
+        run: bash render/setup.sh voice
+      - name: Voice guide and word times
+        working-directory: scripts/film/voice
+        run: |
+          S=$(python3 -c "import json;print(json.load(open('../../../render/queue.json'))['films'][0]['script'])")
+          D=/tmp/handback; mkdir -p $D
+          python3 guide_film.py ../../../$S $D 2>&1 | tee $D/voice.log
+          R=$(ls $D/*-report.json | head -n 1)
+          python3 word_times.py ../../../$S $R 2>&1 | tail -n 5 | tee -a $D/voice.log
+          # for Sam: the recording script (folder 1) and the guide as audio (folder 2)
+          python3 ../agent/script_rtf.py ../../../$S $D
+          NN=$(python3 -c "import json;print('%02d' % json.load(open('../../../$S'))['n'])")
+          ffmpeg -v error -i $D/*-voice-guide.wav -c:a aac -b:a 128k "$D/Film $NN voice guide (AI voice, not for posting).m4a"
+          python3 - "$R" <<'PY' > $D/verdict.txt
+          import json, sys, os, glob
+          r = json.load(open(sys.argv[1])); w = sum(len(s[3]) if len(s) > 3 else 0 for x in r for s in x['sents'])
+          wav = glob.glob(os.path.join(os.path.dirname(sys.argv[1]), '*-voice-guide.wav'))
+          ok = bool(wav) and w > 0
+          print(('PASS' if ok else 'FAIL') + ' voice'); print(f"{'ok  ' if wav else 'FAIL'} voice guide: {', '.join(os.path.basename(x) for x in wav) or 'missing'}")
+          print(f"{'ok  ' if w else 'FAIL'} word times: {w} words timed; ends at {r[-1]['end']} s")
+          PY
+          cat $D/verdict.txt
+      - name: Hand back
+        if: always()
+        env:
+          TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: bash render/hand_back.sh "check-out/${{ needs.plan.outputs.film }}-voice" "${{ github.run_number }}" "${{ job.status }}" /tmp/handback
+
+  checks:
+    needs: plan
+    if: needs.plan.outputs.mode == 'check'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.plan.outputs.tasks) }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Set up the renderer
+        run: bash render/setup.sh
+      - name: Check
+        working-directory: scripts/film
+        env:
+          F: ${{ needs.plan.outputs.film }}
+          T0: ${{ matrix.t0 }}
+          T1: ${{ matrix.t1 }}
+          ID: ${{ matrix.id }}
+        run: |
+          mkdir -p qa
+          case "${{ matrix.task }}" in
+            audit) (timeout 4800 python3 audit_film.py $F --dt 0.1 --t0 $T0 --t1 $T1 --port 8811 > qa/qa_audit_$ID.log 2>&1; echo "exit $?" >> qa/qa_audit_$ID.log) ;;
+            jump)  (timeout 4800 python3 jump_check.py $F --t0 $T0 --t1 $T1 --port 8812 > qa/qa_jump_$ID.log 2>&1; echo "exit $?" >> qa/qa_jump_$ID.log) ;;
+            screen)
+              (timeout 1500 python3 check_caps.py $F > qa/qa_caps.log 2>&1; echo "exit $?" >> qa/qa_caps.log) &
+              (timeout 3000 python3 tags_check.py $F --dt 0.1 --port 8813 > qa/qa_tags.log 2>&1; echo "exit $?" >> qa/qa_tags.log) &
+              (timeout 3000 python3 caps_clear.py $F --dt 0.1 --port 8814 > qa/qa_clear.log 2>&1; echo "exit $?" >> qa/qa_clear.log) &
+              wait
+              (timeout 900 python3 pgerr.py $F $PWD 8815 > qa/qa_pgerr.log 2>&1; echo "exit $?" >> qa/qa_pgerr.log)
+              timeout 2400 python3 agent/contact_sheet.py film $F $T1 qa/sheet.png --port 8816 > qa/sheet.log 2>&1 || true ;;
+          esac
+          tail -n 4 qa/*.log
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: qa-${{ matrix.id }}
+          path: scripts/film/qa/
+          retention-days: 3
+
+  verdict:
+    needs: [plan, checks]
+    if: ${{ !cancelled() && needs.plan.outputs.mode == 'check' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: |
+            render/hand_back.sh
+            scripts/film/agent/verdict.py
+          sparse-checkout-cone-mode: false
+      - uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          pattern: qa-*
+          path: /tmp/handback
+          merge-multiple: true
+      - name: Verdict
+        run: |
+          echo "checks run ${{ github.run_number }}: ${{ needs.checks.result }}" > /tmp/handback/status.txt
+          python3 scripts/film/agent/verdict.py check ${{ needs.plan.outputs.film }} /tmp/handback || true
+      - name: Hand back
+        if: always()
+        env:
+          TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: bash render/hand_back.sh "check-out/${{ needs.plan.outputs.film }}" "${{ github.run_number }}" "done" /tmp/handback
