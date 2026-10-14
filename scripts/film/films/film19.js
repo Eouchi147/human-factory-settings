@@ -304,7 +304,7 @@ const mixArm = (a, b, k) => ({ dir: a.dir.map((v, i) => lerp(v, b.dir[i], k)), t
 // ------------------------------------------------------------------ arm poses
 const STAND_ARM = { dir: [0.1, -1, 0.0], twist: 0.15, elbow: 0.2, pro: 1.45, wf: 0.08 };
 const SIT_ARM = { dir: [0.24, -1, 0.22], twist: 0.35, elbow: 0.62, pro: 1.3, wf: 0.1 };
-const CLASP_ARM = { dir: [0.28, -1, 0.6], twist: 0.5, elbow: 0.55, pro: 1.3, wf: 0.25 };
+const CLASP_ARM = { dir: [0.28, -1, 0.66], twist: 0.5, elbow: 0.55, pro: 1.3, wf: 0.25 };
 const REACH_ARM = { dir: [0.3, -0.55, 0.75], twist: 0.2, elbow: 0.5, pro: 1.2, wf: 0.1 };
 const FSIT_ARM = { dir: [0.25, -1, 0.05], twist: 0.3, elbow: 0.35, pro: 1.35, wf: 0.08 };
 const GRIP_NAMES = new Set(['floorR', 'sofaR', 'seatR', 'seatL', 'backR']);
@@ -344,12 +344,12 @@ async function build(S, cfg) {
   };
   F.floorSlump = { ...F.floorFB, spine: [0.05, 0.34, 0.18] };
   F.floorHand = { ...F.floorFB, spine: [0.04, 0.22, 0.1], armR: 'floorR' };
-  F.kneelFB = { base: [FB.x, FB.z + 0.02], py: KNY, fR: [FB.x - 0.13, 0.11, FB.z - 0.3], fL: [FB.x + 0.13, AH, FB.z + 0.34], fpR: -1.15, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.15, 0, -1], kfL: [0, 1], spine: [0.04, 0.16, 0.06], armR: 'sit', armL: 'sit', curlR: 0.15, curlL: 0.3 };
+  F.kneelFB = { base: [FB.x, FB.z + 0.02], py: KNY, fR: [FB.x - 0.13, 0.11, FB.z - 0.3], fL: [FB.x + 0.13, AH, FB.z + 0.34], fpR: -1.15, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.15, 0, -1], kfL: [0, 1, 0], spine: [0.04, 0.16, 0.06], armR: 'sit', armL: 'sit', curlR: 0.15, curlL: 0.3 };
   F.kneelSofa = { ...F.kneelFB, armR: 'sofaR', curlR: 0.55 };
   F.standClasp = { ...F.standFB, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 };
   F.floorClasp = { ...F.floorFB, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 };
   const CHF = { fR: [CH.x - 0.11, AH, 0.3], fL: [CH.x + 0.11, AH, 0.3] };
-  F.chairSit = { base: [CH.x, CH.z], py: CY, ...CHF, fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 0, 1], kfL: [0, 0, 1], spine: [0.01, 0.08, 0.04], armR: 'seatR', armL: 'seatL', curlR: 0.55, curlL: 0.55 };
+  F.chairSit = { base: [CH.x, CH.z], py: CY, ...CHF, fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 0, 1], kfL: [0, 0, 1], spine: [0.01, 0.08, 0.04], armR: 'seatR', armL: 'seatL', curlR: 0.45, curlL: 0.45 };
   F.chairStand = { base: [CH.x, 0.02], py: GY, ...CHF, fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 0, 1], kfL: [0, 0, 1], spine: [0, -0.02, 0.01], armR: 'stand', armL: 'stand', curlR: 0.3, curlL: 0.3 };
   F.calfStand = { base: [0.02, 0.02], py: GY, fR: [-0.09, AH, 0.08], fL: [0.13, AH, 0.08], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 0, 1], kfL: [0, 0, 1], spine: [0, -0.02, 0.01], armR: 'stand', armL: 'stand', curlR: 0.3, curlL: 0.3 };
   F.standC = { ...F.calfStand, armR: 'stand', curlR: 0.3 };
@@ -357,11 +357,11 @@ async function build(S, cfg) {
   F.floorC = { base: [0.02, 0.02], py: FY, fR: [-0.13, AH, 0.44], fL: [0.17, AH, 0.44], fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.1, 1, 0.35], kfL: [0.1, 1, 0.35], spine: [0, 0.05, 0.03], armR: 'sit', armL: 'sit', curlR: 0.12, curlL: 0.3 };
   W.F = F;
   // ---- solved arm poses, each solved in the body pose where it is used
-  const POSES = { stand: STAND_ARM, sit: SIT_ARM, clasp: CLASP_ARM, reach: REACH_ARM, fsit: FSIT_ARM };
+  const POSES = { stand: STAND_ARM, sit: SIT_ARM, clasp: CLASP_ARM, reach: REACH_ARM, fsit: FSIT_ARM, liftR: { dir: [0.35, -0.25, 0.55], twist: 0.3, elbow: 0.5, pro: 1.3, wf: 0.1 } };
   W.POSES = POSES;
-  const solveIn = (P, Side, H, at, aims, extra) => { applyPose(P, { Right: STAND_ARM, Left: STAND_ARM }); return solveHand(R, Side, H, at, { dir: [0.5, -0.8, 0.3], twist: 0.2, elbow: 0.8 }, aims, extra); };
+  const solveIn = (P, Side, H, at, aims, extra, init) => { applyPose(P, { Right: STAND_ARM, Left: STAND_ARM }); return solveHand(R, Side, H, at, init || { dir: [0.5, -0.8, 0.3], twist: 0.2, elbow: 0.8 }, aims, extra); };
   const palmDown = (H, fdir) => [{ v: H.n, to: new THREE.Vector3(0, -1, 0), w: 0.55 }, { v: H.fdir, to: fdir, w: 0.25 }];
-  POSES.floorR = solveIn(F.floorFB, 'Right', W.handR, new THREE.Vector3(FB.x - 0.34, 0.016, FB.z + 0.3), palmDown(W.handR, new THREE.Vector3(0.2, 0, 1).normalize()));
+  POSES.floorR = solveIn(F.floorFB, 'Right', W.handR, new THREE.Vector3(FB.x - 0.32, 0.03, FB.z + 0.28), palmDown(W.handR, new THREE.Vector3(0.2, 0, 1).normalize()), null, { dir: [0.3, -1, 0.35], twist: 0.4, elbow: 0.25, pro: 1.35 });
   POSES.floorR.fit = W.handR.fit((p) => p.y, { need: 0.004, kmin: 0.05, kmax: 0.6 });
   POSES.sofaR = solveIn(F.kneelFB, 'Right', W.handR, new THREE.Vector3(SOFA_ARM.x + 0.01, SOFA_ARM.top + 0.012, SOFA_ARM.z), palmDown(W.handR, new THREE.Vector3(1, 0, 0.15).normalize()));
   POSES.sofaR.fit = W.handR.fit(boxSDF(SOFA_ARM.x, SOFA_ARM.top - 0.045, -0.04, 0.06, 0.045, 0.3), { need: 0.004, kmin: 0.05, kmax: 0.7 });
@@ -374,8 +374,8 @@ async function build(S, cfg) {
   // ---- the pose keys over time (what the body is doing, beat by beat)
   const K = (t, P) => ({ t, ...P });
   W.keys = [
-    K(-1, F.floorSlump), K(T.hand1 - 0.5, F.floorSlump), K(T.hand1 + 0.35, F.floorHand), K(T.knee1 + 0.5, F.kneelFB), K(T.prayer + 0.3, F.kneelSofa),
-    K(T.haveNot - 0.4, F.standFB), K(T.basic + 0.6, F.standFB),
+    K(-1, F.floorSlump), K(T.hand1 - 0.5, F.floorSlump), K(T.hand1 + 0.35, F.floorHand), K(T.knee1 + 0.5, F.kneelFB), K(T.prayer - 0.2, { ...F.kneelFB, armR: 'liftR', curlR: 0.2 }), K(T.prayer + 0.3, F.kneelSofa),
+    K(T.prayer + 1.25, { ...F.standFB, armR: 'liftR', curlR: 0.08 }), K(T.haveNot - 0.4, F.standFB), K(T.basic + 0.6, F.standFB),
     K(T.sit2 + 0.5, F.squatFB), K(T.strength - 0.3, F.floorClasp), K(T.flexibility + 0.9, F.floorClasp),
     K(T.sat3 + 0.4, F.squatFB), K(T.rose + 0.5, F.standClasp), K(T.every - 0.3, F.standClasp),
     K(T.hand2 + 0.3, { ...F.squatFB, armR: 'floorR', curlR: 0.12 }), K(T.cost + 0.55, F.floorHand), K(T.low + 0.7, F.floorFB),
@@ -575,7 +575,7 @@ W.timing = { handDown: T.hand1 + 0.35, kneeDown: T.knee1 + 0.5, sofaGrab: T.pray
 
 makeFilm({
   T, caps: CAPS, subs: [], build, update, pose: camPose, overlay, overlayInit, focus: focusAt,
-  shade: [[T.prayer - 0.1, T.party + 0.95], [T.sat3 + 0.1, T.rose + 0.65], [T.flexibility + 0.6, T.researchers + 0.85], [T.survival + 0.5, T.win + 0.8], [T.plain + 0.35, T.fallen + 0.95], [T.doctor + 1.0, T.final + 1.1]],
+  shade: [[T.hand1 - 0.6, T.party + 0.95], [T.sat3 + 0.1, T.rose + 0.65], [T.flexibility + 0.6, T.researchers + 0.85], [T.survival + 0.5, T.win + 0.8], [T.plain + 0.35, T.fallen + 0.95], [T.doctor + 1.0, T.final + 1.1]],
   stage: { bg: 0x07080a, reflSize: 9, env: 0.12, far: 30 },
   aperture: [[0, 0.004], [T.researchers, 0.003], [T.final, 0.003]],
   bloom: [[0, 0.5], [T.final, 0.55]],
