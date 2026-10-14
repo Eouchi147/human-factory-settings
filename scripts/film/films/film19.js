@@ -375,7 +375,7 @@ async function build(S, cfg) {
   // ---- the pose keys over time (what the body is doing, beat by beat)
   const K = (t, P) => ({ t, ...P });
   W.keys = [
-    K(-1, F.floorSlump), K(T.hand1 - 0.5, F.floorSlump), K(T.hand1 + 0.35, F.floorHand), K(T.knee1 + 0.5, F.kneelFB), K(T.prayer - 0.08, { ...F.kneelFB, armR: 'liftR', curlR: 0.2 }), K(T.prayer + 0.3, F.kneelSofa),
+    K(-1, F.floorSlump), K(T.hand1 - 0.5, F.floorSlump), K(T.hand1 + 0.35, F.floorHand), K(T.knee1 + 0.5, F.kneelFB), K(T.prayer - 0.08, { ...F.kneelFB, armR: 'liftR', curlR: 0.2 }), K(T.prayer + 0.42, F.kneelSofa),
     K(T.prayer + 1.25, { ...F.standFB, armR: 'liftR', curlR: 0.08 }), K(T.haveNot - 0.4, F.standFB), K(T.basic + 0.6, F.standFB),
     K(T.sit2 + 0.5, F.squatFB), K(T.strength - 0.3, F.floorClasp), K(T.flexibility + 0.9, F.floorClasp),
     K(T.sat3 + 0.4, F.squatFB), K(T.rose + 0.5, F.standClasp), K(T.every - 0.3, F.standClasp),
@@ -569,7 +569,7 @@ function overlay(S, t) {
 }
 
 // ------------------------------------------------------------------ the timing table the sound reads (timing19.json)
-W.timing = { handDown: T.hand1 + 0.35, kneeDown: T.knee1 + 0.5, sofaGrab: T.prayer + 0.3, upFirst: T.haveNot - 0.4, descend1: [T.sit2 + 0.5, T.strength - 0.3], rise1: [T.sat3 + 0.4, T.rose + 0.5],
+W.timing = { handDown: T.hand1 + 0.35, kneeDown: T.knee1 + 0.5, sofaGrab: T.prayer + 0.42, upFirst: T.haveNot - 0.4, descend1: [T.sit2 + 0.5, T.strength - 0.3], rise1: [T.sat3 + 0.4, T.rose + 0.5],
   handDown2: T.hand2 + 0.3, flips: [T.cost + 0.45, T.linked4 + 0.4], scoreUp: [T.extra + 0.1, T.point5 + 0.25], bars: [T.extra, T.point5, T.twentyOne],
   seat: T.seatFirst, stands: [T.seatFirst + 0.95, T.fingertip + 0.35, T.nothing + 0.85, T.twice + 0.55], ticks: [T.seatFirst, T.oneHand, T.fingertip, T.nothing], train: T.twice,
   calf: [T.calf + 0.6, 1.35, 1], trip: [T.trips + 0.6, T.back7 + 1.1], sign: [SIGN_IN, SIGN_OUT], checks: [T.hip8, T.cannot, T.call, T.keepWarm], doctor: T.doctor, logo: T.logo, moves: CAM_MOVES };
