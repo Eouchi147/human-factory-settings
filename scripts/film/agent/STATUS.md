@@ -26,7 +26,7 @@ Updated 13 Oct 2026, evening (Ottawa).
 | 16 | Tue 24 Nov | How much water do you need? | Weight & food | Picture done |  |
 | 17 | Thu 26 Nov | How do I build muscle? | Fitness & strength | Picture done |  |
 | 18 | Sat 28 Nov | What do cold showers really do? | Stress & mood | Picture done |  |
-| 19 | Tue 1 Dec | Can you get up off the floor without your hands? | Fitness & strength | Writing | next to write |
+| 19 | Tue 1 Dec | Can you get up off the floor without your hands? | Fitness & strength | Ready to record | voice guide 75.2 s |
 | 20 | Thu 3 Dec | Is fish oil as good as eating fish? | Weight & food | Writing |  |
 | 21 | Sat 5 Dec | Should you wake up at the same time every day? | Sleep & energy | Writing |  |
 | 22 | Tue 8 Dec | How do you make your bones stronger? | Fitness & strength | Writing |  |
