@@ -1,0 +1,13 @@
+PASS render film19
+ok   collisions (audit_film) [qa_audit.log]: 0 problems
+ok   pops (jump_check) [qa_jump.log]: 0 pops
+ok   printed words in the bottom fifth or button column (tags_check) [qa_tags.log]: 0 stretches
+ok   bones behind the captions (caps_clear) [qa_clear.log]: 0 stretches
+ok   captions fit their lines (check_caps) [qa_caps.log]: 0 problems
+ok   run status: success run 31, frames 1852, length 77.166667 s
+ok   every frame rendered: frames: 1852 of 1852, missing 0
+ok   sound: ok film19 (3703200, 2) 0.058 0.0811
+ok   two cuts handed back: Film 19 voice guide (AI voice, not for posting).mp4, Film 19, music and effects (for your voice).mp4
+ok   length [Film 19 voice guide (AI voice, not for posting).mp4]: 77.17 s for 77.15 s
+ok   length [Film 19, music and effects (for your voice).mp4]: 77.17 s for 77.15 s
+ok   contact sheet: sheet.png
