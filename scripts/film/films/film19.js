@@ -394,7 +394,7 @@ async function build(S, cfg) {
   applyPose(F.standFB, { Right: STAND_ARM, Left: STAND_ARM }); W.body.updateMatrixWorld(true);
   { const femur = R.byName.get('Right femur');
     if (femur) { W.stampSpot = stampLine(femur, { a: [-0.3, 0.13, 0.0], b: [-0.3, -0.03, 0.018], dir: [1, 0, 0], top: [0, 0, 1] });
-      if (W.stampSpot) W.stamp = stamp(femur, { canvas: stampCanvas(['HUMAN FACTORY', 'SETTINGS'], '', { frame: true }), center: W.stampSpot.center, normal: W.stampSpot.normal, up: W.stampSpot.up, width: 0.13, depth: 0.04, opacity: 0.6 }); } }
+      if (W.stampSpot) W.stamp = stamp(femur, { canvas: stampCanvas(['HUMAN FACTORY', 'SETTINGS'], '', { frame: true }), center: W.stampSpot.center, normal: W.stampSpot.normal, up: W.stampSpot.up, width: 0.15, depth: 0.04, opacity: 0.6 }); } }
   // ---- light
   W.key = spot(scene, { color: 0xdfe6ff, pos: new THREE.Vector3(1.3, 3.0, 2.2), target: new THREE.Vector3(0, 1.0, 0), angle: 0.45, penumbra: 0.8, shadow: true, size: cfg.shadow ?? 1024 }); W.key.shadow.camera.far = 8;
   W.rim = spot(scene, { color: 0xa9c4ff, pos: new THREE.Vector3(-1.2, 2.6, -0.9), target: new THREE.Vector3(0, 1.1, 0), angle: 0.5, penumbra: 0.9 });
