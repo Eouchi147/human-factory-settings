@@ -1,5 +1,7 @@
 # Films: how they are made
 
+**Agents: start with `agent/PLAYBOOK.md`** (the whole process, the gates, and the `agent/hfs.py` commands).
+
 Every film is one continuous 3D shot, about 60 to 70 seconds, 1080 x 1920 at 24 frames a second.
 Every frame is a pure function of time, so any stretch of a film can be re-rendered on its own.
 

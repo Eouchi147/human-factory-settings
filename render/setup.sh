@@ -1,7 +1,19 @@
 #!/bin/bash
-# set up a GitHub runner to render (and with "assemble", to make the cuts): the browser, the 3D models, three.js, fonts
+# set up a GitHub runner for the film pipeline: the browser, the 3D models, three.js, fonts.
+#   setup.sh            to render frames or run the picture's checks
+#   setup.sh assemble   also ffmpeg, to make the sound and the cuts
+#   setup.sh voice      the AI voice guide only (Kokoro-82M via kokoro-onnx, Apache 2.0)
+# Lives in scripts/film/agent/kit/; branch.py copies it to render/setup.sh on every check or render branch.
 set -e
 cd "$(dirname "$0")/.."
+if [ "$1" = voice ]; then
+  sudo apt-get update -qq && sudo apt-get install -y -qq ffmpeg > /dev/null
+  pip install -q kokoro-onnx==0.4.9 soundfile numpy scipy
+  V=scripts/film/voice; B=https://github.com/thewh1teagle/kokoro-onnx/releases/download/model-files-v1.0
+  [ -f $V/kokoro-v1.0.onnx ] || curl -sSfL -o $V/kokoro-v1.0.onnx $B/kokoro-v1.0.onnx
+  [ -f $V/voices-v1.0.bin ] || curl -sSfL -o $V/voices-v1.0.bin $B/voices-v1.0.bin
+  echo "voice ready"; exit 0
+fi
 sudo apt-get update -qq
 sudo apt-get install -y -qq libegl1 libgl1-mesa-dri libgles2 > /dev/null
 if [ "$1" = assemble ]; then sudo apt-get install -y -qq ffmpeg > /dev/null; fi

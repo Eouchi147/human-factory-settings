@@ -1,1 +1,1 @@
-{"parts": 10, "films": [{"film": "film15", "n": 15, "nn": "15", "t1": 80.59, "guide": "15-hangry"}]}
+{"parts": 10, "mode": "render", "films": [{"film": "film19", "n": 19, "nn": "19", "t1": 77.15, "guide": "19-get-up-off-the-floor", "script": "content/films/19-get-up-off-the-floor.json"}]}
