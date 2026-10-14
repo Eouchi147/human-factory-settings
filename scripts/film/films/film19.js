@@ -6,7 +6,7 @@
 // to the floor and back. The warning on its sign. The dial becomes the logo. The factory stamp is on the right thigh
 // bone, like film 3. Posture: athlete stand, palms facing the body, from film 18 on.
 import { THREE, ss, s5, lerp, clamp01, hash, camTrack, phys, shadows, spot, RoundedBoxGeometry,
-  loadAnatomy, V3, place, logoEnd, makeFilm, outBack, noiseTex, stamp, stampCanvas, stampSpot, softSprite } from '../kit.js';
+  loadAnatomy, V3, place, logoEnd, makeFilm, outBack, noiseTex, stamp, stampCanvas, stampSpot, stampLine, softSprite } from '../kit.js';
 import { buildRig, skeletonKind, bendSpine, poseArm, legIK, worldVerts, avgV } from '../rig.js';
 import { makeLogoRing } from '../props.js';
 
@@ -393,8 +393,8 @@ async function build(S, cfg) {
   // ---- the factory stamp, on the outer face of the right thigh bone (film 3's place)
   applyPose(F.standFB, { Right: STAND_ARM, Left: STAND_ARM }); W.body.updateMatrixWorld(true);
   { const femur = R.byName.get('Right femur');
-    if (femur) { W.stampSpot = stampSpot(femur, { from: [0.35, 1.0, FB.z + 0.72], dir: [-0.54, -0.1, -0.83], spread: 0.004 });
-      if (W.stampSpot) W.stamp = stamp(femur, { canvas: stampCanvas(['HUMAN FACTORY', 'SETTINGS'], '', { frame: true }), center: W.stampSpot.center, normal: W.stampSpot.normal, up: [0, 1, 0], width: 0.13, depth: 0.03, opacity: 0.5 }); } }
+    if (femur) { W.stampSpot = stampLine(femur, { a: [-0.3, 0.13, 0.0], b: [-0.3, -0.03, 0.018], dir: [1, 0, 0], top: [0, 0, 1] });
+      if (W.stampSpot) W.stamp = stamp(femur, { canvas: stampCanvas(['HUMAN FACTORY', 'SETTINGS'], '', { frame: true }), center: W.stampSpot.center, normal: W.stampSpot.normal, up: W.stampSpot.up, width: 0.13, depth: 0.04, opacity: 0.6 }); } }
   // ---- light
   W.key = spot(scene, { color: 0xdfe6ff, pos: new THREE.Vector3(1.3, 3.0, 2.2), target: new THREE.Vector3(0, 1.0, 0), angle: 0.45, penumbra: 0.8, shadow: true, size: cfg.shadow ?? 1024 }); W.key.shadow.camera.far = 8;
   W.rim = spot(scene, { color: 0xa9c4ff, pos: new THREE.Vector3(-1.2, 2.6, -0.9), target: new THREE.Vector3(0, 1.1, 0), angle: 0.5, penumbra: 0.9 });
