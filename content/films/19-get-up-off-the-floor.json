@@ -11,7 +11,7 @@
     "You treat the floor like lava now: down is easy, but up needs a hand, a knee, and a small prayer to the sofa.",
     "You have not lost a party trick. You have lost a basic move."
    ],
-   "gap": 0.9
+   "gap": 1.2
   },
   {
    "say": [
@@ -19,7 +19,8 @@
    ],
    "src": [
     "brito2014"
-   ]
+   ],
+   "gap": 0.7
   },
   {
    "say": [
@@ -27,7 +28,8 @@
    ],
    "src": [
     "brito2014"
-   ]
+   ],
+   "gap": 0.7
   },
   {
    "say": [
@@ -35,7 +37,8 @@
    ],
    "src": [
     "brito2014"
-   ]
+   ],
+   "gap": 0.7
   },
   {
    "say": [
@@ -43,7 +46,8 @@
    ],
    "src": [
     "brito2014"
-   ]
+   ],
+   "gap": 0.6
   },
   {
    "say": [
@@ -52,7 +56,8 @@
    "src": [
     "nhsfalls",
     "nhsinform"
-   ]
+   ],
+   "gap": 0.7
   },
   {
    "say": [
@@ -62,7 +67,8 @@
     "nhsguide",
     "nhsinform",
     "cdc"
-   ]
+   ],
+   "gap": 0.7
   },
   {
    "say": [
@@ -73,7 +79,7 @@
     "nhsfalls",
     "nhsguide"
    ],
-   "gap": 0.9
+   "gap": 1.2
   },
   {
    "say": [
