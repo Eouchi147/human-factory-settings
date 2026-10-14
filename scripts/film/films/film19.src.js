@@ -179,7 +179,7 @@ function makeDialStand(scene) {
 // ------------------------------------------------------------------ arm poses
 const STAND_ARM = { dir: [0.1, -1, 0.0], twist: 0.15, elbow: 0.2, pro: 1.45, wf: 0.08 };
 const SIT_ARM = { dir: [0.24, -1, 0.22], twist: 0.35, elbow: 0.62, pro: 1.3, wf: 0.1 };
-const CLASP_ARM = { dir: [0.28, -1, 0.66], twist: 0.5, elbow: 0.55, pro: 1.3, wf: 0.25 };
+const CLASP_ARM = { dir: [0.28, -0.92, 0.72], twist: 0.5, elbow: 0.55, pro: 1.3, wf: 0.25 };
 const REACH_ARM = { dir: [0.3, -0.55, 0.75], twist: 0.2, elbow: 0.5, pro: 1.2, wf: 0.1 };
 const FSIT_ARM = { dir: [0.25, -1, 0.05], twist: 0.3, elbow: 0.35, pro: 1.35, wf: 0.08 };
 const GRIP_NAMES = new Set(['floorR', 'sofaR', 'seatR', 'seatL', 'backR']);
@@ -221,7 +221,7 @@ async function build(S, cfg) {
   F.floorHand = { ...F.floorFB, spine: [0.04, 0.22, 0.1], armR: 'floorR' };
   F.kneelFB = { base: [FB.x, FB.z + 0.02], py: KNY, fR: [FB.x - 0.13, 0.11, FB.z - 0.3], fL: [FB.x + 0.13, AH, FB.z + 0.34], fpR: -1.15, fpL: 0, fyR: 0, fyL: 0, kfR: [-0.15, 0, -1], kfL: [0, 1, 0], spine: [0.04, 0.16, 0.06], armR: 'sit', armL: 'sit', curlR: 0.15, curlL: 0.3 };
   F.kneelSofa = { ...F.kneelFB, armR: 'sofaR', curlR: 0.55 };
-  F.standClasp = { ...F.standFB, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 };
+  F.standClasp = { ...F.standFB, armR: 'clasp', armL: 'clasp', curlR: 0.3, curlL: 0.5 };
   F.floorClasp = { ...F.floorFB, armR: 'clasp', armL: 'clasp', curlR: 0.5, curlL: 0.5 };
   const CHF = { fR: [CH.x - 0.11, AH, 0.3], fL: [CH.x + 0.11, AH, 0.3] };
   F.chairSit = { base: [CH.x, CH.z], py: CY, ...CHF, fpR: 0, fpL: 0, fyR: 0, fyL: 0, kfR: [0, 0, 1], kfL: [0, 0, 1], spine: [0.01, 0.08, 0.04], armR: 'seatR', armL: 'seatL', curlR: 0.45, curlL: 0.45 };
@@ -234,10 +234,10 @@ async function build(S, cfg) {
   // ---- solved arm poses, each solved in the body pose where it is used
   const POSES = { stand: STAND_ARM, sit: SIT_ARM, clasp: CLASP_ARM, reach: REACH_ARM, fsit: FSIT_ARM, liftR: { dir: [0.35, -0.25, 0.55], twist: 0.3, elbow: 0.5, pro: 1.3, wf: 0.1 } };
   W.POSES = POSES;
-  const solveIn = (P, Side, H, at, aims, extra, init) => { applyPose(P, { Right: STAND_ARM, Left: STAND_ARM }); return solveHand(R, Side, H, at, init || { dir: [0.5, -0.8, 0.3], twist: 0.2, elbow: 0.8 }, aims, extra); };
+  const solveIn = (P, Side, H, at, aims, extra, init, starts) => { applyPose(P, { Right: STAND_ARM, Left: STAND_ARM }); return solveHand(R, Side, H, at, init || { dir: [0.5, -0.8, 0.3], twist: 0.2, elbow: 0.8 }, aims, extra, starts); };
   const palmDown = (H, fdir) => [{ v: H.n, to: new THREE.Vector3(0, -1, 0), w: 0.55 }, { v: H.fdir, to: fdir, w: 0.25 }];
-  POSES.floorR = solveIn(F.floorFB, 'Right', W.handR, new THREE.Vector3(FB.x - 0.32, 0.03, FB.z + 0.28), palmDown(W.handR, new THREE.Vector3(0.2, 0, 1).normalize()), null, { dir: [0.3, -1, 0.35], twist: 0.4, elbow: 0.25, pro: 1.35 });
-  POSES.floorR.fit = W.handR.fit((p) => p.y, { need: 0.004, kmin: 0.05, kmax: 0.6 });
+  POSES.floorR = solveIn(F.floorFB, 'Right', W.handR, new THREE.Vector3(FB.x - 0.32, 0.02, FB.z + 0.28), palmDown(W.handR, new THREE.Vector3(0.2, 0, 1).normalize()), () => 2 * handGap(W.handR, (q) => q.y, { palmOnly: true }).E, { dir: [0.3, -1, 0.35], twist: 0.4, elbow: 0.25, pro: 1.35 }, [{ dir: [0.3, -1, 0.35], twist: 0.4, elbow: 0.25, pro: 1.35 }, { dir: [0.5, -0.8, 0.3], twist: 0.2, elbow: 0.8 }, { dir: [0.1, -1, 0.15], twist: 0.2, elbow: 0.3 }]);
+  POSES.floorR.fit = W.handR.fit((p) => p.y, { need: 0.004, kmin: 0.05, kmax: 0.9, tmin: -0.8 });
   POSES.sofaR = solveIn(F.kneelFB, 'Right', W.handR, new THREE.Vector3(SOFA_ARM.x + 0.01, SOFA_ARM.top + 0.012, SOFA_ARM.z), palmDown(W.handR, new THREE.Vector3(1, 0, 0.15).normalize()));
   POSES.sofaR.fit = W.handR.fit(boxSDF(SOFA_ARM.x, SOFA_ARM.top - 0.045, -0.04, 0.06, 0.045, 0.3), { need: 0.004, kmin: 0.05, kmax: 0.7 });
   POSES.seatR = solveIn(F.chairSit, 'Right', W.handR, new THREE.Vector3(CH.x - 0.185, CH.seat + 0.012, 0.02), palmDown(W.handR, new THREE.Vector3(0, 0, 1)));
