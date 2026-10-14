@@ -1,0 +1,3 @@
+PASS voice
+ok   voice guide: 19-get-up-off-the-floor-voice-guide.wav
+ok   word times: 195 words timed; ends at 74.45 s

@@ -1,0 +1,16 @@
+[0;93m2026-10-14 00:54:04.536128167 [W:onnxruntime:Default, device_discovery.cc:95 GetPciBusId] Skipping pci_bus_id for PCI path at "/sys/devices/LNXSYSTM:00/LNXSYBUS:00/ACPI0004:00/MSFT1000:00/5620e0c7-8062-4dce-aeb7-520c7ef76171" because filename "5620e0c7-8062-4dce-aeb7-520c7ef76171" did not match expected pattern of [0-9a-f]+:[0-9a-f]+:[0-9a-f]+[.][0-9a-f]+[m
+19-get-up-off-the-floor duration 75.2 s, words 195
+   1   0.35  12.24  You treat the floor like lava now: down is easy, but up needs a hand, a knee, an
+   2  13.54  21.29  Your body was built to sit on the floor and stand back up in one piece, using st
+   3  22.19  28.46  Researchers scored exactly that move in two thousand and two adults who sat on t
+   4  29.36  35.33  Every hand or knee cost a point, and low scores were linked to higher death rate
+   5  36.23  40.82  Each extra point was linked to a twenty one percent improvement in survival.
+   6  41.72  48.46  So win the points back beside a sturdy chair: its seat first, then one hand, the
+   7  49.36  55.69  Train the parts twice a week: chair stands, calf raises, and slow trips down to 
+   8  56.59  71.00  Plain warning: if you have fallen, hurt your head, back, neck or hip, or you can
+   9  72.30  74.45  Let's get you back to factory settings.
+41.72:So 42.30:win 42.53:the 42.65:points 42.95:back 43.05:beside 43.49:a 43.60:sturdy 43.93:chair: 44.14:its 44.76:seat 44.87:first, 45.51:then 45.73:one 46.05:hand, 46.51:then 46.79:a 47.02:fingertip, 47.33:then 47.94:nothing.
+49.36:Train 49.97:the 50.12:parts 50.34:twice 50.72:a 50.80:week: 50.96:chair 51.47:stands, 51.94:calf 52.34:raises, 53.05:and 53.14:slow 53.58:trips 53.97:down 54.31:to 54.48:the 54.76:floor 54.91:and 55.40:back.
+56.59:Plain 57.17:warning: 57.51:if 57.97:you 58.10:have 58.17:fallen, 58.47:hurt 58.99:your 59.16:head, 59.43:back, 59.75:neck 60.00:or 60.37:hip, 60.65:or 60.96:you 61.36:cannot 61.72:get 61.98:up, 62.23:call 62.61:for 62.88:emergency 63.78:help 64.18:and 64.51:keep 64.84:warm 65.28:while 65.73:you 65.98:wait.
+66.80:If 67.16:you 67.46:have 67.61:not 67.85:exercised 68.40:for 68.60:a 68.65:while, 68.91:talk 69.36:to 69.63:your 69.86:doctor 70.31:first.
+72.30:Let's 72.86:get 73.03:you 73.21:back 73.41:to 73.56:factory 73.95:settings.
