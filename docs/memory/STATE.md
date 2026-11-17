@@ -2,7 +2,7 @@
 
 Where the project stands now. Rewrite this file so it is true today; do not append to it.
 
-Last rewrite: 17 Nov 2026, from the repo. main is at 7d097ca (3 Oct 2026); nothing newer is recorded on main.
+Last rewrite: 17 Nov 2026, from the repo. Before the install merged on 17 Nov, main was at 7d097ca (3 Oct 2026); nothing newer is recorded on main.
 
 ## What it is
 
